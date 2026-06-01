@@ -1,150 +1,24 @@
-# Release files
-*.zip
-PCoreOptimizer_Release.zip
-
-# Byte-compiled / optimized / DLL files
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
-
-# C extensions
-*.so
-
-# Distribution / packaging
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-share/python-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
-
-# PyInstaller
-#  Usually these files are written by a python script, and contain the bin/
-#  and lib/ directories that a built python script terminates in.
-*.manifest
-*.spec
-
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
-
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.nox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.pyo
-.hypothesis/
-.pytest_cache/
-cover/
-
-# Translations
-*.mo
-*.pot
-
-# Django stuff:
-*.log
-local_settings.py
-db.sqlite3
-db.sqlite3-journal
-
-# Flask stuff:
-instance/
-.webassets-cache
-
-# Scrapy stuff:
-.scrapy
-
-# Sphinx documentation
-docs/_build/
-
-# PyBuilder
-.pybuilder/
-target/
-
-# Jupyter Notebook
-.ipynb_checkpoints
-
-# IPython
-profile_default/
-ipython_config.py
-
-# pyenv
-#   For a library or binary, you shouldn't ignore these files, but for a specific
-#   project, it can be useful to ignore them.
-# .python-version
-
-# pipenv
-#   According to pypa/pipenv#1173, it is recommended not to commit bin/
-#   in the case of using a virtualenv.
-# bin/
-
-# poetry
-#   Similar to pipenv, it's generally recommended to commit pyproject.toml and poetry.lock
-# poetry.lock
-# pyproject.toml
-
-# pdm
-#   Similar to poetry, it's generally recommended to commit pyproject.toml and pdm.lock
-# pdm.lock
-# .pdm.toml
-
-# PEP 582; used by e.g. github.com/frenzymadness/venvpdm
-__pypackages__/
-
-# Celery stuff
-celerybeat-schedule
-celerybeat.pid
-
-# SageMath parsed files
-*.sage.py
-
-# Environments
-.env
-.venv
-env/
+.venv/
 venv/
 ENV/
-env.bak/
-venv.bak/
 
-# Spyder project settings
-.spyderproject
-.spyproject
+# Project Specific
+temp_audio/
+msg_queue/
+config.ini
+bad_words.txt
+logs/
+build/
+dist/
+*.spec
+*.zip
+*.rar
 
-# Rope project settings
-.ropeproject
 
-# mkdocs documentation
-/site
-
-# mypy
-.mypy_cache/
-.dmypy.json
-dmypy.json
-
-# Pyre type checker
-.pyre/
-
-# pytype static type analyzer
-.pytype/
-
-# Cython debug symbols
-cython_debug/
+# OS
+.DS_Store
+Thumbs.db
