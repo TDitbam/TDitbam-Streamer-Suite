@@ -1,13 +1,13 @@
 import time
 import psutil
-from optimizer_core.config_loader import load_config, get_targets, get_paths, save_config
-from optimizer_core.cpu_topology import split_p_e_cores, calculate_affinity_mask
-from optimizer_core.cleaner import clean_junk
-from engine.cache import ProcessStateCache
-from engine.enforcer import Enforcer
-from engine.registry import ProcessRegistry
-from policy.models import CorePool
-from policy.engine import PolicyEngine
+from optimizer.optimizer_core.config_loader import load_config, get_targets, get_paths, save_config
+from optimizer.optimizer_core.cpu_topology import split_p_e_cores, calculate_affinity_mask
+from optimizer.optimizer_core.cleaner import clean_junk
+from optimizer.engine.cache import ProcessStateCache
+from optimizer.engine.enforcer import Enforcer
+from optimizer.engine.registry import ProcessRegistry
+from optimizer.policy.models import CorePool
+from optimizer.policy.engine import PolicyEngine
 
 def optimize_processes(stop_event, default_interval, log_callback=None):
     # Initialize v3 Engine Components

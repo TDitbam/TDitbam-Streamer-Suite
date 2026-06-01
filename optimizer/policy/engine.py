@@ -1,5 +1,5 @@
 from typing import Dict, List, Tuple
-from policy.models import Decision, PolicyType
+from optimizer.policy.models import Decision, PolicyType
 
 class PolicyEngine:
     def __init__(self, targets: Dict[str, str], paths: List[Tuple[str, str]]):

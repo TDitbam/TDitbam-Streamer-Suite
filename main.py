@@ -9,17 +9,25 @@ from PIL import Image
 import pystray
 from pystray import MenuItem as item
 
-# Set working directory to script location for direct execution
-os.chdir(os.path.dirname(os.path.abspath(__file__)))
+# Set working directory to the executable location (for EXE) or script location (for .py)
+if getattr(sys, 'frozen', False):
+    # If the application is run as a bundle, the PyInstaller bootloader
+    # extends the sys module by a flag frozen=True and sets the app 
+    # path into variable _MEIPASS or executable.
+    base_dir = os.path.dirname(sys.executable)
+else:
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+
+os.chdir(base_dir)
 
 # Add core directories to path
-sys.path.append(os.path.join(os.path.dirname(__file__), 'core'))
-sys.path.append(os.path.join(os.path.dirname(__file__), 'optimizer'))
+sys.path.append(base_dir) # Add root so 'optimizer' package can be found
+sys.path.append(os.path.join(base_dir, 'core'))
 
-from optimizer_core.optimizer_engine import optimize_processes
-from optimizer_core.config_loader import load_config as load_opt_config, save_config as save_opt_config, get_targets as get_opt_targets
-from optimizer_core.cpu_topology import split_p_e_cores
-from optimizer_core.cleaner import clean_junk
+from optimizer.optimizer_core.optimizer_engine import optimize_processes
+from optimizer.optimizer_core.config_loader import load_config as load_opt_config, save_config as save_opt_config, get_targets as get_opt_targets
+from optimizer.optimizer_core.cpu_topology import split_p_e_cores
+from optimizer.optimizer_core.cleaner import clean_junk
 
 from core.tts_engine import ChatTTSEngine
 from core.app_logger import get_logger, logger as base_logger
@@ -406,7 +414,7 @@ class StreamerSuiteApp(ctk.CTk):
 
 def run_cli():
     print("[*] Optimizing processes with CorePriority (CLI Mode)...")
-    from optimizer_core.optimizer_engine import optimize_processes
+    from optimizer.optimizer_core.optimizer_engine import optimize_processes
     try:
         optimize_processes(None, 3.0, log_callback=lambda m: print(f"[OPT] {m}"))
     except KeyboardInterrupt:

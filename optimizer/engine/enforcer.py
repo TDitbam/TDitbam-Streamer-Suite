@@ -1,9 +1,9 @@
 import psutil
 import time
 from typing import List
-from policy.models import Decision, PolicyType, CorePool
-from engine.registry import ProcessState
-from engine.cache import ProcessStateCache
+from optimizer.policy.models import Decision, PolicyType, CorePool
+from optimizer.engine.registry import ProcessState
+from optimizer.engine.cache import ProcessStateCache
 
 class Enforcer:
     def __init__(self, cache: ProcessStateCache, core_pool: CorePool, cooldown_ms: int = 500):
