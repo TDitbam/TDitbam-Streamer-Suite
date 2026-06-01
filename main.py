@@ -9,6 +9,9 @@ from PIL import Image
 import pystray
 from pystray import MenuItem as item
 
+# Set working directory to script location for direct execution
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
 # Add core directories to path
 sys.path.append(os.path.join(os.path.dirname(__file__), 'core'))
 sys.path.append(os.path.join(os.path.dirname(__file__), 'optimizer'))
