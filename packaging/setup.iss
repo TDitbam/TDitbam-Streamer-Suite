@@ -1,17 +1,17 @@
-; Inno Setup Script for Chat TTS Multi-Platform
-; Version: 2.2.1
+; Inno Setup Script for TDitbam Streamer Suite Pro
+; Version: 3.1.0
 
 [Setup]
-AppId={{C6E2A3B4-D8E9-4A0B-B1C2-E3F4A5B6C7D8}
-AppName=Chat TTS Multi-Platform
-AppVersion=2.2.1
-AppPublisher=Chat TTS Team
-DefaultDirName={autopf}\ChatTTS
-DefaultGroupName=Chat TTS Multi-Platform
+AppId={{D17BA111-5555-4444-AA11-BB22CC33DD44}
+AppName=TDitbam Streamer Suite Pro
+AppVersion=3.1.0
+AppPublisher=TDitbam & Gemini CLI
+DefaultDirName={autopf}\TDitbamStreamerSuite
+DefaultGroupName=TDitbam Streamer Suite Pro
 AllowNoIcons=yes
 LicenseFile=..\LICENSE
-OutputDir=..
-OutputBaseFilename=ChatTTS-v2.2.1-Setup
+OutputDir=..\dist
+OutputBaseFilename=TDitbam-StreamerSuite-v3.1.0-Setup
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
@@ -25,19 +25,15 @@ Name: "thai"; MessagesFile: "compiler:Languages\Thai.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "D:\chat-tts\packaging\dist\ChatTTS.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\chat-tts\packaging\dist\ChatTTS-CLI.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\chat-tts\README.md"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\chat-tts\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\chat-tts\docs\manual_th.md"; DestDir: "{app}\docs"; Flags: ignoreversion
-Source: "D:\chat-tts\docs\ai_recommendations.md"; DestDir: "{app}\docs"; Flags: ignoreversion
+Source: "..\dist\TDitbamStreamerSuite.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\README.md"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\docs\*"; DestDir: "{app}\docs"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
-Name: "{group}\Chat TTS Multi-Platform"; Filename: "{app}\ChatTTS.exe"
-Name: "{group}\Chat TTS CLI Mode"; Filename: "{app}\ChatTTS-CLI.exe"
-Name: "{group}\{cm:UninstallProgram,Chat TTS Multi-Platform}"; Filename: "{uninstallexe}"
-Name: "{autodesktop}\Chat TTS Multi-Platform"; Filename: "{app}\ChatTTS.exe"; Tasks: desktopicon
-Name: "{autodesktop}\Chat TTS CLI"; Filename: "{app}\ChatTTS-CLI.exe"; Tasks: desktopicon
+Name: "{group}\TDitbam Streamer Suite Pro"; Filename: "{app}\TDitbamStreamerSuite.exe"
+Name: "{group}\{cm:UninstallProgram,TDitbam Streamer Suite Pro}"; Filename: "{uninstallexe}"
+Name: "{autodesktop}\TDitbam Streamer Suite Pro"; Filename: "{app}\TDitbamStreamerSuite.exe"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\ChatTTS.exe"; Description: "{cm:LaunchProgram,Chat TTS Multi-Platform}"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\TDitbamStreamerSuite.exe"; Description: "{cm:LaunchProgram,TDitbam Streamer Suite Pro}"; Flags: nowait postinstall skipifsilent
