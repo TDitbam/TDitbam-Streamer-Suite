@@ -1,8 +1,18 @@
-pytchat
-edge-tts
-pygame
+# Core GUI & System
 customtkinter
-pyinstaller
+Pillow
+pystray
+psutil
+
+# Chat-TTS Engine
+edge-tts
 gTTS
-TikTokLive
+pygame
 deep-translator
+
+# Chat Collectors
+pytchat
+TikTokLive
+
+# Build Tools (Optional)
+pyinstaller
