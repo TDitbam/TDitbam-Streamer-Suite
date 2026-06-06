@@ -4,11 +4,11 @@ import sys
 from datetime import datetime
 
 def get_app_dir():
-    # ถ้าเป็น .exe ให้ใช้ AppData, ถ้าเป็น script ให้ใช้ที่เดิม
-    if getattr(sys, 'frozen', False):
-        app_dir = os.path.join(os.getenv('APPDATA'), 'ChatTTS')
+    # ใช้ AppData\Roaming ตามมาตรฐาน Windows
+    if os.name == 'nt':
+        app_dir = os.path.join(os.environ['APPDATA'], 'TDitbam-Streamer-Suite')
     else:
-        app_dir = os.getcwd()
+        app_dir = os.path.join(os.path.expanduser("~"), ".tditbam-streamer-suite")
     
     if not os.path.exists(app_dir):
         os.makedirs(app_dir)

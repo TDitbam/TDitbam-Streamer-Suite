@@ -28,9 +28,17 @@ class ChatFrame(ctk.CTkFrame):
             entry = ctk.CTkEntry(inner, placeholder_text=placeholder, width=350, font=self.app.default_font)
             setattr(self.app, entry_attr, entry)
             
-            # Map platform to config key
-            config_key = "youtube_video_id" if platform == "YouTube Live" else "tw_channel" if platform == "Twitch Chat" else "tk_username"
-            entry.insert(0, self.app.config.get("tts", config_key, fallback=""))
+            # Map platform to config key with backward compatibility
+            s = "settings"
+            tts_old = "tts"
+            if platform == "YouTube Live":
+                val = self.app.config.get(s, "yt_video_id", fallback=self.app.config.get(tts_old, "youtube_video_id", fallback=self.app.config.get(s, "YOUTUBE_VIDEO_ID", fallback="")))
+            elif platform == "Twitch Chat":
+                val = self.app.config.get(s, "tw_channel", fallback=self.app.config.get(tts_old, "tw_channel", fallback=""))
+            else: # TikTok
+                val = self.app.config.get(s, "tk_username", fallback=self.app.config.get(tts_old, "tk_username", fallback=""))
+            
+            entry.insert(0, val)
             entry.pack(side="right")
 
         # Voice & General Settings
@@ -51,13 +59,23 @@ class ChatFrame(ctk.CTkFrame):
         row2.pack(fill="x", padx=15, pady=5)
         ctk.CTkLabel(row2, text="Delay/Char:", font=self.app.default_font).pack(side="left")
         self.app.entry_delay_char = ctk.CTkEntry(row2, width=60, font=self.app.default_font)
-        self.app.entry_delay_char.insert(0, self.app.config.get("tts", "delay_per_char", fallback="0.03"))
+        
+        s = "settings"
+        tts_old = "tts"
+        delay_val = self.app.config.get(s, "delay_per_char", fallback=self.app.config.get(tts_old, "delay_per_char", fallback="0.03"))
+        self.app.entry_delay_char.insert(0, delay_val)
         self.app.entry_delay_char.pack(side="left", padx=5)
         
         ctk.CTkLabel(row2, text="Max Delay:", font=self.app.default_font).pack(side="left", padx=(10, 0))
         self.app.entry_max_delay = ctk.CTkEntry(row2, width=60, font=self.app.default_font)
-        self.app.entry_max_delay.insert(0, self.app.config.get("tts", "max_delay", fallback="2.0"))
+        max_delay_val = self.app.config.get(s, "max_delay", fallback=self.app.config.get(tts_old, "max_delay", fallback="2.0"))
+        self.app.entry_max_delay.insert(0, max_delay_val)
         self.app.entry_max_delay.pack(side="left", padx=5)
+        
+        # Real-time listeners for Entry widgets
+        for e in [self.app.entry_delay_char, self.app.entry_max_delay]:
+            e.bind("<FocusOut>", lambda event: self.app.logic.apply_realtime_config())
+            e.bind("<Return>", lambda event: self.app.logic.apply_realtime_config())
 
         # Profanity List / Custom Filter
         ctk.CTkLabel(v_f, text="Custom Message Filter (Comma separated):", font=self.app.default_font).pack(padx=15, pady=(10, 0), anchor="w")

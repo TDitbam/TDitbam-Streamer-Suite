@@ -24,15 +24,34 @@ class AppLogic:
             try:
                 if not self.app.engine.is_running:
                     self.logger.info("Starting Chat-TTS System...")
+                    # 1. Save current UI to disk
                     self.save_chat_settings()
+                    
+                    # Clear log box for new session
+                    try:
+                        log_box = self.app.frames["dashboard"].log_box
+                        log_box.configure(state="normal")
+                        log_box.delete("1.0", "end")
+                        log_box.configure(state="disabled")
+                    except:
+                        pass
+                    
+                    # 2. Build config dict from the fresh app state (already updated by save_chat_settings)
+                    s = "settings"
                     conf = {
-                        "yt_enabled": self.app.yt_enabled.get(), "yt_id": self.app.entry_yt.get(),
-                        "tw_enabled": self.app.tw_enabled.get(), "tw_channel": self.app.entry_tw.get(),
-                        "tk_enabled": self.app.tk_enabled.get(), "tk_username": self.app.entry_tk.get(),
-                        "voice": self.app.voice_var.get(), "delay_per_char": self.app.entry_delay_char.get(),
-                        "max_delay": self.app.entry_max_delay.get(), "auto_translate": self.app.auto_translate.get(),
-                        "profanity_enabled": self.app.profanity_enabled.get()
+                        "yt_enabled": self.app.config.get(s, "yt_enabled", fallback="False"),
+                        "yt_id": self.app.config.get(s, "yt_video_id", fallback=""),
+                        "tw_enabled": self.app.config.get(s, "tw_enabled", fallback="False"),
+                        "tw_channel": self.app.config.get(s, "tw_channel", fallback=""),
+                        "tk_enabled": self.app.config.get(s, "tk_enabled", fallback="False"),
+                        "tk_username": self.app.config.get(s, "tk_username", fallback=""),
+                        "voice": self.app.config.get(s, "voice", fallback="th-TH-PremwadeeNeural"),
+                        "delay_per_char": self.app.config.get(s, "delay_per_char", fallback="0.03"),
+                        "max_delay": self.app.config.get(s, "max_delay", fallback="2.0"),
+                        "auto_translate": self.app.config.get(s, "auto_translate", fallback="False"),
+                        "profanity_enabled": self.app.config.get(s, "profanity_enabled", fallback="False")
                     }
+                    
                     self.app.engine.start(conf)
                     self.app.after(0, lambda: self.app.frames["dashboard"].btn_toggle_tts.configure(text="STOP CHAT-TTS", fg_color="#dc3545", state="normal"))
                     self.app.after(0, lambda: self.app.frames["dashboard"].status_label.configure(text="RUNNING", text_color="#28a745"))
@@ -81,19 +100,32 @@ class AppLogic:
             self.logger.error(f"Optimizer error: {e}")
 
     def save_chat_settings(self):
-        if not self.app.config.has_section("tts"): self.app.config.add_section("tts")
-        self.app.config.set("tts", "yt_enabled", self.app.yt_enabled.get())
-        self.app.config.set("tts", "tw_enabled", self.app.tw_enabled.get())
-        self.app.config.set("tts", "tk_enabled", self.app.tk_enabled.get())
-        self.app.config.set("tts", "auto_translate", self.app.auto_translate.get())
-        self.app.config.set("tts", "profanity_enabled", self.app.profanity_enabled.get())
-        self.app.config.set("tts", "youtube_video_id", self.app.entry_yt.get())
-        self.app.config.set("tts", "tw_channel", self.app.entry_tw.get())
-        self.app.config.set("tts", "tk_username", self.app.entry_tk.get())
-        self.app.config.set("tts", "voice", self.app.voice_var.get())
-        self.app.config.set("tts", "delay_per_char", self.app.entry_delay_char.get())
-        self.app.config.set("tts", "max_delay", self.app.entry_max_delay.get())
+        """Save current GUI state to config.ini with standardized lowercase keys."""
+        if not self.app.config.has_section("settings"): self.app.config.add_section("settings")
+        s = "settings"
+        self.app.config.set(s, "yt_enabled", self.app.yt_enabled.get())
+        self.app.config.set(s, "tw_enabled", self.app.tw_enabled.get())
+        self.app.config.set(s, "tk_enabled", self.app.tk_enabled.get())
+        self.app.config.set(s, "auto_translate", self.app.auto_translate.get())
+        self.app.config.set(s, "profanity_enabled", self.app.profanity_enabled.get())
         
+        # Standardized lowercase keys
+        self.app.config.set(s, "yt_video_id", self.app.entry_yt.get())
+        self.app.config.set(s, "tw_channel", self.app.entry_tw.get())
+        self.app.config.set(s, "tk_username", self.app.entry_tk.get())
+        self.app.config.set(s, "voice", self.app.voice_var.get())
+        self.app.config.set(s, "delay_per_char", self.app.entry_delay_char.get())
+        self.app.config.set(s, "max_delay", self.app.entry_max_delay.get())
+        
+        # Backward compatibility / Clean up old keys
+        for old_key in ["youtube_video_id", "VOICE", "YOUTUBE_VIDEO_ID"]:
+            if self.app.config.has_option(s, old_key):
+                self.app.config.remove_option(s, old_key)
+        
+        # Remove old [tts] section if it exists
+        if self.app.config.has_section("tts"):
+            self.app.config.remove_section("tts")
+
         with open(get_config_path(), "w", encoding="utf-8") as f: 
             self.app.config.write(f)
             
@@ -108,14 +140,22 @@ class AppLogic:
         except: pass
         
         if self.app.engine.is_running:
-            self.app.engine.update_config({
-                "voice": self.app.voice_var.get(), 
-                "delay_per_char": self.app.entry_delay_char.get(), 
-                "max_delay": self.app.entry_max_delay.get(), 
-                "auto_translate": self.app.auto_translate.get(), 
-                "profanity_enabled": self.app.profanity_enabled.get()
-            })
+            self.app.logic.apply_realtime_config()
+            
         self.logger.info("Chat-TTS Settings Saved Successfully")
+
+    def apply_realtime_config(self):
+        """Apply current GUI settings to the engine in real-time."""
+        if self.app.engine.is_running:
+            conf = {
+                "voice": self.app.voice_var.get(),
+                "delay_per_char": self.app.entry_delay_char.get(),
+                "max_delay": self.app.entry_max_delay.get(),
+                "auto_translate": self.app.auto_translate.get(),
+                "profanity_enabled": self.app.profanity_enabled.get()
+            }
+            self.app.engine.update_config(conf)
+            self.logger.info("Real-time configuration applied.")
 
     def save_opt_settings(self):
         self.app.opt_config["Settings"]["exclude_core_0"] = str(self.app.opt_exclude_c0.get()).lower()
@@ -170,26 +210,27 @@ class AppLogic:
     def add_opt_target(self):
         n = self.app.entry_new_game.get().strip()
         if n:
-            self.app.opt_config["targets"][n] = self.app.opt_prio_menu.get()
+            if "Targets" not in self.app.opt_config: self.app.opt_config["Targets"] = {}
+            self.app.opt_config["Targets"][n] = self.app.opt_prio_menu.get()
             self.app.entry_new_game.delete(0, 'end')
             self.save_opt_settings()
             self.refresh_opt_list()
 
     def remove_opt_target(self, name):
-        self.app.opt_config.remove_option("targets", name)
+        self.app.opt_config.remove_option("Targets", name)
         self.save_opt_settings()
         self.refresh_opt_list()
 
     def add_opt_path(self):
         f = filedialog.askdirectory()
         if f:
-            if "paths" not in self.app.opt_config: self.app.opt_config["paths"] = {}
-            self.app.opt_config["paths"][f] = "P-CORE"
+            if "Paths" not in self.app.opt_config: self.app.opt_config["Paths"] = {}
+            self.app.opt_config["Paths"][f] = "P-CORE"
             self.save_opt_settings()
             self.refresh_path_list()
 
     def remove_opt_path(self, path):
-        self.app.opt_config.remove_option("paths", path)
+        self.app.opt_config.remove_option("Paths", path)
         self.save_opt_settings()
         self.refresh_path_list()
 

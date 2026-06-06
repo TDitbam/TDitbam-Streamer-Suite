@@ -12,6 +12,9 @@ def is_admin():
         return False
 
 def main():
+    # Ensure working directory is the script's directory
+    os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
     # Administrator Elevation Logic for Windows
     if os.name == 'nt':
         if not is_admin():
@@ -24,18 +27,23 @@ def main():
                 print(f"[!] Failed to elevate: {e}")
             sys.exit(0)
 
-    # Set theme
-    ctk.set_appearance_mode("dark")
-    ctk.set_default_color_theme("blue")
+    try:
+        # Set theme
+        ctk.set_appearance_mode("dark")
+        ctk.set_default_color_theme("blue")
 
-    # Initialize Core Engine
-    engine = ChatTTSEngine()
-    
-    # Initialize Main App
-    app = App(engine)
-    
-    # Start the application
-    app.run()
+        # Initialize Core Engine
+        engine = ChatTTSEngine()
+        
+        # Initialize Main App
+        app = App(engine)
+        
+        # Start the application
+        app.run()
+    except Exception as e:
+        import tkinter.messagebox as messagebox
+        messagebox.showerror("Startup Error", f"Failed to start application:\n{e}")
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()

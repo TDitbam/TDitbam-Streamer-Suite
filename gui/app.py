@@ -2,7 +2,11 @@ import customtkinter as ctk
 import configparser
 import threading
 import os
+import sys
 import logging
+import pystray
+from pystray import MenuItem as item
+from PIL import Image
 from core.tts_engine import ChatTTSEngine
 from core.app_logger import get_logger, get_config_path, logger as base_logger
 from optimizer.optimizer_core.config_loader import load_config as load_opt_config
@@ -49,18 +53,27 @@ class App(ctk.CTk):
         self.opt_running = False
         self.opt_stop_event = threading.Event()
         
+        # System Tray Setup
+        self.protocol('WM_DELETE_WINDOW', self.withdraw_to_tray)
+        self.create_tray_icon()
+        
         # Fonts
         self.title_font = ctk.CTkFont(size=24, weight="bold")
         self.bold_font = ctk.CTkFont(size=14, weight="bold")
         self.default_font = ctk.CTkFont(size=13)
         
         # Variables for Chat-TTS
-        self.yt_enabled = ctk.StringVar(value=self.config.get("tts", "yt_enabled", fallback="True"))
-        self.tw_enabled = ctk.StringVar(value=self.config.get("tts", "tw_enabled", fallback="False"))
-        self.tk_enabled = ctk.StringVar(value=self.config.get("tts", "tk_enabled", fallback="False"))
-        self.auto_translate = ctk.StringVar(value=self.config.get("tts", "auto_translate", fallback="False"))
-        self.profanity_enabled = ctk.StringVar(value=self.config.get("tts", "profanity_enabled", fallback="False"))
-        self.voice_var = ctk.StringVar(value=self.config.get("tts", "voice", fallback="th-TH-PremwadeeNeural"))
+        s = "settings"
+        tts_old = "tts"
+        self.yt_enabled = ctk.StringVar(value=self.config.get(s, "yt_enabled", fallback=self.config.get(tts_old, "yt_enabled", fallback="True")))
+        self.tw_enabled = ctk.StringVar(value=self.config.get(s, "tw_enabled", fallback=self.config.get(tts_old, "tw_enabled", fallback="False")))
+        self.tk_enabled = ctk.StringVar(value=self.config.get(s, "tk_enabled", fallback=self.config.get(tts_old, "tk_enabled", fallback="False")))
+        self.auto_translate = ctk.StringVar(value=self.config.get(s, "auto_translate", fallback=self.config.get(tts_old, "auto_translate", fallback="False")))
+        self.profanity_enabled = ctk.StringVar(value=self.config.get(s, "profanity_enabled", fallback=self.config.get(tts_old, "profanity_enabled", fallback="False")))
+        
+        # Voice compatibility
+        voice_val = self.config.get(s, "voice", fallback=self.config.get(tts_old, "voice", fallback=self.config.get(s, "VOICE", fallback="th-TH-PremwadeeNeural")))
+        self.voice_var = ctk.StringVar(value=voice_val)
         
         # Initialize Logic
         self.logic = AppLogic(self, self.engine)
@@ -92,11 +105,46 @@ class App(ctk.CTk):
         # Initial topology stats update
         self.after(500, self.logic.update_topology_stats)
         
+        self._setup_listeners()
         self.show_frame("dashboard")
+
+    def _setup_listeners(self):
+        """Setup listeners for real-time config updates."""
+        for var in [self.auto_translate, self.profanity_enabled, self.voice_var]:
+            var.trace_add("write", lambda *args: self.logic.apply_realtime_config())
 
     def show_frame(self, page_name):
         frame = self.frames[page_name]
         frame.tkraise()
+
+    # --- System Tray Methods ---
+    def create_tray_icon(self):
+        icon_path = 'gui/icon.ico'
+        if os.path.exists(icon_path):
+            image = Image.open(icon_path)
+        else:
+            image = Image.new('RGB', (64, 64), color=(40, 167, 69))
+            
+        menu = (item('Open Streamer Suite', self.show_from_tray, default=True),
+                item('Exit', self.exit_app))
+        self.tray_icon = pystray.Icon("StreamerSuite", image, "TDitbam Streamer Suite", menu)
+        threading.Thread(target=self.tray_icon.run, daemon=True).start()
+
+    def withdraw_to_tray(self):
+        self.withdraw()
+
+    def show_from_tray(self, icon=None, item=None):
+        self.after(0, self.deiconify)
+        self.after(0, self.focus_force)
+
+    def exit_app(self, icon=None, item=None):
+        self.logger.info("Exiting application...")
+        if hasattr(self, 'tray_icon'):
+            self.tray_icon.stop()
+        self.engine.stop()
+        self.opt_stop_event.set()
+        self.quit()
+        sys.exit(0)
 
     # Delegate logic methods for easier access from frames
     def toggle_tts(self): self.logic.toggle_tts()
