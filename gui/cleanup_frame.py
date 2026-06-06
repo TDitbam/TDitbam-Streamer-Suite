@@ -28,3 +28,7 @@ class CleanupFrame(ctk.CTkFrame):
         ctk.CTkButton(main_c, text="SCAN & CLEAN JUNK", height=60, fg_color="#dc3545", font=self.app.bold_font, command=self.app.run_junk_cleanup).pack(pady=20)
         self.app.clean_log = ctk.CTkTextbox(main_c, fg_color="#1E1E1E", corner_radius=10, font=self.app.default_font)
         self.app.clean_log.pack(fill="both", expand=True, padx=20, pady=20)
+        
+        from .context_menu import ContextMenu
+        ContextMenu.add_context_menu(self.app.entry_clean_int)
+        ContextMenu.add_context_menu(self.app.clean_log)

@@ -40,6 +40,9 @@ class ChatFrame(ctk.CTkFrame):
             
             entry.insert(0, val)
             entry.pack(side="right")
+            
+            from .context_menu import ContextMenu
+            ContextMenu.add_context_menu(entry)
 
         # Voice & General Settings
         v_f = ctk.CTkFrame(self.scroll, fg_color="#2D2D2D", corner_radius=10)
@@ -76,11 +79,13 @@ class ChatFrame(ctk.CTkFrame):
         for e in [self.app.entry_delay_char, self.app.entry_max_delay]:
             e.bind("<FocusOut>", lambda event: self.app.logic.apply_realtime_config())
             e.bind("<Return>", lambda event: self.app.logic.apply_realtime_config())
+            ContextMenu.add_context_menu(e)
 
         # Profanity List / Custom Filter
         ctk.CTkLabel(v_f, text="Custom Message Filter (Comma separated):", font=self.app.default_font).pack(padx=15, pady=(10, 0), anchor="w")
         self.app.textbox_filter = ctk.CTkTextbox(v_f, height=80, fg_color="#1E1E1E", font=self.app.default_font)
         self.app.textbox_filter.pack(fill="x", padx=15, pady=10)
+        ContextMenu.add_context_menu(self.app.textbox_filter)
         
         # Load existing filter list
         prof_file = os.path.join(get_app_dir(), "resources", "bad_words.txt") if not getattr(sys, 'frozen', False) else os.path.join(get_app_dir(), "bad_words.txt")

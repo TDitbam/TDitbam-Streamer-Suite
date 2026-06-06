@@ -45,3 +45,6 @@ class DashboardFrame(ctk.CTkFrame):
         self.log_box = ctk.CTkTextbox(self, corner_radius=15, fg_color="#1E1E1E", border_width=1, border_color="#333333")
         self.log_box.pack(fill="both", expand=True, padx=10, pady=10)
         self.log_box.configure(state="disabled")
+        
+        from .context_menu import ContextMenu
+        ContextMenu.add_context_menu(self.log_box)

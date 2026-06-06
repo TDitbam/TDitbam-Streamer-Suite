@@ -31,6 +31,10 @@ class OptimizerFrame(ctk.CTkFrame):
         ui = ctk.CTkFrame(tab, fg_color="transparent"); ui.pack(fill="x", pady=5)
         self.app.entry_new_game = ctk.CTkEntry(ui, placeholder_text="game.exe", font=self.app.default_font)
         self.app.entry_new_game.pack(side="left", expand=True, fill="x")
+        
+        from .context_menu import ContextMenu
+        ContextMenu.add_context_menu(self.app.entry_new_game)
+        
         self.app.opt_prio_menu = ctk.CTkOptionMenu(ui, values=["P-CORE", "E-CORE", "NORMAL"], width=100, font=self.app.default_font)
         self.app.opt_prio_menu.pack(side="left", padx=5)
         ctk.CTkButton(ui, text="Add", width=60, command=self.app.add_opt_target, font=self.app.default_font).pack(side="right")
