@@ -1,0 +1,7 @@
+main.py จะดึง gui มาเสร็จ
+
+
+หน้าที่หลักของ gui คือดึงฟักก์ชั่นของ
+engine tts และ engine core
+
+ลองรัน test
