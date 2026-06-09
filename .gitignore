@@ -1,0 +1,17 @@
+__pycache__/
+*.py[cod]
+*$py.class
+.env
+.venv
+env/
+venv/
+ENV/
+venv.bak/
+env.bak/
+*.log
+logs/
+temp_audio/
+msg_queue/
+dist/
+build/
+*.spec

@@ -1,0 +1,10 @@
+customtkinter
+TikTokLive
+edge-tts
+deep-translator
+pygame-ce
+psutil
+pystray
+Pillow
+gTTS
+pytchat
