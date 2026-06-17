@@ -23,7 +23,9 @@ def load_config():
             "disable_smt": "false",
             "auto_cleanup": "false",
             "cleanup_interval": "1440",
-            "last_cleanup": "0"
+            "last_cleanup": "0",
+            "auto_shutdown": "false",
+            "shutdown_time": "23:59"
         }
         config["Targets"] = {"BlackDesert64.exe": "P-CORE", "cs2.exe": "P-CORE", "cyberpunk2077.exe": "P-CORE"}
         config["Paths"] = {}

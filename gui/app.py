@@ -16,6 +16,7 @@ from .dashboard import DashboardFrame
 from .chat_frame import ChatFrame
 from .optimizer_frame import OptimizerFrame
 from .cleanup_frame import CleanupFrame
+from .windows_tools_frame import WindowsToolsFrame
 from .logic import AppLogic
 
 class GuiLogHandler(logging.Handler):
@@ -53,6 +54,10 @@ class App(ctk.CTk):
         self.opt_running = False
         self.opt_stop_event = threading.Event()
         
+        # Variables for Optimizer / System
+        self.opt_auto_shutdown = ctk.BooleanVar(value=self.opt_config["Settings"].getboolean("auto_shutdown", fallback=False))
+        self.opt_shutdown_time = ctk.StringVar(value=self.opt_config["Settings"].get("shutdown_time", fallback="23:59"))
+        
         # System Tray Setup
         self.protocol('WM_DELETE_WINDOW', self.withdraw_to_tray)
         self.create_tray_icon()
@@ -77,6 +82,7 @@ class App(ctk.CTk):
         
         # Initialize Logic
         self.logic = AppLogic(self, self.engine)
+        self.logic.sync_shutdown_task()
         
         # UI Setup
         self.grid_columnconfigure(1, weight=1)
@@ -91,7 +97,7 @@ class App(ctk.CTk):
         self.container.grid_rowconfigure(0, weight=1)
         
         self.frames = {}
-        for F in (DashboardFrame, ChatFrame, OptimizerFrame, CleanupFrame):
+        for F in (DashboardFrame, ChatFrame, OptimizerFrame, CleanupFrame, WindowsToolsFrame):
             page_name = F.__name__.replace("Frame", "").lower()
             frame = F(self.container, self)
             self.frames[page_name] = frame

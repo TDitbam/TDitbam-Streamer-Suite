@@ -1,5 +1,13 @@
 import customtkinter as ctk
+import os
+import sys
 from tkinter import filedialog
+
+# Fix for ModuleNotFoundError: Ensure project root is in sys.path
+root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if root_dir not in sys.path:
+    sys.path.insert(0, root_dir)
+
 from optimizer.optimizer_core.config_loader import get_targets as get_opt_targets, get_paths as get_opt_paths
 
 class OptimizerFrame(ctk.CTkFrame):
@@ -43,5 +51,13 @@ class OptimizerFrame(ctk.CTkFrame):
     def setup_dirs_tab(self, tab):
         self.app.d_scroll = ctk.CTkScrollableFrame(tab, fg_color="transparent")
         self.app.d_scroll.pack(fill="both", expand=True)
-        ctk.CTkButton(tab, text="Add Managed Directory", command=self.app.add_opt_path, font=self.app.default_font).pack(fill="x", pady=5)
+        
+        ui = ctk.CTkFrame(tab, fg_color="transparent")
+        ui.pack(fill="x", pady=5)
+        
+        self.app.opt_dir_prio_menu = ctk.CTkOptionMenu(ui, values=["P-CORE", "E-CORE"], width=100, font=self.app.default_font)
+        self.app.opt_dir_prio_menu.pack(side="left", padx=5)
+        
+        ctk.CTkButton(ui, text="Add Managed Directory", command=self.app.add_opt_path, font=self.app.default_font).pack(side="left", expand=True, fill="x")
+        
         self.app.refresh_path_list()

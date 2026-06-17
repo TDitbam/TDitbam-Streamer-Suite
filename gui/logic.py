@@ -162,8 +162,41 @@ class AppLogic:
         self.app.opt_config["Settings"]["disable_smt"] = str(self.app.opt_disable_smt.get()).lower()
         self.app.opt_config["Settings"]["auto_cleanup"] = str(self.app.opt_auto_clean.get()).lower()
         self.app.opt_config["Settings"]["cleanup_interval"] = str(self.app.opt_clean_interval.get())
+        self.app.opt_config["Settings"]["auto_shutdown"] = str(self.app.opt_auto_shutdown.get()).lower()
+        self.app.opt_config["Settings"]["shutdown_time"] = str(self.app.opt_shutdown_time.get())
+        
         save_opt_config(self.app.opt_config)
+        self.sync_shutdown_task()
         self.update_topology_stats()
+
+    def sync_shutdown_task(self):
+        """Sync the auto-shutdown task with Windows Task Scheduler."""
+        if os.name != 'nt': return
+        
+        task_name = "TDitbam_AutoShutdown"
+        enabled = self.app.opt_auto_shutdown.get()
+        time_str = self.app.opt_shutdown_time.get().strip()
+        
+        # 1. Always try to delete existing task first to ensure clean state
+        os.system(f'schtasks /delete /tn "{task_name}" /f >nul 2>&1')
+        
+        if enabled and time_str:
+            # Validate time format HH:mm
+            import re
+            if re.match(r'^([01]?[0-9]|2[0-3]):[0-5][0-9]$', time_str):
+                # 2. Create new task
+                # /sc once /st HH:mm (Run once at specific time)
+                # /tr "shutdown /s /f /t 60" (Shutdown with force and 60s delay)
+                cmd = f'schtasks /create /tn "{task_name}" /tr "shutdown /s /f /t 60" /sc daily /st {time_str} /f >nul 2>&1'
+                res = os.system(cmd)
+                if res == 0:
+                    self.logger.info(f"Auto-Shutdown scheduled at {time_str} (Daily)")
+                else:
+                    self.logger.error("Failed to schedule Auto-Shutdown task. Check Administrator privileges.")
+            else:
+                self.logger.error(f"Invalid shutdown time format: {time_str}. Use HH:mm")
+        else:
+            self.logger.info("Auto-Shutdown task disabled.")
 
     def update_topology_stats(self):
         ex = self.app.opt_exclude_c0.get()
@@ -225,7 +258,8 @@ class AppLogic:
         f = filedialog.askdirectory()
         if f:
             if "Paths" not in self.app.opt_config: self.app.opt_config["Paths"] = {}
-            self.app.opt_config["Paths"][f] = "P-CORE"
+            prio = self.app.opt_dir_prio_menu.get()
+            self.app.opt_config["Paths"][f] = prio
             self.save_opt_settings()
             self.refresh_path_list()
 

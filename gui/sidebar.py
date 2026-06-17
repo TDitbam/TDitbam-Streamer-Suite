@@ -21,3 +21,6 @@ class SidebarFrame(ctk.CTkFrame):
         
         self.btn_clean = ctk.CTkButton(self, text="🧹 Cleanup", **btn_style, command=lambda: self.on_show_frame("cleanup"))
         self.btn_clean.pack(pady=5, padx=10, fill="x")
+
+        self.btn_win = ctk.CTkButton(self, text="🧰 Windows Tools", **btn_style, command=lambda: self.on_show_frame("windowstools"))
+        self.btn_win.pack(pady=5, padx=10, fill="x")
