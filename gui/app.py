@@ -40,7 +40,7 @@ class GuiLogHandler(logging.Handler):
 class App(ctk.CTk):
     def __init__(self, engine):
         super().__init__()
-        self.title("TDitbam Streamer Suite")
+        self.title("Streamer Suite")
         self.geometry("1100x800")
         
         self.engine = engine
@@ -194,7 +194,7 @@ class App(ctk.CTk):
             
         menu = (item('Open Streamer Suite', self.show_from_tray, default=True),
                 item('Exit', self.exit_app))
-        self.tray_icon = pystray.Icon("StreamerSuite", image, "TDitbam Streamer Suite", menu)
+        self.tray_icon = pystray.Icon("StreamerSuite", image, "Streamer Suite", menu)
         threading.Thread(target=self.tray_icon.run, daemon=True).start()
 
     def withdraw_to_tray(self):
