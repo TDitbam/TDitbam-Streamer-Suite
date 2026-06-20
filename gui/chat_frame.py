@@ -12,6 +12,21 @@ class ChatFrame(ctk.CTkFrame):
     def setup_ui(self):
         self.scroll = ctk.CTkScrollableFrame(self, fg_color="transparent")
         self.scroll.pack(fill="both", expand=True, padx=20, pady=20)
+
+        # Control Section
+        ctrl_f = ctk.CTkFrame(self.scroll, fg_color="#1E1E1E", corner_radius=15)
+        ctrl_f.pack(fill="x", pady=(0, 15))
+        
+        inner_ctrl = ctk.CTkFrame(ctrl_f, fg_color="transparent")
+        inner_ctrl.pack(fill="x", padx=20, pady=20)
+        
+        ctk.CTkLabel(inner_ctrl, text="Engine Control", font=self.app.bold_font).pack(side="left")
+        
+        # We reuse the logic from dashboard
+        self.app.btn_toggle_tts_chat = ctk.CTkButton(inner_ctrl, text="START CHAT-TTS", height=45, width=200, 
+                                                    fg_color="#28a745", hover_color="#218838", font=self.app.bold_font,
+                                                    command=self.app.toggle_tts)
+        self.app.btn_toggle_tts_chat.pack(side="right")
         
         # Sections for Platform Config
         for platform, var, entry_attr, placeholder in [

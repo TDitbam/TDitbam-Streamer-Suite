@@ -5,16 +5,27 @@ class ContextMenu:
     """A reusable right-click context menu for CustomTkinter widgets."""
     
     @staticmethod
+    def _get_internal_widget(widget):
+        """Returns the internal standard tkinter widget if it exists."""
+        if hasattr(widget, "_textbox"):
+            return widget._textbox
+        if hasattr(widget, "_entry"):
+            return widget._entry
+        return widget
+
+    @staticmethod
     def add_context_menu(widget):
         """Adds a standard context menu (Cut, Copy, Paste, Select All) to a widget."""
-        # Theme-aware colors
         menu = tk.Menu(widget, tearoff=0, bg="#2B2B2B", fg="#DCE4EE", 
                        activebackground="#1F538D", activeforeground="white", 
                        borderwidth=0, font=("Segoe UI", 10))
         
         is_text = isinstance(widget, (ctk.CTkTextbox, tk.Text))
-        
+        target = ContextMenu._get_internal_widget(widget)
+
         def do_popup(event):
+            # Focus widget on right click
+            widget.focus_set()
             try:
                 menu.tk_popup(event.x_root, event.y_root)
             finally:
@@ -22,14 +33,18 @@ class ContextMenu:
 
         def handle_cut():
             if str(widget.cget("state")) == "normal":
-                widget.event_generate("<<Cut>>")
+                target.event_generate("<<Cut>>")
+
+        def handle_copy():
+            # Copy should work even if disabled (for log boxes)
+            target.event_generate("<<Copy>>")
 
         def handle_paste():
             if str(widget.cget("state")) == "normal":
-                widget.event_generate("<<Paste>>")
+                target.event_generate("<<Paste>>")
 
         menu.add_command(label="Cut", command=handle_cut)
-        menu.add_command(label="Copy", command=lambda: widget.event_generate("<<Copy>>"))
+        menu.add_command(label="Copy", command=handle_copy)
         menu.add_command(label="Paste", command=handle_paste)
         menu.add_separator()
         menu.add_command(label="Select All", command=lambda: ContextMenu.select_all(widget))
@@ -42,21 +57,18 @@ class ContextMenu:
 
     @staticmethod
     def select_all(widget):
+        widget.focus_set()
         if isinstance(widget, (ctk.CTkTextbox, tk.Text)):
             widget.tag_add("sel", "1.0", "end")
         else:
             widget.select_range(0, "end")
             widget.icursor("end")
-        widget.focus_set()
         return "break"
 
     @staticmethod
     def clear_all(widget):
         try:
-            # Get current state safely
             old_state = str(widget.cget("state"))
-            
-            # Temporary enable to clear
             widget.configure(state="normal")
             
             if isinstance(widget, (ctk.CTkTextbox, tk.Text)):
@@ -64,17 +76,15 @@ class ContextMenu:
             else:
                 widget.delete(0, "end")
                 
-            # Restore state
             widget.configure(state=old_state)
         except Exception:
-            # Fallback for underlying widgets
             try:
-                if hasattr(widget, "_textbox"):
-                    widget._textbox.configure(state="normal")
-                    widget._textbox.delete("1.0", "end")
-                    # We don't restore state on underlying widget as it might be complex
-                elif hasattr(widget, "_entry"):
-                    widget._entry.configure(state="normal")
-                    widget._entry.delete(0, "end")
+                target = ContextMenu._get_internal_widget(widget)
+                target.configure(state="normal")
+                if hasattr(target, "delete"):
+                    if isinstance(target, tk.Text):
+                        target.delete("1.0", "end")
+                    else:
+                        target.delete(0, "end")
             except:
                 pass

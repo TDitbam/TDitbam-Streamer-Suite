@@ -1,4 +1,4 @@
-# 🎙️ TDitbam Streamer Suite (v3.3.0)
+# 🎙️ TDitbam Streamer Suite (v3.5.0)
 
 **TDitbam Streamer Suite** คือเครื่องมือ All-in-One สำหรับสตรีมเมอร์ที่รวมระบบ **Chat-to-Speech (TTS)** และ **System Optimizer** เข้าด้วยกัน เพื่อให้การสตรีมของคุณลื่นไหลและมีปฏิสัมพันธ์กับผู้ชมได้ดีที่สุด
 

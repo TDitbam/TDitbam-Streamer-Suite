@@ -17,6 +17,7 @@ from .chat_frame import ChatFrame
 from .optimizer_frame import OptimizerFrame
 from .cleanup_frame import CleanupFrame
 from .windows_tools_frame import WindowsToolsFrame
+from .settings_frame import SettingsFrame
 from .logic import AppLogic
 
 class GuiLogHandler(logging.Handler):
@@ -80,9 +81,14 @@ class App(ctk.CTk):
         voice_val = self.config.get(s, "voice", fallback=self.config.get(tts_old, "voice", fallback=self.config.get(s, "VOICE", fallback="th-TH-PremwadeeNeural")))
         self.voice_var = ctk.StringVar(value=voice_val)
         
+        # General App Settings
+        self.start_minimized = ctk.BooleanVar(value=self.config.getboolean(s, "start_minimized", fallback=False))
+        self.run_on_startup = ctk.BooleanVar(value=self.config.getboolean(s, "run_on_startup", fallback=False))
+        
         # Initialize Logic
         self.logic = AppLogic(self, self.engine)
         self.logic.sync_shutdown_task()
+        self.logic.sync_startup_task()
         
         # UI Setup
         self.grid_columnconfigure(1, weight=1)
@@ -97,7 +103,7 @@ class App(ctk.CTk):
         self.container.grid_rowconfigure(0, weight=1)
         
         self.frames = {}
-        for F in (DashboardFrame, ChatFrame, OptimizerFrame, CleanupFrame, WindowsToolsFrame):
+        for F in (DashboardFrame, ChatFrame, OptimizerFrame, CleanupFrame, WindowsToolsFrame, SettingsFrame):
             page_name = F.__name__.replace("Frame", "").lower()
             frame = F(self.container, self)
             self.frames[page_name] = frame
@@ -112,12 +118,67 @@ class App(ctk.CTk):
         self.after(500, self.logic.update_topology_stats)
         
         self._setup_listeners()
+        self._setup_shortcut_handler()
         self.show_frame("dashboard")
+        
+        # Auto-minimize to system tray if configured
+        if self.start_minimized.get():
+            self.after(200, self.withdraw_to_tray)
 
     def _setup_listeners(self):
         """Setup listeners for real-time config updates."""
         for var in [self.auto_translate, self.profanity_enabled, self.voice_var]:
             var.trace_add("write", lambda *args: self.logic.apply_realtime_config())
+
+    def _setup_shortcut_handler(self):
+        """Register layout-independent global keyboard shortcuts for Ctrl+C, Ctrl+V, etc."""
+        def handle_shortcuts(event):
+            # Check if Control modifier (mask 4) is active on Windows/Linux
+            ctrl = (event.state & 0x0004) != 0
+            
+            if ctrl:
+                widget = event.widget
+                if not widget:
+                    return
+                
+                # Determine if widget is normal/editable
+                state = "normal"
+                if hasattr(widget, "cget"):
+                    try:
+                        state = str(widget.cget("state"))
+                    except:
+                        pass
+                
+                # Virtual keycodes for standard letter keys (layout independent)
+                # 65 = A, 67 = C, 86 = V, 88 = X, 90 = Z
+                if event.keycode == 86:  # V
+                    if state == "normal":
+                        widget.event_generate("<<Paste>>")
+                        return "break"
+                elif event.keycode == 67:  # C
+                    widget.event_generate("<<Copy>>")
+                    return "break"
+                elif event.keycode == 88:  # X
+                    if state == "normal":
+                        widget.event_generate("<<Cut>>")
+                        return "break"
+                elif event.keycode == 65:  # A
+                    # Select All
+                    if widget.winfo_class() == "Text":
+                        widget.tag_add("sel", "1.0", "end")
+                    elif hasattr(widget, "select_range"):
+                        widget.select_range(0, "end")
+                        widget.icursor("end")
+                    return "break"
+                elif event.keycode == 90:  # Z
+                    if state == "normal":
+                        try:
+                            widget.edit_undo()
+                        except:
+                            widget.event_generate("<<Undo>>")
+                        return "break"
+
+        self.bind_all("<Key>", handle_shortcuts, "+")
 
     def show_frame(self, page_name):
         frame = self.frames[page_name]
@@ -157,6 +218,7 @@ class App(ctk.CTk):
     def toggle_optimizer(self): self.logic.toggle_optimizer()
     def save_chat_settings(self): self.logic.save_chat_settings()
     def save_opt_settings(self): self.logic.save_opt_settings()
+    def save_app_settings(self): self.logic.save_app_settings()
     def refresh_opt_list(self): self.logic.refresh_opt_list()
     def refresh_path_list(self): self.logic.refresh_path_list()
     def add_opt_target(self): self.logic.add_opt_target()

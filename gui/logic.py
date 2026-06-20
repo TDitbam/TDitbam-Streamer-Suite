@@ -17,8 +17,13 @@ class AppLogic:
         self.logger = get_logger("Logic")
 
     def toggle_tts(self):
-        if self.app.frames["dashboard"].btn_toggle_tts.cget("state") == "disabled": return
-        self.app.frames["dashboard"].btn_toggle_tts.configure(state="disabled")
+        btn_dash = self.app.frames["dashboard"].btn_toggle_tts
+        btn_chat = self.app.btn_toggle_tts_chat
+        
+        if btn_dash.cget("state") == "disabled": return
+        
+        btn_dash.configure(state="disabled")
+        btn_chat.configure(state="disabled")
         
         def _task():
             try:
@@ -53,17 +58,27 @@ class AppLogic:
                     }
                     
                     self.app.engine.start(conf)
-                    self.app.after(0, lambda: self.app.frames["dashboard"].btn_toggle_tts.configure(text="STOP CHAT-TTS", fg_color="#dc3545", state="normal"))
-                    self.app.after(0, lambda: self.app.frames["dashboard"].status_label.configure(text="RUNNING", text_color="#28a745"))
+                    
+                    def _update_ui_start():
+                        btn_dash.configure(text="STOP CHAT-TTS", fg_color="#dc3545", state="normal")
+                        btn_chat.configure(text="STOP CHAT-TTS", fg_color="#dc3545", state="normal")
+                        self.app.frames["dashboard"].status_label.configure(text="RUNNING", text_color="#28a745")
+                    
+                    self.app.after(0, _update_ui_start)
                 else:
                     self.logger.info("Stopping Chat-TTS System...")
                     self.app.engine.stop()
-                    self.app.after(0, lambda: self.app.frames["dashboard"].btn_toggle_tts.configure(text="START CHAT-TTS", fg_color="#28a745", state="normal"))
-                    if not self.app.opt_running:
-                        self.app.after(0, lambda: self.app.frames["dashboard"].status_label.configure(text="IDLE", text_color="#ABB2BF"))
+                    
+                    def _update_ui_stop():
+                        btn_dash.configure(text="START CHAT-TTS", fg_color="#28a745", state="normal")
+                        btn_chat.configure(text="START CHAT-TTS", fg_color="#28a745", state="normal")
+                        if not self.app.opt_running:
+                            self.app.frames["dashboard"].status_label.configure(text="IDLE", text_color="#ABB2BF")
+                    
+                    self.app.after(0, _update_ui_stop)
             except Exception as e:
                 self.logger.error(f"TTS Toggle Error: {e}")
-                self.app.after(0, lambda: self.app.frames["dashboard"].btn_toggle_tts.configure(state="normal"))
+                self.app.after(0, lambda: (btn_dash.configure(state="normal"), btn_chat.configure(state="normal")))
         
         threading.Thread(target=_task, daemon=True).start()
 
@@ -173,30 +188,96 @@ class AppLogic:
         """Sync the auto-shutdown task with Windows Task Scheduler."""
         if os.name != 'nt': return
         
+        import subprocess
         task_name = "TDitbam_AutoShutdown"
         enabled = self.app.opt_auto_shutdown.get()
         time_str = self.app.opt_shutdown_time.get().strip()
         
+        # Flags to hide console window
+        CREATE_NO_WINDOW = 0x08000000
+        
         # 1. Always try to delete existing task first to ensure clean state
-        os.system(f'schtasks /delete /tn "{task_name}" /f >nul 2>&1')
+        subprocess.run(['schtasks', '/delete', '/tn', task_name, '/f'], 
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, 
+                       creationflags=CREATE_NO_WINDOW)
         
         if enabled and time_str:
             # Validate time format HH:mm
             import re
             if re.match(r'^([01]?[0-9]|2[0-3]):[0-5][0-9]$', time_str):
                 # 2. Create new task
-                # /sc once /st HH:mm (Run once at specific time)
+                # /sc daily /st HH:mm (Run daily at specific time)
                 # /tr "shutdown /s /f /t 60" (Shutdown with force and 60s delay)
-                cmd = f'schtasks /create /tn "{task_name}" /tr "shutdown /s /f /t 60" /sc daily /st {time_str} /f >nul 2>&1'
-                res = os.system(cmd)
-                if res == 0:
+                cmd = ['schtasks', '/create', '/tn', task_name, '/tr', 'shutdown /s /f /t 60', '/sc', 'daily', '/st', time_str, '/f']
+                res = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+                                     creationflags=CREATE_NO_WINDOW)
+                
+                if res.returncode == 0:
                     self.logger.info(f"Auto-Shutdown scheduled at {time_str} (Daily)")
                 else:
-                    self.logger.error("Failed to schedule Auto-Shutdown task. Check Administrator privileges.")
+                    self.logger.error(f"Failed to schedule task. Error: {res.stderr.strip()}")
             else:
-                self.logger.error(f"Invalid shutdown time format: {time_str}. Use HH:mm")
+                self.logger.error(f"Invalid shutdown time format: '{time_str}'. Use HH:mm (e.g., 23:30)")
         else:
-            self.logger.info("Auto-Shutdown task disabled.")
+            self.logger.info("Auto-Shutdown task disabled (or time is empty).")
+
+    def save_app_settings(self):
+        s = "settings"
+        self.app.config.set(s, "start_minimized", str(self.app.start_minimized.get()))
+        self.app.config.set(s, "run_on_startup", str(self.app.run_on_startup.get()))
+        
+        # Save to config file
+        from core.app_logger import get_config_path
+        with open(get_config_path(), "w", encoding="utf-8") as f:
+            self.app.config.write(f)
+            
+        self.logger.info("General application settings saved.")
+        self.sync_startup_task()
+
+    def sync_startup_task(self):
+        """Sync the elevated startup task with Windows Task Scheduler."""
+        if os.name != 'nt': return
+        
+        import subprocess
+        import sys
+        task_name = "TDitbam_Startup"
+        enabled = self.app.run_on_startup.get()
+        
+        # Flags to hide console window
+        CREATE_NO_WINDOW = 0x08000000
+        
+        # 1. Always try to delete existing task first to ensure clean state
+        subprocess.run(['schtasks', '/delete', '/tn', task_name, '/f'], 
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, 
+                       creationflags=CREATE_NO_WINDOW)
+                       
+        if enabled:
+            # Determine path to execute
+            if getattr(sys, 'frozen', False):
+                app_path = sys.executable
+                task_run = f'"{app_path}"'
+            else:
+                app_path = os.path.abspath(sys.argv[0])
+                python_exe = sys.executable
+                # Use pythonw if possible to avoid displaying terminal window
+                if python_exe.endswith("python.exe"):
+                    pythonw_exe = python_exe.replace("python.exe", "pythonw.exe")
+                    if os.path.exists(pythonw_exe):
+                        python_exe = pythonw_exe
+                task_run = f'"{python_exe}" "{app_path}"'
+                
+            # Create Task
+            # /sc onlogon: run at logon
+            # /rl highest: run with administrator/highest privileges (bypasses UAC)
+            # /f: force creation (overwrite if exists)
+            cmd = ['schtasks', '/create', '/tn', task_name, '/tr', task_run, '/sc', 'onlogon', '/rl', 'highest', '/f']
+            res = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+                                 creationflags=CREATE_NO_WINDOW)
+                                 
+            if res.returncode == 0:
+                self.logger.info("Startup task scheduled successfully with highest privileges (bypassing UAC).")
+            else:
+                self.logger.error(f"Failed to schedule startup task. Error: {res.stderr.strip()}")
 
     def update_topology_stats(self):
         ex = self.app.opt_exclude_c0.get()

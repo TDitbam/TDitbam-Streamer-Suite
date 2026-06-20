@@ -1,4 +1,4 @@
-# 🚀 TDitbam Streamer Suite - v3.4.0
+# 🚀 TDitbam Streamer Suite - v3.5.0
 
 ## 🌟 What's New
 ### 🧰 Windows Tools Tab

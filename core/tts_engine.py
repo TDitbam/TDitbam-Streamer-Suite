@@ -13,6 +13,7 @@ from pygame import mixer
 from gtts import gTTS
 
 from .app_logger import get_logger, get_app_dir
+from .thai_separator import translate_mixed_text
 from .collectors.yt_chat import youtube_collector
 from .collectors.twitch_chat import twitch_collector
 from .collectors.tiktok_chat import tiktok_collector
@@ -141,12 +142,11 @@ class ChatTTSEngine:
         if len(self.seen_messages) > self.max_seen_messages:
             self.seen_messages.clear()
             
-        # Translation
+        # Translation using Thai separator to handle mixed English-Thai text
         if self.auto_translate:
             try:
-                # Basic Thai detection
-                if not any('\u0e00' <= char <= '\u0e7f' for char in message):
-                    translated = self.translator.translate(message)
+                translated = translate_mixed_text(message, self.translator)
+                if translated != message:
                     logger.info(f"Translated: {message} -> {translated}")
                     message = translated
             except Exception as te:
