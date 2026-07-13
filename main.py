@@ -13,7 +13,12 @@ def is_admin():
 
 def main():
     # Ensure working directory is the script's directory
-    os.chdir(os.path.dirname(os.path.abspath(__file__)))
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    os.chdir(script_dir)
+    
+    # Add script directory to sys.path for robust module imports
+    if script_dir not in sys.path:
+        sys.path.insert(0, script_dir)
 
     # Administrator Elevation Logic for Windows
     if os.name == 'nt':

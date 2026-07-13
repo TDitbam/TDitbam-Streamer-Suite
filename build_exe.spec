@@ -48,7 +48,7 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     [],
-    name='TDitbam-Streamer-Suite',
+    name='StreamerSuite',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,

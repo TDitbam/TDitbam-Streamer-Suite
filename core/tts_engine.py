@@ -13,6 +13,7 @@ from pygame import mixer
 from gtts import gTTS
 
 from .app_logger import get_logger, get_app_dir
+from .thai_separator import translate_mixed_text
 from .collectors.yt_chat import youtube_collector
 from .collectors.twitch_chat import twitch_collector
 from .collectors.tiktok_chat import tiktok_collector
@@ -141,12 +142,11 @@ class ChatTTSEngine:
         if len(self.seen_messages) > self.max_seen_messages:
             self.seen_messages.clear()
             
-        # Translation
+        # Translation using Thai separator to handle mixed English-Thai text
         if self.auto_translate:
             try:
-                # Basic Thai detection
-                if not any('\u0e00' <= char <= '\u0e7f' for char in message):
-                    translated = self.translator.translate(message)
+                translated = translate_mixed_text(message, self.translator)
+                if translated != message:
                     logger.info(f"Translated: {message} -> {translated}")
                     message = translated
             except Exception as te:
@@ -155,18 +155,33 @@ class ChatTTSEngine:
         return f"{author} พูดว่า {message}"
 
     async def _generate_audio(self, text: str, path: str):
-        """Generate audio file using edge-tts or gTTS fallback."""
-        try:
-            await edge_tts.Communicate(text, self.voice).save(path)
-        except Exception as e:
-            logger.warning(f"edge-tts failed, using gTTS fallback: {e}")
+        """Generate audio file using edge-tts with retries or gTTS fallback."""
+        max_retries = 3
+        retry_delay = 1.0
+        
+        for attempt in range(max_retries):
             try:
-                lang_code = self.voice.split('-')[0] if '-' in self.voice else 'th'
-                tts = gTTS(text=text, lang=lang_code)
-                tts.save(path)
-            except Exception as ge:
-                logger.error(f"gTTS fallback also failed: {ge}")
-                raise ge
+                # Add a small delay between retries to avoid rate limits
+                if attempt > 0:
+                    await asyncio.sleep(retry_delay * attempt)
+                
+                communicate = edge_tts.Communicate(text, self.voice)
+                await communicate.save(path)
+                return # Success
+            except Exception as e:
+                logger.warning(f"edge-tts attempt {attempt + 1} failed: {e}")
+                if attempt == max_retries - 1:
+                    logger.warning(f"All edge-tts attempts failed, using gTTS fallback.")
+                    try:
+                        lang_code = self.voice.split('-')[0] if '-' in self.voice else 'th'
+                        # Use threading for gTTS since it's a blocking IO library
+                        def _save_gtts():
+                            tts = gTTS(text=text, lang=lang_code)
+                            tts.save(path)
+                        await asyncio.to_thread(_save_gtts)
+                    except Exception as ge:
+                        logger.error(f"gTTS fallback also failed: {ge}")
+                        raise ge
 
     async def generator_task(self, session_id: int):
         """Main generator loop: process messages and generate audio."""
