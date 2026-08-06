@@ -70,7 +70,7 @@ python main.py
 
 ## 🤝 เครดิต (Credits)
 - **Developer:** Tditbam
-- **AI Assistant:** Gemini CLI
+- **AI Assistant:** Gemini CLI , Openai codex
 - **Libraries:** CustomTkinter, Edge-TTS, TikTokLive, psutil
 
 ---
