@@ -1,4 +1,25 @@
 ============================================================
+   TECHNICAL UPDATE — 6 AUGUST 2026
+============================================================
+
+1. Bot Live Chat Session Lifecycle
+   - แต่ละ Start มี cancellation event, message queue และ audio queue ของตัวเอง
+   - Worker ตรวจ session ID และ cancellation event ก่อนสร้างหรือเล่นเสียง
+   - pygame music channel ถูกล็อกให้มีเจ้าของเพียง session เดียว
+   - Collector เก่าที่ติด network I/O ถูกแยกออกจาก session ใหม่อย่างเด็ดขาด
+
+2. Pluggable Voice Providers
+   - Edge TTS และ gTTS สำหรับการใช้งานทั่วไป
+   - Gemini API Voice และ OpenAI API Voice เป็น Experimental providers
+   - REST integrations ใช้ Python standard library ลด external dependencies
+   - รองรับ API key จาก config หรือ environment variables
+
+3. Localization and UI
+   - ศูนย์กลางคำแปลอยู่ที่ gui/i18n.py
+   - รองรับภาษาไทยและ English (US)
+   - Provider settings ใช้ conditional panel แสดงเฉพาะข้อมูลที่เกี่ยวข้อง
+
+============================================================
    บทวิเคราะห์ทางเทคนิค: TDitbam Streamer Suite v3.2.2
 ============================================================
 

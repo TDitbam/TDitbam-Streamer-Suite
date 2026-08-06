@@ -13,7 +13,7 @@ class SidebarFrame(ctk.CTkFrame):
         self.btn_dash = ctk.CTkButton(self, text="🏠 Dashboard", **btn_style, command=lambda: self.on_show_frame("dashboard"))
         self.btn_dash.pack(pady=5, padx=10, fill="x")
         
-        self.btn_chat = ctk.CTkButton(self, text="💬 Chat-TTS", **btn_style, command=lambda: self.on_show_frame("chat"))
+        self.btn_chat = ctk.CTkButton(self, text="💬 Bot Live Chat", **btn_style, command=lambda: self.on_show_frame("chat"))
         self.btn_chat.pack(pady=5, padx=10, fill="x")
         
         self.btn_opt = ctk.CTkButton(self, text="🚀 Optimizer", **btn_style, command=lambda: self.on_show_frame("optimizer"))

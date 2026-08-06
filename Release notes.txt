@@ -1,4 +1,30 @@
 ==================================================
+    อัปเดตระบบล่าสุด / Latest System Update
+    วันที่ / Date: 6 สิงหาคม 2026 / August 6, 2026
+==================================================
+
+[Bot Live Chat]
+- เปลี่ยนชื่อ Chat-TTS เป็น Bot Live Chat
+- แยก Session, message queue และ audio queue ออกจากกันทุกครั้งที่ Start
+- Stop จะส่ง cancellation signal, หยุดเสียง, ล้าง queue/ไฟล์ชั่วคราว และกัก worker เก่าจาก session ใหม่
+- ป้องกันเสียงและข้อความจาก session เก่ากลับมาเล่นซ้อน
+- เลข Session เพิ่มเฉพาะตอน Start: 1, 2, 3, ...
+
+[Voice Providers]
+- Edge TTS: เลือกเสียงภาษาไทย Premwadee/Niwat
+- gTTS: เลือกภาษาไทยหรืออังกฤษ
+- Gemini API Voice (Experimental): เลือก model, voice, style และ API key
+- OpenAI API Voice (Experimental): เลือก model, voice, style, speed และ API key
+- รองรับ environment variables: GEMINI_API_KEY และ OPENAI_API_KEY
+- หมายเหตุ: API key ที่กรอกใน UI จะถูกบันทึกใน config.ini แบบข้อความปกติ
+
+[Language & UI]
+- เพิ่มภาษาไทยและ English (US) เปลี่ยนได้ทันทีจาก App Settings
+- บันทึกภาษาที่เลือกไว้ใน config.ini
+- หน้า Voice Settings แสดงเฉพาะข้อมูลของ provider ที่เลือก ลดความรกของ UI
+- แก้ Ctrl+V วางข้อความซ้ำ
+
+==================================================
     TDitbam Streamer Suite - Release Notes v3.5.0
 ==================================================
 
@@ -8,7 +34,7 @@
 - **⚙️ E-CORE Support for Directories:** เพิ่มตัวเลือกให้สามารถกำหนดลำดับความสำคัญ (Priority) ของ Managed Directories เป็น E-CORE เพื่อการจัดการทรัพยากรที่ยืดหยุ่นขึ้นในหน้า Optimizer
 
 [การแก้ไขบัคและเสถียรภาพ / Bug Fixes & Stability]
-- **🎙️ Chat-TTS Robustness:** แก้ไขปัญหา Voice Model Error บ่อยผิดปกติ โดยการเพิ่มระบบ Retry (ลองใหม่ 3 ครั้ง) พร้อมระบบสลับไปใช้ gTTS Fallback แบบอัตโนมัติเมื่อเกิดปัญหาเครือข่าย
+- **🎙️ Bot Live Chat Robustness:** แก้ไขปัญหา Voice Model Error บ่อยผิดปกติ โดยการเพิ่มระบบ Retry (ลองใหม่ 3 ครั้ง) พร้อมระบบสลับไปใช้ gTTS Fallback แบบอัตโนมัติเมื่อเกิดปัญหาเครือข่าย
 - **🧩 Module Import Fix:** แก้ไขปัญหา `ModuleNotFoundError` ด้วยระบบ Auto-Path Correction ทำให้โปรแกรมสามารถรันได้ทุกที่อย่างเสถียร
 - **🧵 Thread-Safe Operations:** ปรับปรุงการทำงานของเสียงสำรอง (gTTS) ให้ทำงานบน Thread แยก เพื่อป้องกันโปรแกรมค้าง (GUI Freezing)
 
