@@ -33,7 +33,7 @@ class DashboardFrame(ctk.CTkFrame):
         
         ctk.CTkLabel(ctrl_frame, text="Master Control Panel", font=self.app.bold_font).pack(pady=10)
         
-        self.btn_toggle_tts = ctk.CTkButton(ctrl_frame, text="START CHAT-TTS", height=50, fg_color="#28a745", 
+        self.btn_toggle_tts = ctk.CTkButton(ctrl_frame, text="START BOT LIVE CHAT", height=50, fg_color="#28a745",
                                             font=self.app.bold_font, command=self.app.toggle_tts)
         self.btn_toggle_tts.pack(side="left", expand=True, fill="x", padx=20, pady=20)
         

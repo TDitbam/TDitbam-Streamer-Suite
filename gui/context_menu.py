@@ -43,15 +43,17 @@ class ContextMenu:
             if str(widget.cget("state")) == "normal":
                 target.event_generate("<<Paste>>")
 
-        menu.add_command(label="Cut", command=handle_cut)
-        menu.add_command(label="Copy", command=handle_copy)
-        menu.add_command(label="Paste", command=handle_paste)
+        root = widget.winfo_toplevel()
+        tr = getattr(root, "tr", lambda text: text)
+        menu.add_command(label=tr("Cut"), command=handle_cut)
+        menu.add_command(label=tr("Copy"), command=handle_copy)
+        menu.add_command(label=tr("Paste"), command=handle_paste)
         menu.add_separator()
-        menu.add_command(label="Select All", command=lambda: ContextMenu.select_all(widget))
+        menu.add_command(label=tr("Select All"), command=lambda: ContextMenu.select_all(widget))
         
         if is_text:
             menu.add_separator()
-            menu.add_command(label="Clear All", command=lambda: ContextMenu.clear_all(widget))
+            menu.add_command(label=tr("Clear All"), command=lambda: ContextMenu.clear_all(widget))
 
         widget.bind("<Button-3>", do_popup)
 

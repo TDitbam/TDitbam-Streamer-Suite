@@ -1,4 +1,5 @@
 import customtkinter as ctk
+from .i18n import LANGUAGE_NAMES
 
 class SettingsFrame(ctk.CTkFrame):
     def __init__(self, master, app):
@@ -18,12 +19,25 @@ class SettingsFrame(ctk.CTkFrame):
         inner_f = ctk.CTkFrame(settings_card, fg_color="transparent")
         inner_f.pack(fill="both", expand=True, padx=20, pady=20)
 
+        # UI Language
+        row_language = ctk.CTkFrame(inner_f, fg_color="transparent")
+        row_language.pack(fill="x", pady=10)
+        ctk.CTkLabel(row_language, text="Language:", font=self.app.default_font).pack(side="left")
+        self.language_menu = ctk.CTkOptionMenu(
+            row_language,
+            values=[LANGUAGE_NAMES["th"], LANGUAGE_NAMES["en-US"]],
+            command=self.app.set_language,
+            font=self.app.default_font,
+        )
+        self.language_menu.set(LANGUAGE_NAMES[self.app.language_code])
+        self.language_menu.pack(side="left", padx=10)
+
         # Start Minimized Option
         row_minimized = ctk.CTkFrame(inner_f, fg_color="transparent")
         row_minimized.pack(fill="x", pady=10)
         ctk.CTkSwitch(
             row_minimized, 
-            text="Start Minimized to System Tray (ย่อหน้าต่างเก็บใน Tray เมื่อเปิดโปรแกรม)", 
+            text="Start Minimized to System Tray",
             variable=self.app.start_minimized, 
             font=self.app.default_font
         ).pack(side="left")
@@ -33,7 +47,7 @@ class SettingsFrame(ctk.CTkFrame):
         row_startup.pack(fill="x", pady=10)
         ctk.CTkSwitch(
             row_startup, 
-            text="Run on Windows Startup via Task Scheduler (เปิดใช้งานอัตโนมัติเมื่อเปิดเครื่องโดยไม่แสดงสิทธิ์ UAC)", 
+            text="Run on Windows Startup via Task Scheduler",
             variable=self.app.run_on_startup, 
             font=self.app.default_font
         ).pack(side="left")
@@ -43,17 +57,17 @@ class SettingsFrame(ctk.CTkFrame):
         info_f.pack(fill="x", pady=(20, 0))
         
         desc = (
-            "ℹ️ ข้อมูลการทำงาน (Information):\n"
-            "• ย่อหน้าต่างเมื่อเปิดโปรแกรม: โปรแกรมจะถูกย่อลงไปที่ System Tray ฝั่งขวาล่างของ Taskbar ทันทีที่เปิดใช้งาน\n"
-            "• เริ่มทำงานพร้อม Windows: ระบบจะลงทะเบียนงานใน Windows Task Scheduler ให้ทำงานตอนคุณเข้าสู่ระบบ (Logon)\n"
-            "• การใช้ Task Scheduler จะช่วยให้โปรแกรมสามารถเปิดขึ้นมาในฐานะ Administrator ได้ทันที โดยที่ไม่มีหน้าจอแจ้งเตือน UAC ของ Windows ขึ้นมากวนใจ"
+            "Information:\n"
+            "• Start minimized: The app opens directly in the Windows System Tray.\n"
+            "• Run on startup: Windows Task Scheduler starts the app when you sign in.\n"
+            "• Task Scheduler allows the app to start with administrator privileges without showing a UAC prompt each time."
         )
         ctk.CTkLabel(info_f, text=desc, font=self.app.default_font, text_color="#ABB2BF", justify="left", padx=15, pady=15).pack(anchor="w")
 
         # Save Button
         ctk.CTkButton(
             inner_f, 
-            text="SAVE SETTINGS (บันทึกการตั้งค่า)", 
+            text="SAVE SETTINGS",
             height=45, 
             fg_color="#28a745", 
             hover_color="#218838", 

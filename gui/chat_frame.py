@@ -9,6 +9,13 @@ class ChatFrame(ctk.CTkFrame):
         self.app = app
         self.setup_ui()
 
+    def _show_voice_provider(self, provider):
+        """Show only the settings that belong to the selected voice provider."""
+        if provider not in self.provider_frames:
+            provider = "edge"
+        self.app.voice_provider.set(provider)
+        self.provider_frames[provider].tkraise()
+
     def setup_ui(self):
         self.scroll = ctk.CTkScrollableFrame(self, fg_color="transparent")
         self.scroll.pack(fill="both", expand=True, padx=20, pady=20)
@@ -23,7 +30,7 @@ class ChatFrame(ctk.CTkFrame):
         ctk.CTkLabel(inner_ctrl, text="Engine Control", font=self.app.bold_font).pack(side="left")
         
         # We reuse the logic from dashboard
-        self.app.btn_toggle_tts_chat = ctk.CTkButton(inner_ctrl, text="START CHAT-TTS", height=45, width=200, 
+        self.app.btn_toggle_tts_chat = ctk.CTkButton(inner_ctrl, text="START BOT LIVE CHAT", height=45, width=200,
                                                     fg_color="#28a745", hover_color="#218838", font=self.app.bold_font,
                                                     command=self.app.toggle_tts)
         self.app.btn_toggle_tts_chat.pack(side="right")
@@ -63,14 +70,98 @@ class ChatFrame(ctk.CTkFrame):
         v_f = ctk.CTkFrame(self.scroll, fg_color="#2D2D2D", corner_radius=10)
         v_f.pack(fill="x", pady=5)
         
-        # First row: Voice and Translate
+        # Provider selector. Only the selected provider's fields are visible.
         row1 = ctk.CTkFrame(v_f, fg_color="transparent")
-        row1.pack(fill="x", padx=15, pady=5)
-        ctk.CTkLabel(row1, text="Voice Model:", font=self.app.default_font).pack(side="left")
-        self.voice_menu = ctk.CTkOptionMenu(row1, values=["th-TH-PremwadeeNeural", "th-TH-NiwatNeural"], variable=self.app.voice_var, font=self.app.default_font)
+        row1.pack(fill="x", padx=15, pady=(12, 5))
+        ctk.CTkLabel(row1, text="Voice Provider:", font=self.app.default_font).pack(side="left")
+        self.provider_menu = ctk.CTkOptionMenu(
+            row1, values=["edge", "gtts", "gemini", "openai"], variable=self.app.voice_provider,
+            command=self._show_voice_provider, font=self.app.default_font, width=160,
+        )
+        self.provider_menu.pack(side="left", padx=10)
+
+        provider_container = ctk.CTkFrame(v_f, fg_color="#252525", corner_radius=8)
+        provider_container.pack(fill="x", padx=15, pady=5)
+        provider_container.grid_columnconfigure(0, weight=1)
+        self.provider_frames = {}
+
+        edge_frame = ctk.CTkFrame(provider_container, fg_color="transparent")
+        edge_frame.grid(row=0, column=0, sticky="nsew", padx=12, pady=10)
+        self.provider_frames["edge"] = edge_frame
+        ctk.CTkLabel(edge_frame, text="Voice Model:", font=self.app.default_font).pack(side="left")
+        self.voice_menu = ctk.CTkOptionMenu(edge_frame, values=["th-TH-PremwadeeNeural", "th-TH-NiwatNeural"], variable=self.app.voice_var, width=230)
         self.voice_menu.pack(side="left", padx=10)
-        ctk.CTkCheckBox(row1, text="Auto-Translate (TH)", variable=self.app.auto_translate, onvalue="True", offvalue="False", font=self.app.default_font).pack(side="left", padx=10)
-        ctk.CTkCheckBox(row1, text="Filter Profanity", variable=self.app.profanity_enabled, onvalue="True", offvalue="False", font=self.app.default_font).pack(side="left", padx=10)
+
+        gtts_frame = ctk.CTkFrame(provider_container, fg_color="transparent")
+        gtts_frame.grid(row=0, column=0, sticky="nsew", padx=12, pady=10)
+        self.provider_frames["gtts"] = gtts_frame
+        ctk.CTkLabel(gtts_frame, text="gTTS Language:", font=self.app.default_font).pack(side="left")
+        ctk.CTkOptionMenu(gtts_frame, values=["th", "en"], variable=self.app.gtts_language, width=100).pack(side="left", padx=10)
+
+        gemini_frame = ctk.CTkFrame(provider_container, fg_color="transparent")
+        gemini_frame.grid(row=0, column=0, sticky="nsew", padx=12, pady=8)
+        self.provider_frames["gemini"] = gemini_frame
+        gemini_top = ctk.CTkFrame(gemini_frame, fg_color="transparent")
+        gemini_top.pack(fill="x", pady=2)
+        ctk.CTkLabel(gemini_top, text="Gemini Voice:", font=self.app.default_font).pack(side="left")
+        gemini_voices = ["Kore", "Puck", "Charon", "Fenrir", "Leda", "Orus", "Aoede", "Zephyr"]
+        ctk.CTkOptionMenu(gemini_top, values=gemini_voices, variable=self.app.gemini_voice, width=110).pack(side="left", padx=10)
+        ctk.CTkLabel(gemini_top, text="Gemini Model:", font=self.app.default_font).pack(side="left", padx=(15, 0))
+        ctk.CTkOptionMenu(
+            gemini_top,
+            values=["gemini-3.1-flash-tts-preview", "gemini-2.5-flash-preview-tts", "gemini-2.5-pro-preview-tts"],
+            variable=self.app.gemini_model, width=230,
+        ).pack(side="left", padx=10)
+        gemini_bottom = ctk.CTkFrame(gemini_frame, fg_color="transparent")
+        gemini_bottom.pack(fill="x", pady=2)
+        ctk.CTkLabel(gemini_bottom, text="Gemini API Key (Experimental):", font=self.app.default_font, text_color="#F0AD4E").pack(side="left")
+        self.app.entry_gemini_key = ctk.CTkEntry(
+            gemini_bottom, textvariable=self.app.gemini_api_key, show="•", width=240,
+            placeholder_text="GEMINI_API_KEY environment variable",
+        )
+        self.app.entry_gemini_key.pack(side="left", padx=10)
+        ctk.CTkLabel(gemini_bottom, text="Voice Style:", font=self.app.default_font).pack(side="left", padx=(15, 0))
+        self.app.entry_gemini_style = ctk.CTkEntry(gemini_bottom, textvariable=self.app.gemini_style)
+        self.app.entry_gemini_style.pack(side="left", fill="x", expand=True, padx=10)
+        from .context_menu import ContextMenu
+        ContextMenu.add_context_menu(self.app.entry_gemini_key)
+        ContextMenu.add_context_menu(self.app.entry_gemini_style)
+
+        openai_frame = ctk.CTkFrame(provider_container, fg_color="transparent")
+        openai_frame.grid(row=0, column=0, sticky="nsew", padx=12, pady=8)
+        self.provider_frames["openai"] = openai_frame
+        openai_top = ctk.CTkFrame(openai_frame, fg_color="transparent")
+        openai_top.pack(fill="x", pady=2)
+        ctk.CTkLabel(openai_top, text="OpenAI Model:", font=self.app.default_font).pack(side="left")
+        ctk.CTkOptionMenu(openai_top, values=["tts-1", "tts-1-hd", "gpt-4o-mini-tts"], variable=self.app.openai_model, width=170).pack(side="left", padx=10)
+        ctk.CTkLabel(openai_top, text="OpenAI Voice:", font=self.app.default_font).pack(side="left", padx=(15, 0))
+        openai_voices = ["alloy", "ash", "ballad", "coral", "echo", "fable", "onyx", "nova", "sage", "shimmer", "verse", "marin", "cedar"]
+        ctk.CTkOptionMenu(openai_top, values=openai_voices, variable=self.app.openai_voice, width=110).pack(side="left", padx=10)
+        ctk.CTkLabel(openai_top, text="Speed (0.25-4.0):", font=self.app.default_font).pack(side="left", padx=(15, 0))
+        self.app.entry_openai_speed = ctk.CTkEntry(openai_top, textvariable=self.app.openai_speed, width=70)
+        self.app.entry_openai_speed.pack(side="left", padx=10)
+
+        openai_bottom = ctk.CTkFrame(openai_frame, fg_color="transparent")
+        openai_bottom.pack(fill="x", pady=2)
+        ctk.CTkLabel(openai_bottom, text="OpenAI API Key (Experimental):", font=self.app.default_font, text_color="#F0AD4E").pack(side="left")
+        self.app.entry_openai_key = ctk.CTkEntry(
+            openai_bottom, textvariable=self.app.openai_api_key, show="•", width=230,
+            placeholder_text="OPENAI_API_KEY environment variable",
+        )
+        self.app.entry_openai_key.pack(side="left", padx=10)
+        ctk.CTkLabel(openai_bottom, text="OpenAI Voice Style:", font=self.app.default_font).pack(side="left", padx=(15, 0))
+        self.app.entry_openai_style = ctk.CTkEntry(openai_bottom, textvariable=self.app.openai_instructions)
+        self.app.entry_openai_style.pack(side="left", fill="x", expand=True, padx=10)
+        for entry in (self.app.entry_openai_key, self.app.entry_openai_style, self.app.entry_openai_speed):
+            ContextMenu.add_context_menu(entry)
+
+        self._show_voice_provider(self.app.voice_provider.get())
+
+        # Translation and filtering
+        row_options = ctk.CTkFrame(v_f, fg_color="transparent")
+        row_options.pack(fill="x", padx=15, pady=5)
+        ctk.CTkCheckBox(row_options, text="Auto-Translate (TH)", variable=self.app.auto_translate, onvalue="True", offvalue="False", font=self.app.default_font).pack(side="left", padx=10)
+        ctk.CTkCheckBox(row_options, text="Filter Profanity", variable=self.app.profanity_enabled, onvalue="True", offvalue="False", font=self.app.default_font).pack(side="left", padx=10)
 
         # Second row: Delays
         row2 = ctk.CTkFrame(v_f, fg_color="transparent")
@@ -110,6 +201,6 @@ class ChatFrame(ctk.CTkFrame):
                     self.app.textbox_filter.insert("1.0", f.read())
             except: pass
 
-        # Save Button for Chat-TTS
+        # Save Button for Bot Live Chat
         ctk.CTkButton(self.scroll, text="SAVE ALL SETTINGS", height=45, fg_color="#28a745", font=self.app.bold_font,
                        command=self.app.save_chat_settings).pack(fill="x", pady=20)

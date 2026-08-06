@@ -28,7 +28,7 @@ class AppLogic:
         def _task():
             try:
                 if not self.app.engine.is_running:
-                    self.logger.info("Starting Chat-TTS System...")
+                    self.logger.info("Starting Bot Live Chat...")
                     # 1. Save current UI to disk
                     self.save_chat_settings()
                     
@@ -51,6 +51,17 @@ class AppLogic:
                         "tk_enabled": self.app.config.get(s, "tk_enabled", fallback="False"),
                         "tk_username": self.app.config.get(s, "tk_username", fallback=""),
                         "voice": self.app.config.get(s, "voice", fallback="th-TH-PremwadeeNeural"),
+                        "voice_provider": self.app.config.get(s, "voice_provider", fallback="edge"),
+                        "gtts_language": self.app.config.get(s, "gtts_language", fallback="th"),
+                        "gemini_api_key": self.app.config.get(s, "gemini_api_key", fallback=""),
+                        "gemini_model": self.app.config.get(s, "gemini_model", fallback="gemini-3.1-flash-tts-preview"),
+                        "gemini_voice": self.app.config.get(s, "gemini_voice", fallback="Kore"),
+                        "gemini_style": self.app.config.get(s, "gemini_style", fallback="Read the transcript naturally and clearly."),
+                        "openai_api_key": self.app.config.get(s, "openai_api_key", fallback=""),
+                        "openai_model": self.app.config.get(s, "openai_model", fallback="tts-1"),
+                        "openai_voice": self.app.config.get(s, "openai_voice", fallback="alloy"),
+                        "openai_instructions": self.app.config.get(s, "openai_instructions", fallback="Speak naturally and clearly."),
+                        "openai_speed": self.app.config.get(s, "openai_speed", fallback="1.0"),
                         "delay_per_char": self.app.config.get(s, "delay_per_char", fallback="0.03"),
                         "max_delay": self.app.config.get(s, "max_delay", fallback="2.0"),
                         "auto_translate": self.app.config.get(s, "auto_translate", fallback="False"),
@@ -60,20 +71,20 @@ class AppLogic:
                     self.app.engine.start(conf)
                     
                     def _update_ui_start():
-                        btn_dash.configure(text="STOP CHAT-TTS", fg_color="#dc3545", state="normal")
-                        btn_chat.configure(text="STOP CHAT-TTS", fg_color="#dc3545", state="normal")
-                        self.app.frames["dashboard"].status_label.configure(text="RUNNING", text_color="#28a745")
+                        btn_dash.configure(text=self.app.tr("STOP BOT LIVE CHAT"), fg_color="#dc3545", state="normal")
+                        btn_chat.configure(text=self.app.tr("STOP BOT LIVE CHAT"), fg_color="#dc3545", state="normal")
+                        self.app.frames["dashboard"].status_label.configure(text=self.app.tr("RUNNING"), text_color="#28a745")
                     
                     self.app.after(0, _update_ui_start)
                 else:
-                    self.logger.info("Stopping Chat-TTS System...")
+                    self.logger.info("Stopping Bot Live Chat...")
                     self.app.engine.stop()
                     
                     def _update_ui_stop():
-                        btn_dash.configure(text="START CHAT-TTS", fg_color="#28a745", state="normal")
-                        btn_chat.configure(text="START CHAT-TTS", fg_color="#28a745", state="normal")
+                        btn_dash.configure(text=self.app.tr("START BOT LIVE CHAT"), fg_color="#28a745", state="normal")
+                        btn_chat.configure(text=self.app.tr("START BOT LIVE CHAT"), fg_color="#28a745", state="normal")
                         if not self.app.opt_running:
-                            self.app.frames["dashboard"].status_label.configure(text="IDLE", text_color="#ABB2BF")
+                            self.app.frames["dashboard"].status_label.configure(text=self.app.tr("IDLE"), text_color="#ABB2BF")
                     
                     self.app.after(0, _update_ui_stop)
             except Exception as e:
@@ -93,15 +104,15 @@ class AppLogic:
                     self.app.opt_stop_event.clear()
                     self.app.opt_running = True
                     threading.Thread(target=self._run_opt_service, daemon=True).start()
-                    self.app.after(0, lambda: self.app.frames["dashboard"].btn_toggle_opt.configure(text="STOP OPTIMIZER", fg_color="#dc3545", state="normal"))
-                    self.app.after(0, lambda: self.app.frames["dashboard"].status_label.configure(text="RUNNING", text_color="#28a745"))
+                    self.app.after(0, lambda: self.app.frames["dashboard"].btn_toggle_opt.configure(text=self.app.tr("STOP OPTIMIZER"), fg_color="#dc3545", state="normal"))
+                    self.app.after(0, lambda: self.app.frames["dashboard"].status_label.configure(text=self.app.tr("RUNNING"), text_color="#28a745"))
                 else:
                     self.logger.info("Stopping Optimizer Service...")
                     self.app.opt_stop_event.set()
                     self.app.opt_running = False
-                    self.app.after(0, lambda: self.app.frames["dashboard"].btn_toggle_opt.configure(text="START OPTIMIZER", fg_color="#17a2b8", state="normal"))
+                    self.app.after(0, lambda: self.app.frames["dashboard"].btn_toggle_opt.configure(text=self.app.tr("START OPTIMIZER"), fg_color="#17a2b8", state="normal"))
                     if not self.app.engine.is_running:
-                        self.app.after(0, lambda: self.app.frames["dashboard"].status_label.configure(text="IDLE", text_color="#ABB2BF"))
+                        self.app.after(0, lambda: self.app.frames["dashboard"].status_label.configure(text=self.app.tr("IDLE"), text_color="#ABB2BF"))
             except Exception as e:
                 self.logger.error(f"Optimizer Toggle Error: {e}")
                 self.app.after(0, lambda: self.app.frames["dashboard"].btn_toggle_opt.configure(state="normal"))
@@ -129,6 +140,17 @@ class AppLogic:
         self.app.config.set(s, "tw_channel", self.app.entry_tw.get())
         self.app.config.set(s, "tk_username", self.app.entry_tk.get())
         self.app.config.set(s, "voice", self.app.voice_var.get())
+        self.app.config.set(s, "voice_provider", self.app.voice_provider.get())
+        self.app.config.set(s, "gtts_language", self.app.gtts_language.get())
+        self.app.config.set(s, "gemini_api_key", self.app.gemini_api_key.get())
+        self.app.config.set(s, "gemini_model", self.app.gemini_model.get())
+        self.app.config.set(s, "gemini_voice", self.app.gemini_voice.get())
+        self.app.config.set(s, "gemini_style", self.app.gemini_style.get())
+        self.app.config.set(s, "openai_api_key", self.app.openai_api_key.get())
+        self.app.config.set(s, "openai_model", self.app.openai_model.get())
+        self.app.config.set(s, "openai_voice", self.app.openai_voice.get())
+        self.app.config.set(s, "openai_instructions", self.app.openai_instructions.get())
+        self.app.config.set(s, "openai_speed", self.app.openai_speed.get())
         self.app.config.set(s, "delay_per_char", self.app.entry_delay_char.get())
         self.app.config.set(s, "max_delay", self.app.entry_max_delay.get())
         
@@ -157,13 +179,24 @@ class AppLogic:
         if self.app.engine.is_running:
             self.app.logic.apply_realtime_config()
             
-        self.logger.info("Chat-TTS Settings Saved Successfully")
+        self.logger.info("Bot Live Chat settings saved successfully")
 
     def apply_realtime_config(self):
         """Apply current GUI settings to the engine in real-time."""
         if self.app.engine.is_running:
             conf = {
                 "voice": self.app.voice_var.get(),
+                "voice_provider": self.app.voice_provider.get(),
+                "gtts_language": self.app.gtts_language.get(),
+                "gemini_api_key": self.app.gemini_api_key.get(),
+                "gemini_model": self.app.gemini_model.get(),
+                "gemini_voice": self.app.gemini_voice.get(),
+                "gemini_style": self.app.gemini_style.get(),
+                "openai_api_key": self.app.openai_api_key.get(),
+                "openai_model": self.app.openai_model.get(),
+                "openai_voice": self.app.openai_voice.get(),
+                "openai_instructions": self.app.openai_instructions.get(),
+                "openai_speed": self.app.openai_speed.get(),
                 "delay_per_char": self.app.entry_delay_char.get(),
                 "max_delay": self.app.entry_max_delay.get(),
                 "auto_translate": self.app.auto_translate.get(),

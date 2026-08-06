@@ -1,12 +1,35 @@
 # 🎙️ TDitbam Streamer Suite (v3.5.0)
 
+## อัปเดตล่าสุด — 6 สิงหาคม 2026
+
+- เปลี่ยนชื่อระบบอ่านแชทเป็น **Bot Live Chat**
+- รองรับ YouTube Live, Twitch และ TikTok Live
+- เพิ่ม Voice Provider 4 ระบบ: **Edge TTS**, **gTTS**, **Gemini API Voice** และ **OpenAI API Voice**
+- Gemini/OpenAI เป็นฟีเจอร์ **อยู่ในขั้นทดลอง (Experimental)** และต้องใช้ API key
+- รองรับ `GEMINI_API_KEY` และ `OPENAI_API_KEY` จาก environment variable
+- เพิ่ม UI สองภาษา: **ไทย** และ **English (US)** พร้อมจำค่าภาษา
+- ปรับหน้า Voice Settings ให้แสดงเฉพาะตัวเลือกของ provider ที่กำลังใช้งาน
+- ยกระดับ Session isolation: แยก queue/cancellation/audio player ต่อรอบ ป้องกันเสียงเก่าซ้อนหลัง Stop → Start
+- แก้ `Ctrl+V` วางข้อความซ้ำ
+
+### Voice Providers
+
+| Provider | การตั้งค่าหลัก | สถานะ |
+|---|---|---|
+| Edge TTS | เสียง Premwadee/Niwat | พร้อมใช้งาน |
+| gTTS | ภาษาไทย/อังกฤษ | พร้อมใช้งาน |
+| Gemini API | Model, Voice, API key, Voice Style | Experimental |
+| OpenAI API | Model, Voice, API key, Style, Speed | Experimental |
+
+> API key ที่กรอกผ่าน UI จะถูกบันทึกใน `config.ini` แบบข้อความปกติ หากไม่ต้องการบันทึก key ลงไฟล์ ให้ตั้งผ่าน environment variable แทน
+
 **TDitbam Streamer Suite** คือเครื่องมือ All-in-One สำหรับสตรีมเมอร์ที่รวมระบบ **Chat-to-Speech (TTS)** และ **System Optimizer** เข้าด้วยกัน เพื่อให้การสตรีมของคุณลื่นไหลและมีปฏิสัมพันธ์กับผู้ชมได้ดีที่สุด
 
 ---
 
 ## ✨ คุณสมบัติหลัก (Key Features)
 
-### 🔊 Chat-TTS Multi-Platform
+### 🔊 Bot Live Chat Multi-Platform
 - **รองรับ 3 แพลตฟอร์มหลัก:** อ่านแชทจาก YouTube Live, Twitch และ TikTok Live พร้อมกัน
 - **เสียงคุณภาพสูง:** ใช้เทคโนโลยี Edge-TTS ให้เสียงที่เป็นธรรมชาติ
 - **แปลภาษาอัตโนมัติ:** รองรับการแปลแชทต่างชาติเป็นภาษาไทยทันที

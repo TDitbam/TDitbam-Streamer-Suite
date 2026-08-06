@@ -19,6 +19,7 @@ from .cleanup_frame import CleanupFrame
 from .windows_tools_frame import WindowsToolsFrame
 from .settings_frame import SettingsFrame
 from .logic import AppLogic
+from .i18n import THAI, LANGUAGE_NAMES
 
 class GuiLogHandler(logging.Handler):
     def __init__(self, text_widget):
@@ -50,6 +51,9 @@ class App(ctk.CTk):
         self.config = configparser.ConfigParser()
         if os.path.exists(get_config_path()):
             self.config.read(get_config_path(), encoding="utf-8")
+        self.language_code = self.config.get("settings", "language", fallback="en-US")
+        if self.language_code not in LANGUAGE_NAMES:
+            self.language_code = "en-US"
         
         self.opt_config = load_opt_config()
         self.opt_running = False
@@ -68,7 +72,7 @@ class App(ctk.CTk):
         self.bold_font = ctk.CTkFont(size=14, weight="bold")
         self.default_font = ctk.CTkFont(size=13)
         
-        # Variables for Chat-TTS
+        # Variables for Bot Live Chat
         s = "settings"
         tts_old = "tts"
         self.yt_enabled = ctk.StringVar(value=self.config.get(s, "yt_enabled", fallback=self.config.get(tts_old, "yt_enabled", fallback="True")))
@@ -80,6 +84,17 @@ class App(ctk.CTk):
         # Voice compatibility
         voice_val = self.config.get(s, "voice", fallback=self.config.get(tts_old, "voice", fallback=self.config.get(s, "VOICE", fallback="th-TH-PremwadeeNeural")))
         self.voice_var = ctk.StringVar(value=voice_val)
+        self.voice_provider = ctk.StringVar(value=self.config.get(s, "voice_provider", fallback="edge"))
+        self.gtts_language = ctk.StringVar(value=self.config.get(s, "gtts_language", fallback="th"))
+        self.gemini_api_key = ctk.StringVar(value=self.config.get(s, "gemini_api_key", fallback=""))
+        self.gemini_model = ctk.StringVar(value=self.config.get(s, "gemini_model", fallback="gemini-3.1-flash-tts-preview"))
+        self.gemini_voice = ctk.StringVar(value=self.config.get(s, "gemini_voice", fallback="Kore"))
+        self.gemini_style = ctk.StringVar(value=self.config.get(s, "gemini_style", fallback="Read the transcript naturally and clearly."))
+        self.openai_api_key = ctk.StringVar(value=self.config.get(s, "openai_api_key", fallback=""))
+        self.openai_model = ctk.StringVar(value=self.config.get(s, "openai_model", fallback="tts-1"))
+        self.openai_voice = ctk.StringVar(value=self.config.get(s, "openai_voice", fallback="alloy"))
+        self.openai_instructions = ctk.StringVar(value=self.config.get(s, "openai_instructions", fallback="Speak naturally and clearly."))
+        self.openai_speed = ctk.StringVar(value=self.config.get(s, "openai_speed", fallback="1.0"))
         
         # General App Settings
         self.start_minimized = ctk.BooleanVar(value=self.config.getboolean(s, "start_minimized", fallback=False))
@@ -120,6 +135,7 @@ class App(ctk.CTk):
         self._setup_listeners()
         self._setup_shortcut_handler()
         self.show_frame("dashboard")
+        self.apply_language()
         
         # Auto-minimize to system tray if configured
         if self.start_minimized.get():
@@ -127,7 +143,13 @@ class App(ctk.CTk):
 
     def _setup_listeners(self):
         """Setup listeners for real-time config updates."""
-        for var in [self.auto_translate, self.profanity_enabled, self.voice_var]:
+        for var in [
+            self.auto_translate, self.profanity_enabled, self.voice_var,
+            self.voice_provider, self.gtts_language, self.gemini_api_key,
+            self.gemini_model, self.gemini_voice, self.gemini_style,
+            self.openai_api_key, self.openai_model, self.openai_voice,
+            self.openai_instructions, self.openai_speed,
+        ]:
             var.trace_add("write", lambda *args: self.logic.apply_realtime_config())
 
     def _setup_shortcut_handler(self):
@@ -152,6 +174,12 @@ class App(ctk.CTk):
                 # Virtual keycodes for standard letter keys (layout independent)
                 # 65 = A, 67 = C, 86 = V, 88 = X, 90 = Z
                 if event.keycode == 86:  # V
+                    # Tk's widget class binding has already handled a regular
+                    # Ctrl+V before this additive global binding runs. Only
+                    # synthesize Paste when the active keyboard layout gives
+                    # the physical V key a different keysym.
+                    if str(event.keysym).lower() == "v":
+                        return
                     if state == "normal":
                         widget.event_generate("<<Paste>>")
                         return "break"
@@ -183,6 +211,49 @@ class App(ctk.CTk):
     def show_frame(self, page_name):
         frame = self.frames[page_name]
         frame.tkraise()
+
+    def tr(self, text):
+        """Translate a UI string while preserving an optional emoji prefix."""
+        if self.language_code == "th":
+            for english, thai in THAI.items():
+                if text == english or text.endswith(english):
+                    return text[:-len(english)] + thai
+            return text
+
+        for english, thai in THAI.items():
+            if text == thai or text.endswith(thai):
+                return text[:-len(thai)] + english
+        return text
+
+    def set_language(self, display_name):
+        """Persist and immediately apply the selected UI language."""
+        code = next((key for key, name in LANGUAGE_NAMES.items() if name == display_name), "en-US")
+        if code == self.language_code:
+            return
+        self.language_code = code
+        if not self.config.has_section("settings"):
+            self.config.add_section("settings")
+        self.config.set("settings", "language", code)
+        with open(get_config_path(), "w", encoding="utf-8") as config_file:
+            self.config.write(config_file)
+        self.apply_language()
+
+    def apply_language(self):
+        """Update existing widgets in-place; no application restart required."""
+        def update_tree(widget):
+            for option in ("text", "placeholder_text"):
+                try:
+                    current = widget.cget(option)
+                    if isinstance(current, str) and current:
+                        translated = self.tr(current)
+                        if translated != current:
+                            widget.configure(**{option: translated})
+                except Exception:
+                    pass
+            for child in widget.winfo_children():
+                update_tree(child)
+
+        update_tree(self)
 
     # --- System Tray Methods ---
     def create_tray_icon(self):
