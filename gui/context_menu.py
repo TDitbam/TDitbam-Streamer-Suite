@@ -1,6 +1,8 @@
 import tkinter as tk
 import customtkinter as ctk
 
+from .ui_theme import COLORS
+
 class ContextMenu:
     """A reusable right-click context menu for CustomTkinter widgets."""
     
@@ -16,8 +18,8 @@ class ContextMenu:
     @staticmethod
     def add_context_menu(widget):
         """Adds a standard context menu (Cut, Copy, Paste, Select All) to a widget."""
-        menu = tk.Menu(widget, tearoff=0, bg="#2B2B2B", fg="#DCE4EE", 
-                       activebackground="#1F538D", activeforeground="white", 
+        menu = tk.Menu(widget, tearoff=0, bg=COLORS["surface_alt"], fg=COLORS["text"],
+                       activebackground=COLORS["accent"], activeforeground="white",
                        borderwidth=0, font=("Segoe UI", 10))
         
         is_text = isinstance(widget, (ctk.CTkTextbox, tk.Text))

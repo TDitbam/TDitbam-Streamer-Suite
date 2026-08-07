@@ -3,7 +3,6 @@
 block_cipher = None
 
 added_files = [
-    ('config.ini', '.'),
     ('icon.ico', '.'),
     ('resources', 'resources'),
 ]

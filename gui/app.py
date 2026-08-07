@@ -21,6 +21,7 @@ from .windows_tools_frame import WindowsToolsFrame
 from .settings_frame import SettingsFrame
 from .logic import AppLogic
 from .i18n import THAI, LANGUAGE_NAMES
+from .ui_theme import COLORS
 
 class GuiLogHandler(logging.Handler):
     def __init__(self, text_widgets):
@@ -103,8 +104,27 @@ class GuiLogHandler(logging.Handler):
 class App(ctk.CTk):
     def __init__(self, engine, instance_guard=None):
         super().__init__()
+        # Keep the native window hidden and transparent until the first dark
+        # frame is fully laid out. This prevents Windows/Tk from exposing its
+        # default white client area during startup.
+        self.withdraw()
+        try:
+            self.attributes("-alpha", 0.0)
+        except Exception:
+            pass
         self.title("Streamer Suite")
-        self.geometry("1100x800")
+        self.geometry("1180x820")
+        self.minsize(1000, 700)
+        self.configure(fg_color=COLORS["app_bg"])
+        try:
+            self.tk_setPalette(
+                background=COLORS["app_bg"],
+                foreground=COLORS["text"],
+                activeBackground=COLORS["surface_hover"],
+                activeForeground=COLORS["text"],
+            )
+        except Exception:
+            pass
         self.instance_guard = instance_guard
 
         self.icon_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "icon.ico"))
@@ -133,15 +153,29 @@ class App(ctk.CTk):
         # Variables for Optimizer / System
         self.opt_auto_shutdown = ctk.BooleanVar(value=self.opt_config["Settings"].getboolean("auto_shutdown", fallback=False))
         self.opt_shutdown_time = ctk.StringVar(value=self.opt_config["Settings"].get("shutdown_time", fallback="23:59"))
+        self.opt_exclude_c0 = ctk.BooleanVar(
+            value=self.opt_config["Settings"].getboolean("exclude_core_0", fallback=True)
+        )
+        self.opt_disable_smt = ctk.BooleanVar(
+            value=self.opt_config["Settings"].getboolean("disable_smt", fallback=False)
+        )
+        self.opt_auto_clean = ctk.BooleanVar(
+            value=self.opt_config["Settings"].getboolean("auto_cleanup", fallback=False)
+        )
+        self.opt_clean_interval = ctk.StringVar(
+            value=self.opt_config["Settings"].get("cleanup_interval", "1440")
+        )
         
         # System Tray Setup
         self.protocol('WM_DELETE_WINDOW', self.withdraw_to_tray)
         self.create_tray_icon()
         
         # Fonts
-        self.title_font = ctk.CTkFont(size=24, weight="bold")
-        self.bold_font = ctk.CTkFont(size=14, weight="bold")
-        self.default_font = ctk.CTkFont(size=13)
+        self.title_font = ctk.CTkFont(family="Segoe UI", size=24, weight="bold")
+        self.section_font = ctk.CTkFont(family="Segoe UI", size=16, weight="bold")
+        self.bold_font = ctk.CTkFont(family="Segoe UI", size=14, weight="bold")
+        self.default_font = ctk.CTkFont(family="Segoe UI", size=13)
+        self.small_font = ctk.CTkFont(family="Segoe UI", size=12)
         
         # Variables for Bot Live Chat
         s = "settings"
@@ -185,41 +219,51 @@ class App(ctk.CTk):
         self.sidebar = SidebarFrame(self, self.show_frame)
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         
-        self.container = ctk.CTkFrame(self, fg_color="transparent")
+        self.container = ctk.CTkFrame(self, fg_color=COLORS["app_bg"], corner_radius=0)
         self.container.grid(row=0, column=1, sticky="nsew")
         self.container.grid_columnconfigure(0, weight=1)
         self.container.grid_rowconfigure(0, weight=1)
         
+        # Dashboard is the only frame required for startup services. Remaining
+        # pages are created on first visit, cutting first paint work by more
+        # than half while the current page stays visible during construction.
+        self._frame_classes = {
+            "dashboard": DashboardFrame,
+            "chat": ChatFrame,
+            "optimizer": OptimizerFrame,
+            "cleanup": CleanupFrame,
+            "windowstools": WindowsToolsFrame,
+            "settings": SettingsFrame,
+        }
         self.frames = {}
-        for F in (DashboardFrame, ChatFrame, OptimizerFrame, CleanupFrame, WindowsToolsFrame, SettingsFrame):
-            page_name = F.__name__.replace("Frame", "").lower()
-            frame = F(self.container, self)
-            self.frames[page_name] = frame
-            frame.grid(row=0, column=0, sticky="nsew")
+        self._current_page = None
+        self._ensure_frame("dashboard")
             
         # Setup Logger Redirect
         self.log_handler = GuiLogHandler(self.frames["dashboard"].log_boxes)
         self.log_handler.setFormatter(logging.Formatter('%(asctime)s: %(message)s', datefmt='%H:%M:%S'))
         base_logger.addHandler(self.log_handler)
         
-        # CPU monitoring runs outside Tk's UI thread.
+        # All performance monitoring runs outside Tk's UI thread.
         self.logic.start_cpu_monitor()
+        self.logic.start_system_metrics_monitor()
         
         self._setup_listeners()
         self._setup_shortcut_handler()
         self.show_frame("dashboard")
-        self.apply_language()
+        if self.language_code == "th":
+            self.apply_language()
 
-        # Start only after every frame and control has been initialized.
+        # Start only after the required startup controls have been initialized.
         if self.auto_start_optimizer.get():
             self.after(800, self.logic.start_optimizer_automatically)
         if self.instance_guard:
             self.after(250, self._poll_activation_request)
         self.after(1500, lambda: self.notify_windows("Streamer Suite", self.tr("Application is ready")))
         
-        # Auto-minimize to system tray if configured
-        if self.start_minimized.get():
-            self.after(200, self.withdraw_to_tray)
+        # Reveal only after Tk has rendered a complete dark first frame.
+        if not self.start_minimized.get():
+            self.after_idle(self._reveal_ready_window)
 
     def _setup_listeners(self):
         """Setup listeners for real-time config updates."""
@@ -289,19 +333,57 @@ class App(ctk.CTk):
         self.bind_all("<Key>", handle_shortcuts, "+")
 
     def show_frame(self, page_name):
-        frame = self.frames[page_name]
+        if page_name == self._current_page and page_name in self.frames:
+            return
+        is_new_page = page_name not in self.frames
+        if is_new_page and hasattr(self, "sidebar"):
+            # Give immediate dark-theme feedback while the first copy of a
+            # complex page is being constructed.
+            self.sidebar.set_active(page_name)
+            self.configure(cursor="watch")
+            self.update_idletasks()
+        try:
+            frame = self._ensure_frame(page_name)
+        finally:
+            if is_new_page:
+                self.configure(cursor="")
         frame.tkraise()
+        self._current_page = page_name
+        if hasattr(self, "sidebar"):
+            self.sidebar.set_active(page_name)
+
+    def _ensure_frame(self, page_name):
+        frame = self.frames.get(page_name)
+        if frame is not None:
+            return frame
+        frame_class = self._frame_classes[page_name]
+        frame = frame_class(self.container, self)
+        self.frames[page_name] = frame
+        frame.grid(row=0, column=0, sticky="nsew")
+        if self.language_code == "th":
+            self._translate_widget_tree(frame)
+            apply_frame_language = getattr(frame, "apply_language", None)
+            if callable(apply_frame_language):
+                apply_frame_language()
+        return frame
 
     def tr(self, text):
         """Translate a UI string while preserving an optional emoji prefix."""
         if self.language_code == "th":
+            exact = THAI.get(text)
+            if exact is not None:
+                return exact
             for english, thai in THAI.items():
-                if text == english or text.endswith(english):
+                if text.endswith(english):
                     return text[:-len(english)] + thai
             return text
 
+        reverse = {thai: english for english, thai in THAI.items()}
+        exact = reverse.get(text)
+        if exact is not None:
+            return exact
         for english, thai in THAI.items():
-            if text == thai or text.endswith(thai):
+            if text.endswith(thai):
                 return text[:-len(thai)] + english
         return text
 
@@ -320,23 +402,33 @@ class App(ctk.CTk):
 
     def apply_language(self):
         """Update existing widgets in-place; no application restart required."""
-        def update_tree(widget):
-            for option in ("text", "placeholder_text"):
-                try:
-                    current = widget.cget(option)
-                    if isinstance(current, str) and current:
-                        translated = self.tr(current)
-                        if translated != current:
-                            widget.configure(**{option: translated})
-                except Exception:
-                    pass
-            for child in widget.winfo_children():
-                update_tree(child)
+        self._translate_widget_tree(self)
+        for frame in self.frames.values():
+            apply_frame_language = getattr(frame, "apply_language", None)
+            if callable(apply_frame_language):
+                apply_frame_language()
 
-        update_tree(self)
-        dashboard = self.frames.get("dashboard")
-        if dashboard is not None:
-            dashboard.apply_language()
+    def _translate_widget_tree(self, widget):
+        for option in ("text", "placeholder_text"):
+            try:
+                current = widget.cget(option)
+                if isinstance(current, str) and current:
+                    translated = self.tr(current)
+                    if translated != current:
+                        widget.configure(**{option: translated})
+            except Exception:
+                pass
+        for child in widget.winfo_children():
+            self._translate_widget_tree(child)
+
+    def _reveal_ready_window(self):
+        """Display the already-rendered first frame without a white flash."""
+        self.update_idletasks()
+        try:
+            self.attributes("-alpha", 1.0)
+        except Exception:
+            pass
+        self.deiconify()
 
     # --- System Tray Methods ---
     def create_tray_icon(self):
@@ -371,8 +463,17 @@ class App(ctk.CTk):
 
     def show_from_tray(self, icon=None, item=None):
         def restore_window():
+            try:
+                self.attributes("-alpha", 0.0)
+            except Exception:
+                pass
             self.deiconify()
             self.state("normal")
+            self.update_idletasks()
+            try:
+                self.attributes("-alpha", 1.0)
+            except Exception:
+                pass
             self.lift()
             # A short topmost pulse reliably brings the existing window to
             # the foreground after a duplicate launch, then restores normal

@@ -4,8 +4,10 @@ import sys
 import threading
 import logging
 import psutil
-from tkinter import filedialog
+from tkinter import TclError, filedialog
 from core.app_logger import get_app_dir, get_logger, get_config_path
+from core.system_metrics import sample_program_usage, sample_windows_gpu
+from .ui_theme import COLORS
 from optimizer.optimizer_core.config_loader import save_config as save_opt_config, get_targets as get_opt_targets, get_paths as get_opt_paths
 from optimizer.optimizer_core.optimizer_engine import optimize_processes
 from optimizer.optimizer_core.cleaner import clean_junk
@@ -17,16 +19,19 @@ class AppLogic:
         self.engine = engine
         self.logger = get_logger("Logic")
         self._cpu_monitor_thread = None
+        self._system_metrics_thread = None
+        self._process_cpu_cache = {}
         self._optimizer_p_core_count = 0
         self._optimizer_e_core_count = 0
         self._topology_refresh_id = 0
         self._process_refresh_running = False
         self._running_process_names = []
+        self._last_process_menu_values = None
         self._process_refresh_after_id = None
 
     def toggle_tts(self):
         btn_dash = self.app.frames["dashboard"].btn_toggle_tts
-        btn_chat = self.app.btn_toggle_tts_chat
+        btn_chat = getattr(self.app, "btn_toggle_tts_chat", None)
         
         if btn_dash.cget("state") == "disabled": return
 
@@ -36,14 +41,16 @@ class AppLogic:
             self.app.frames["dashboard"].clear_log("chat")
         
         btn_dash.configure(state="disabled")
-        btn_chat.configure(state="disabled")
+        if btn_chat is not None:
+            btn_chat.configure(state="disabled")
         
         def _task():
             try:
                 if not self.app.engine.is_running:
                     self.logger.info("Starting Bot Live Chat...")
                     # 1. Save current UI to disk
-                    self.save_chat_settings()
+                    if "chat" in self.app.frames:
+                        self.save_chat_settings()
                     
                     # 2. Build config dict from the fresh app state (already updated by save_chat_settings)
                     s = "settings"
@@ -75,9 +82,10 @@ class AppLogic:
                     self.app.engine.start(conf)
                     
                     def _update_ui_start():
-                        btn_dash.configure(text=self.app.tr("STOP BOT LIVE CHAT"), fg_color="#dc3545", state="normal")
-                        btn_chat.configure(text=self.app.tr("STOP BOT LIVE CHAT"), fg_color="#dc3545", state="normal")
-                        self.app.frames["dashboard"].status_label.configure(text=self.app.tr("RUNNING"), text_color="#28a745")
+                        btn_dash.configure(text=self.app.tr("STOP BOT LIVE CHAT"), fg_color=COLORS["danger"], hover_color=COLORS["danger_hover"], state="normal")
+                        if btn_chat is not None:
+                            btn_chat.configure(text=self.app.tr("STOP BOT LIVE CHAT"), fg_color=COLORS["danger"], hover_color=COLORS["danger_hover"], state="normal")
+                        self.app.frames["dashboard"].status_label.configure(text=self.app.tr("RUNNING"), text_color=COLORS["success"])
                         self.app.notify_windows("Bot Live Chat", self.app.tr("Bot Live Chat started"))
                     
                     self.app.after(0, _update_ui_start)
@@ -86,16 +94,21 @@ class AppLogic:
                     self.app.engine.stop()
                     
                     def _update_ui_stop():
-                        btn_dash.configure(text=self.app.tr("START BOT LIVE CHAT"), fg_color="#28a745", state="normal")
-                        btn_chat.configure(text=self.app.tr("START BOT LIVE CHAT"), fg_color="#28a745", state="normal")
+                        btn_dash.configure(text=self.app.tr("START BOT LIVE CHAT"), fg_color=COLORS["success"], hover_color=COLORS["success_hover"], state="normal")
+                        if btn_chat is not None:
+                            btn_chat.configure(text=self.app.tr("START BOT LIVE CHAT"), fg_color=COLORS["success"], hover_color=COLORS["success_hover"], state="normal")
                         if not self.app.opt_running:
-                            self.app.frames["dashboard"].status_label.configure(text=self.app.tr("IDLE"), text_color="#ABB2BF")
+                            self.app.frames["dashboard"].status_label.configure(text=self.app.tr("IDLE"), text_color=COLORS["muted"])
                         self.app.notify_windows("Bot Live Chat", self.app.tr("Bot Live Chat stopped"))
                     
                     self.app.after(0, _update_ui_stop)
             except Exception as e:
                 self.logger.error(f"TTS Toggle Error: {e}")
-                self.app.after(0, lambda: (btn_dash.configure(state="normal"), btn_chat.configure(state="normal")))
+                def restore_buttons():
+                    btn_dash.configure(state="normal")
+                    if btn_chat is not None:
+                        btn_chat.configure(state="normal")
+                self.app.after(0, restore_buttons)
         
         threading.Thread(target=_task, daemon=True).start()
 
@@ -110,16 +123,16 @@ class AppLogic:
                     self.app.opt_stop_event.clear()
                     self.app.opt_running = True
                     threading.Thread(target=self._run_opt_service, daemon=True).start()
-                    self.app.after(0, lambda: self.app.frames["dashboard"].btn_toggle_opt.configure(text=self.app.tr("STOP OPTIMIZER"), fg_color="#dc3545", state="normal"))
-                    self.app.after(0, lambda: self.app.frames["dashboard"].status_label.configure(text=self.app.tr("RUNNING"), text_color="#28a745"))
+                    self.app.after(0, lambda: self.app.frames["dashboard"].btn_toggle_opt.configure(text=self.app.tr("STOP OPTIMIZER"), fg_color=COLORS["danger"], hover_color=COLORS["danger_hover"], state="normal"))
+                    self.app.after(0, lambda: self.app.frames["dashboard"].status_label.configure(text=self.app.tr("RUNNING"), text_color=COLORS["success"]))
                     self.app.after(0, lambda: self.app.notify_windows("Optimizer", self.app.tr("Optimizer started")))
                 else:
                     self.logger.info("Stopping Optimizer Service...")
                     self.app.opt_stop_event.set()
                     self.app.opt_running = False
-                    self.app.after(0, lambda: self.app.frames["dashboard"].btn_toggle_opt.configure(text=self.app.tr("START OPTIMIZER"), fg_color="#17a2b8", state="normal"))
+                    self.app.after(0, lambda: self.app.frames["dashboard"].btn_toggle_opt.configure(text=self.app.tr("START OPTIMIZER"), fg_color=COLORS["cyan"], hover_color="#117A8B", state="normal"))
                     if not self.app.engine.is_running:
-                        self.app.after(0, lambda: self.app.frames["dashboard"].status_label.configure(text=self.app.tr("IDLE"), text_color="#ABB2BF"))
+                        self.app.after(0, lambda: self.app.frames["dashboard"].status_label.configure(text=self.app.tr("IDLE"), text_color=COLORS["muted"]))
                     self.app.after(0, lambda: self.app.notify_windows("Optimizer", self.app.tr("Optimizer stopped")))
             except Exception as e:
                 self.logger.error(f"Optimizer Toggle Error: {e}")
@@ -199,6 +212,16 @@ class AppLogic:
     def apply_realtime_config(self):
         """Apply current GUI settings to the engine in real-time."""
         if self.app.engine.is_running:
+            delay_per_char = (
+                self.app.entry_delay_char.get()
+                if hasattr(self.app, "entry_delay_char")
+                else self.app.config.get("settings", "delay_per_char", fallback="0.03")
+            )
+            max_delay = (
+                self.app.entry_max_delay.get()
+                if hasattr(self.app, "entry_max_delay")
+                else self.app.config.get("settings", "max_delay", fallback="2.0")
+            )
             conf = {
                 "voice": self.app.voice_var.get(),
                 "voice_provider": self.app.voice_provider.get(),
@@ -212,8 +235,8 @@ class AppLogic:
                 "openai_voice": self.app.openai_voice.get(),
                 "openai_instructions": self.app.openai_instructions.get(),
                 "openai_speed": self.app.openai_speed.get(),
-                "delay_per_char": self.app.entry_delay_char.get(),
-                "max_delay": self.app.entry_max_delay.get(),
+                "delay_per_char": delay_per_char,
+                "max_delay": max_delay,
                 "auto_translate": self.app.auto_translate.get(),
                 "profanity_enabled": self.app.profanity_enabled.get()
             }
@@ -349,11 +372,16 @@ class AppLogic:
             psutil.cpu_percent(interval=None, percpu=True)  # Prime counters.
             while not self.app.cpu_monitor_stop_event.wait(1.0):
                 per_cpu = psutil.cpu_percent(interval=None, percpu=True)
-                self.app.after(
-                    0,
-                    lambda p=p_cores, e=e_cores, usage=per_cpu:
-                        self._render_cpu_stats(p, e, usage),
-                )
+                if self.app.cpu_monitor_stop_event.is_set():
+                    break
+                try:
+                    self.app.after(
+                        0,
+                        lambda p=p_cores, e=e_cores, usage=per_cpu:
+                            self._render_cpu_stats(p, e, usage),
+                    )
+                except (RuntimeError, TclError):
+                    break
 
         self._cpu_monitor_thread = threading.Thread(target=monitor, daemon=True)
         self._cpu_monitor_thread.start()
@@ -386,22 +414,90 @@ class AppLogic:
         dashboard = self.app.frames["dashboard"]
         dashboard.pcore_lbl.configure(text=f"{p_usage:.0f}%" if p_usage is not None else "N/A")
         dashboard.ecore_lbl.configure(text=f"{e_usage:.0f}%" if e_usage is not None else "N/A")
-        optimizer_uses = self.app.tr("Optimizer uses")
-        logical_cores = self.app.tr("logical cores")
+        used = self.app.tr("Used")
         optimizer_p_count = self._optimizer_p_core_count if self.app.opt_running else 0
         optimizer_e_count = self._optimizer_e_core_count if self.app.opt_running else 0
         dashboard.pcore_count_lbl.configure(
-            text=f"{optimizer_uses} {optimizer_p_count} / {len(p)} {logical_cores}"
+            text=f"{used} {optimizer_p_count} / {len(p)}"
         )
         dashboard.ecore_count_lbl.configure(
-            text=f"{optimizer_uses} {optimizer_e_count} / {len(e)} {logical_cores}"
+            text=f"{used} {optimizer_e_count} / {len(e)}"
         )
+
+    def start_system_metrics_monitor(self):
+        """Collect RAM, GPU and per-program usage without blocking Tk."""
+        if self._system_metrics_thread and self._system_metrics_thread.is_alive():
+            return
+
+        def monitor():
+            # Prime per-process CPU counters. Subsequent samples use the same
+            # Process objects so the reported values cover a real interval.
+            try:
+                sample_program_usage({}, self._process_cpu_cache, limit=0)
+            except Exception as error:
+                self.logger.debug(f"Unable to prime process counters: {error}")
+            error_reported = False
+            while not self.app.cpu_monitor_stop_event.is_set():
+                try:
+                    memory = psutil.virtual_memory()
+                    gpu_usage, gpu_by_pid = sample_windows_gpu()
+                    rows = sample_program_usage(gpu_by_pid, self._process_cpu_cache)
+                    snapshot = {
+                        "ram_percent": memory.percent,
+                        "ram_used_gb": memory.used / (1024 ** 3),
+                        "ram_total_gb": memory.total / (1024 ** 3),
+                        "gpu_percent": gpu_usage,
+                        "rows": rows,
+                    }
+                    if self.app.cpu_monitor_stop_event.is_set():
+                        break
+                    try:
+                        self.app.after(
+                            0,
+                            lambda data=snapshot: self._render_system_metrics(data),
+                        )
+                    except (RuntimeError, TclError):
+                        break
+                    error_reported = False
+                except Exception as error:
+                    # The process may be closing or Windows counters may be
+                    # temporarily unavailable; the next cycle retries cleanly.
+                    if not error_reported:
+                        self.logger.debug(f"Performance monitor retrying after error: {error}")
+                        error_reported = True
+                if self.app.cpu_monitor_stop_event.wait(1.0):
+                    break
+
+        self._system_metrics_thread = threading.Thread(target=monitor, daemon=True)
+        self._system_metrics_thread.start()
+
+    def _render_system_metrics(self, snapshot):
+        """Render a complete metrics snapshot on Tk's UI thread."""
+        dashboard = self.app.frames.get("dashboard")
+        if dashboard is None or not dashboard.winfo_exists():
+            return
+
+        dashboard.ram_lbl.configure(text=f"{snapshot['ram_percent']:.0f}%")
+        dashboard.ram_detail_lbl.configure(
+            text=f"{snapshot['ram_used_gb']:.1f} / {snapshot['ram_total_gb']:.1f} GB"
+        )
+        gpu_percent = snapshot["gpu_percent"]
+        if gpu_percent is None:
+            dashboard.gpu_lbl.configure(text="N/A")
+            dashboard.gpu_detail_lbl.configure(text=self.app.tr("GPU counters unavailable"))
+        else:
+            dashboard.gpu_lbl.configure(text=f"{gpu_percent:.0f}%")
+            dashboard.gpu_detail_lbl.configure(text=self.app.tr("Per-program GPU"))
+        dashboard.render_process_usage(snapshot["rows"])
 
     def run_junk_cleanup(self):
         def _target():
-            self.app.clean_log.configure(state="normal")
-            self.app.clean_log.insert("end", "Starting junk cleanup...\n")
-            self.app.clean_log.see("end")
+            def prepare_log():
+                self.app.clean_log.configure(state="normal")
+                self.app.clean_log.insert("end", "Starting junk cleanup...\n")
+                self.app.clean_log.see("end")
+
+            self.app.after(0, prepare_log)
             
             def log_fn(msg):
                 self.app.after(0, lambda: (self.app.clean_log.insert("end", f"{msg}\n"), self.app.clean_log.see("end")))
@@ -421,20 +517,70 @@ class AppLogic:
 
     def refresh_opt_list(self):
         for w in self.app.g_scroll.winfo_children(): w.destroy()
-        for name, prio in get_opt_targets(self.app.opt_config):
-            r = ctk.CTkFrame(self.app.g_scroll, fg_color="#2D2D2D", corner_radius=8)
-            r.pack(fill="x", pady=2, padx=5)
-            ctk.CTkLabel(r, text=f"{name} ({prio})", font=self.app.bold_font).pack(side="left", padx=10)
-            ctk.CTkButton(r, text="X", width=30, fg_color="#dc3545", command=lambda n=name: self.remove_opt_target(n)).pack(side="right", padx=5)
+        targets = get_opt_targets(self.app.opt_config)
+        if not targets:
+            ctk.CTkLabel(
+                self.app.g_scroll,
+                text=self.app.tr("No managed programs yet"),
+                font=self.app.default_font,
+                text_color=COLORS["muted"],
+            ).pack(pady=24)
+            return
+        for name, prio in targets:
+            r = ctk.CTkFrame(
+                self.app.g_scroll,
+                fg_color=COLORS["surface"],
+                corner_radius=9,
+                border_width=1,
+                border_color=COLORS["border"],
+            )
+            r.pack(fill="x", pady=3, padx=5)
+            ctk.CTkLabel(r, text=name, font=self.app.bold_font).pack(side="left", padx=12, pady=8)
+            ctk.CTkButton(
+                r, text="Remove", width=74, height=28,
+                fg_color="transparent", border_width=1,
+                border_color=COLORS["danger"], text_color="#FF8A8A",
+                hover_color="#3B2328",
+                command=lambda n=name: self.remove_opt_target(n),
+            ).pack(side="right", padx=8, pady=6)
+            ctk.CTkLabel(
+                r, text=prio, font=self.app.small_font,
+                text_color=COLORS["muted"],
+            ).pack(side="right", padx=6)
 
     def refresh_path_list(self):
         for w in self.app.d_scroll.winfo_children(): w.destroy()
-        for path, prio in get_opt_paths(self.app.opt_config):
-            r = ctk.CTkFrame(self.app.d_scroll, fg_color="#2D2D2D", corner_radius=8)
-            r.pack(fill="x", pady=2, padx=5)
+        paths = get_opt_paths(self.app.opt_config)
+        if not paths:
+            ctk.CTkLabel(
+                self.app.d_scroll,
+                text=self.app.tr("No managed directories yet"),
+                font=self.app.default_font,
+                text_color=COLORS["muted"],
+            ).pack(pady=24)
+            return
+        for path, prio in paths:
+            r = ctk.CTkFrame(
+                self.app.d_scroll,
+                fg_color=COLORS["surface"],
+                corner_radius=9,
+                border_width=1,
+                border_color=COLORS["border"],
+            )
+            r.pack(fill="x", pady=3, padx=5)
             display_path = (path[:40] + '...') if len(path) > 40 else path
-            ctk.CTkLabel(r, text=f"{display_path} ({prio})", font=self.app.bold_font).pack(side="left", padx=10)
-            ctk.CTkButton(r, text="X", width=30, fg_color="#dc3545", command=lambda p=path: self.remove_opt_path(p)).pack(side="right", padx=5)
+            ctk.CTkLabel(r, text=display_path, font=self.app.bold_font).pack(side="left", padx=12, pady=8)
+            ctk.CTkButton(
+                r, text="Remove", width=74, height=28,
+                fg_color="transparent", border_width=1,
+                border_color=COLORS["danger"], text_color="#FF8A8A",
+                hover_color="#3B2328",
+                command=lambda p=path: self.remove_opt_path(p),
+            ).pack(side="right", padx=8, pady=6)
+            ctk.CTkLabel(
+                r, text=prio, font=self.app.small_font,
+                text_color=COLORS["muted"],
+            ).pack(side="right", padx=6)
 
     def add_opt_target(self):
         n = self.app.entry_new_game.get().strip()
@@ -472,8 +618,14 @@ class AppLogic:
         if not values:
             placeholder = "No matching process" if query else "No running process found"
             values = [self.app.tr(placeholder)]
+        values_key = tuple(values)
+        current_value = self.app.running_process_var.get()
+        if values_key == self._last_process_menu_values and current_value in values:
+            return
         self.app.running_process_menu.configure(values=values)
-        self.app.running_process_var.set(values[0])
+        self._last_process_menu_values = values_key
+        if current_value not in values:
+            self.app.running_process_var.set(values[0])
 
     def refresh_running_processes(self):
         if self._process_refresh_running:
@@ -498,8 +650,9 @@ class AppLogic:
             values = sorted(names, key=str.casefold)
 
             def apply_values():
-                self._running_process_names = values
-                self.filter_running_processes()
+                if values != self._running_process_names:
+                    self._running_process_names = values
+                    self.filter_running_processes()
                 self._process_refresh_running = False
                 # Keep the cache fresh automatically; only one timer exists.
                 self._process_refresh_after_id = self.app.after(

@@ -4,16 +4,25 @@
 ==================================================
 
 [Bot Live Chat]
+- ปรับ GUI ทั้งโปรแกรมด้วย design system กลาง ให้สี ระยะห่าง card ปุ่ม และตัวอักษรเป็นชุดเดียวกัน
+- ปรับ Sidebar ให้แสดงหน้าที่กำลังเลือก และทำ layout ทุกหน้าให้ responsive ที่ขนาดขั้นต่ำ 1000x700
+- จัดหน้า Bot Live Chat, Optimizer, Cleanup, Windows Tools และ Settings ใหม่ให้ลำดับใช้งานชัดและไม่รก
+- แก้สีขาวกระพริบตอนเปิด/restore โดยรอให้ dark frame วาดเสร็จก่อนแสดงหน้าต่าง
+- สร้างหน้ารองเมื่อเปิดครั้งแรก ลด startup GUI จากประมาณ 893ms เหลือ 188-245ms
+- Dashboard อัปเดตตารางแบบ atomic และ Quick Add ไม่ redraw/reset ค่าเมื่อโปรเซสไม่เปลี่ยน
 - เพิ่ม Single Instance ป้องกันการเปิดโปรแกรมซ้ำและการสร้างระบบเสียง/ตัวเก็บแชทซ้อนกัน
 - เพิ่ม Auto Start Optimizer ใน App Settings เพื่อเริ่มระบบปรับแต่งอัตโนมัติหลังเปิดโปรแกรม
 - เมื่อเปิดโปรแกรมซ้ำ ระบบจะเรียกหน้าต่างเดิมขึ้นจาก Tray โดยไม่สร้าง instance ใหม่
 - เพิ่มการแจ้งเตือน Windows โดยใช้ icon.ico ของโปรเจกต์ และมีสวิตช์เปิด/ปิดใน App Settings
-- Dashboard แสดงเปอร์เซ็นต์การใช้งาน P-Core/E-Core แยกกันแบบเรียลไทม์ พร้อมจำนวนคอร์ที่ Optimizer ใช้เทียบกับจำนวน logical cores ทั้งหมด
-- แยก Console Log บน Dashboard เป็นแท็บ All Logs, Bot Live Chat และ Optimizer
+- Dashboard แยกแท็บ Performance และ Logs เพื่อไม่ให้ Log เบียดข้อมูลสำคัญ
+- Performance แสดง P-Core/E-Core, RAM, GPU และโปรแกรมที่ใช้ CPU/RAM/GPU สูงสุดแบบเรียลไทม์
+- Logs ยังอยู่ใน Dashboard และแยกย่อยเป็น All Logs, Bot Live Chat และ Optimizer
+- ปรับ WinGet Manager ใหม่ให้กระชับ แสดงสถานะคำสั่ง รองรับกด Enter และล็อกปุ่มระหว่างทำงาน
 - Build โปรแกรมแบบแยกไฟล์: `StreamerSuite.exe` อยู่หน้าสุด และไฟล์ประกอบอยู่ในโฟลเดอร์ `parts`
-- Installer แยก payload ทุก 50 MB เป็น Part 1, Part 2, ... พร้อมไฟล์ PARTS.txt ที่บันทึกขนาดและ SHA-256
+- Installer v3.6.1 เป็น Setup EXE ไฟล์เดียว พร้อมไฟล์ SHA-256 และไม่มี BIN Part
+- build_release.ps1 ตรวจสิทธิ์และเปิด UAC เพื่อรันใหม่แบบ Administrator อัตโนมัติ พร้อมส่งต่อ -SkipInstaller
 - เพิ่ม Quick Add สำหรับเลือกโปรเซสที่กำลังรัน และแยก Manual Entry สำหรับพิมพ์ชื่อหรือเลือกไฟล์ .exe
-- แก้ UI อืดด้วย background CPU/process monitoring, topology cache และ batch log rendering
+- แก้ UI อืดด้วย background CPU/RAM/GPU/process monitoring, topology cache และ batch UI/log rendering
 - Quick Add เพิ่มช่องค้นหาแบบพิมพ์แล้วกรองทันที พร้อมรีเฟรชโปรเซสอัตโนมัติทุก 5 วินาที
 - เปลี่ยนชื่อ Chat-TTS เป็น Bot Live Chat
 - แยก Session, message queue และ audio queue ออกจากกันทุกครั้งที่ Start
@@ -36,7 +45,7 @@
 - แก้ Ctrl+V วางข้อความซ้ำ
 
 ==================================================
-    TDitbam Streamer Suite - Release Notes v3.6.0
+    TDitbam Streamer Suite - Release Notes v3.6.1
 ==================================================
 
 [ฟีเจอร์ใหม่ / New Features]
@@ -54,7 +63,7 @@
 - **📋 Information Boxes:** เพิ่มกล่องข้อมูลอธิบายการทำงานของฟีเจอร์ต่างๆ เพื่อให้ผู้ใช้เข้าใจระบบได้ดีขึ้น
 
 [การติดตั้งและแจกจ่าย / Deployment]
-- **📦 Inno Setup Update (v3.6.0):** ลบตัวติดตั้งรุ่นเก่าทั้งหมดและกำหนดชื่อไฟล์ Setup จากเลขเวอร์ชันในสคริปต์โดยตรง
+- **📦 Inno Setup Update (v3.6.1):** กำหนดชื่อไฟล์ Setup จากเลขเวอร์ชัน และล้างเฉพาะไฟล์ของรุ่นที่กำลัง build โดยไม่ลบ release รุ่นเก่า
 - **🛡️ Admin Privilege Handling:** ปรับปรุงการขอสิทธิ์ผู้ดูแลระบบเพื่อให้ฟีเจอร์ Windows Tools ทำงานได้สมบูรณ์
 
 --------------------------------------------------

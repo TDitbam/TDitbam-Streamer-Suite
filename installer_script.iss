@@ -1,5 +1,5 @@
 #define MyAppName "TDitbam Streamer Suite"
-#define MyAppVersion "3.6.0"
+#define MyAppVersion "3.6.1"
 #define MyAppPublisher "Tditbam"
 #define MyAppURL "https://github.com/TDitbam/TDitbam-Streamer-Suite"
 #define MyAppExeName "StreamerSuite.exe"
@@ -12,6 +12,11 @@ AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
+VersionInfoVersion={#MyAppVersion}.0
+VersionInfoCompany={#MyAppPublisher}
+VersionInfoDescription={#MyAppName} Setup
+VersionInfoProductName={#MyAppName}
+VersionInfoProductVersion={#MyAppVersion}
 DefaultDirName={autopf}\{#MyAppName}
 DisableProgramGroupPage=yes
 SetupIconFile=icon.ico
@@ -19,11 +24,9 @@ OutputDir=installer
 OutputBaseFilename=TDitbam-Streamer-Suite-Setup-v{#MyAppVersion}
 Compression=lzma
 SolidCompression=yes
-DiskSpanning=yes
-DiskSliceSize=50000000
-SlicesPerDisk=1
 WizardStyle=modern
 PrivilegesRequired=admin
+UninstallDisplayIcon={app}\{#MyAppExeName}
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"

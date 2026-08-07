@@ -1,17 +1,26 @@
-# 🚀 TDitbam Streamer Suite - v3.6.0
+# 🚀 TDitbam Streamer Suite - v3.6.1
 
 ## August 7, 2026 Update
 
+- Redesigned the complete desktop GUI around one shared design system for consistent colors, typography, cards, controls, and spacing.
+- Added active-page navigation styling and responsive layouts across Dashboard, Bot Live Chat, Optimizer, Cleanup, Windows Tools, and Settings.
+- Reordered common workflows so primary actions appear before managed lists and results, reducing visual clutter and unnecessary scrolling.
+- Removed startup/tray white flashes by keeping the native window transparent until its dark first frame is fully rendered.
+- Lazily constructs secondary pages, reducing measured GUI startup from about 893ms to 188–245ms.
+- Dashboard process text now refreshes atomically, while Quick Add skips unchanged process-list redraws and preserves selection.
 - Added an OS-level **Single Instance** guard. Duplicate launches are rejected before GUI, audio, collectors, tray icons, or log handlers initialize.
 - Added **Auto Start Optimizer** so the optimization service can start automatically after the app UI is ready.
 - A duplicate launch now restores the existing window from the system tray instead of displaying an already-running dialog.
 - Added optional native Windows notifications using the project-level `icon.ico`.
-- Dashboard now reports separate P-Core and E-Core utilization percentages, plus active Optimizer cores versus total logical cores.
-- Dashboard console output is split into All Logs, Bot Live Chat, and Optimizer tabs.
-- The v3.6.0 application uses PyInstaller one-folder mode, keeping `StreamerSuite.exe` separate from its support files under `parts/`.
-- Inno Setup disk spanning separates installer payloads into 50 MB numbered BIN parts and writes a SHA-256 part manifest.
+- Dashboard now has separate **Performance** and **Logs** tabs, keeping operational logs available without crowding the primary view.
+- Performance reports P-Core/E-Core, RAM, GPU, and the top programs by CPU/RAM/GPU usage in real time.
+- The Logs area is further split into All Logs, Bot Live Chat, and Optimizer tabs.
+- Redesigned WinGet Manager with a compact action layout, command status, Enter shortcuts, and duplicate-command protection.
+- The v3.6.1 application uses PyInstaller one-folder mode, keeping `StreamerSuite.exe` separate from its support files under `parts/`.
+- Inno Setup produces one versioned Setup EXE and a matching SHA-256 checksum file; no BIN parts are required.
+- The release script now relaunches itself through the Windows UAC prompt when Administrator permission is required and preserves the `-SkipInstaller` option.
 - Optimizer targets can be selected from running processes in Quick Add; the original text/file workflow remains isolated under Manual Entry.
-- Improved UI responsiveness by moving CPU sampling and process discovery off the Tk thread, caching CPU topology, batching log rendering, and limiting retained dashboard logs.
+- Improved UI responsiveness by moving CPU/RAM/GPU sampling and process discovery off the Tk thread, caching CPU topology, and batching UI/log rendering.
 - Quick Add now filters running processes while typing and refreshes its process cache automatically every five seconds.
 
 ### Bot Live Chat
