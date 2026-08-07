@@ -1,9 +1,20 @@
 ==================================================
     อัปเดตระบบล่าสุด / Latest System Update
-    วันที่ / Date: 6 สิงหาคม 2026 / August 6, 2026
+    วันที่ / Date: 7 สิงหาคม 2026 / August 7, 2026
 ==================================================
 
 [Bot Live Chat]
+- เพิ่ม Single Instance ป้องกันการเปิดโปรแกรมซ้ำและการสร้างระบบเสียง/ตัวเก็บแชทซ้อนกัน
+- เพิ่ม Auto Start Optimizer ใน App Settings เพื่อเริ่มระบบปรับแต่งอัตโนมัติหลังเปิดโปรแกรม
+- เมื่อเปิดโปรแกรมซ้ำ ระบบจะเรียกหน้าต่างเดิมขึ้นจาก Tray โดยไม่สร้าง instance ใหม่
+- เพิ่มการแจ้งเตือน Windows โดยใช้ icon.ico ของโปรเจกต์ และมีสวิตช์เปิด/ปิดใน App Settings
+- Dashboard แสดงเปอร์เซ็นต์การใช้งาน P-Core/E-Core แยกกันแบบเรียลไทม์ พร้อมจำนวนคอร์ที่ Optimizer ใช้เทียบกับจำนวน logical cores ทั้งหมด
+- แยก Console Log บน Dashboard เป็นแท็บ All Logs, Bot Live Chat และ Optimizer
+- Build โปรแกรมแบบแยกไฟล์: `StreamerSuite.exe` อยู่หน้าสุด และไฟล์ประกอบอยู่ในโฟลเดอร์ `parts`
+- Installer แยก payload ทุก 50 MB เป็น Part 1, Part 2, ... พร้อมไฟล์ PARTS.txt ที่บันทึกขนาดและ SHA-256
+- เพิ่ม Quick Add สำหรับเลือกโปรเซสที่กำลังรัน และแยก Manual Entry สำหรับพิมพ์ชื่อหรือเลือกไฟล์ .exe
+- แก้ UI อืดด้วย background CPU/process monitoring, topology cache และ batch log rendering
+- Quick Add เพิ่มช่องค้นหาแบบพิมพ์แล้วกรองทันที พร้อมรีเฟรชโปรเซสอัตโนมัติทุก 5 วินาที
 - เปลี่ยนชื่อ Chat-TTS เป็น Bot Live Chat
 - แยก Session, message queue และ audio queue ออกจากกันทุกครั้งที่ Start
 - Stop จะส่ง cancellation signal, หยุดเสียง, ล้าง queue/ไฟล์ชั่วคราว และกัก worker เก่าจาก session ใหม่
@@ -25,7 +36,7 @@
 - แก้ Ctrl+V วางข้อความซ้ำ
 
 ==================================================
-    TDitbam Streamer Suite - Release Notes v3.5.0
+    TDitbam Streamer Suite - Release Notes v3.6.0
 ==================================================
 
 [ฟีเจอร์ใหม่ / New Features]
@@ -43,10 +54,12 @@
 - **📋 Information Boxes:** เพิ่มกล่องข้อมูลอธิบายการทำงานของฟีเจอร์ต่างๆ เพื่อให้ผู้ใช้เข้าใจระบบได้ดีขึ้น
 
 [การติดตั้งและแจกจ่าย / Deployment]
-- **📦 Inno Setup Update (v3.5.0):** ปรับสคริปต์ Installer ให้ใช้เวอร์ชันใหม่และลบการเปิดแอปอัตโนมัติหลังการติดตั้ง
+- **📦 Inno Setup Update (v3.6.0):** ลบตัวติดตั้งรุ่นเก่าทั้งหมดและกำหนดชื่อไฟล์ Setup จากเลขเวอร์ชันในสคริปต์โดยตรง
 - **🛡️ Admin Privilege Handling:** ปรับปรุงการขอสิทธิ์ผู้ดูแลระบบเพื่อให้ฟีเจอร์ Windows Tools ทำงานได้สมบูรณ์
 
 --------------------------------------------------
 Released on: วันพุธที่ 17 มิถุนายน 2569
-Author: Tditbam & Gemini CLI
+Project Owner: Tditbam
+Development Assistance: Gemini CLI & OpenAI Codex
+Full Credits: CREDITS.md
 --------------------------------------------------

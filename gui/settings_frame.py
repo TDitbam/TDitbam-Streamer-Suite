@@ -52,6 +52,25 @@ class SettingsFrame(ctk.CTkFrame):
             font=self.app.default_font
         ).pack(side="left")
 
+        # Start Optimizer automatically whenever the app launches
+        row_auto_optimizer = ctk.CTkFrame(inner_f, fg_color="transparent")
+        row_auto_optimizer.pack(fill="x", pady=10)
+        ctk.CTkSwitch(
+            row_auto_optimizer,
+            text="Auto Start Optimizer after app launch",
+            variable=self.app.auto_start_optimizer,
+            font=self.app.default_font,
+        ).pack(side="left")
+
+        row_notifications = ctk.CTkFrame(inner_f, fg_color="transparent")
+        row_notifications.pack(fill="x", pady=10)
+        ctk.CTkSwitch(
+            row_notifications,
+            text="Windows Notifications",
+            variable=self.app.windows_notifications,
+            font=self.app.default_font,
+        ).pack(side="left")
+
         # Info Box explaining Task Scheduler / UAC bypass
         info_f = ctk.CTkFrame(inner_f, fg_color="#333333", corner_radius=8)
         info_f.pack(fill="x", pady=(20, 0))

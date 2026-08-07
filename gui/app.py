@@ -4,6 +4,7 @@ import threading
 import os
 import sys
 import logging
+import queue
 import pystray
 from pystray import MenuItem as item
 from PIL import Image
@@ -22,27 +23,96 @@ from .logic import AppLogic
 from .i18n import THAI, LANGUAGE_NAMES
 
 class GuiLogHandler(logging.Handler):
-    def __init__(self, text_widget):
+    def __init__(self, text_widgets):
         super().__init__()
-        self.text_widget = text_widget
+        self.text_widgets = text_widgets
+        self.text_widget = text_widgets["all"]
+        self.pending = queue.SimpleQueue()
+        self.flush_scheduled = False
+        self.schedule_lock = threading.Lock()
 
     def emit(self, record):
-        msg = self.format(record)
-        def append():
+        self.pending.put((self._category_for(record), self.format(record)))
+        with self.schedule_lock:
+            if self.flush_scheduled:
+                return
+            self.flush_scheduled = True
+        try:
+            self.text_widget.after(100, self._flush)
+        except Exception:
+            with self.schedule_lock:
+                self.flush_scheduled = False
+
+    @staticmethod
+    def _category_for(record):
+        """Route a record to one focused tab while All Logs keeps everything."""
+        logger_name = record.name.lower()
+        message = record.getMessage().lower()
+
+        if any(component in logger_name for component in ("engine", "youtube", "twitch", "tiktok")):
+            return "chat"
+        if any(term in message for term in ("bot live chat", "tts", "real-time configuration")):
+            return "chat"
+        if any(term in message for term in ("[opt]", "optimizer", "cleanup", "junk", "core", "auto-shutdown")):
+            return "optimizer"
+        return None
+
+    @staticmethod
+    def _append_messages(text_widget, messages):
+        if not messages:
+            return
+        text_widget.configure(state="normal")
+        text_widget.insert("end", "\n".join(messages) + "\n")
+        # Bound each tab so long-running services do not make redraws slower.
+        line_count = int(text_widget.index("end-1c").split(".")[0])
+        if line_count > 3000:
+            text_widget.delete("1.0", f"{line_count - 2500}.0")
+        text_widget.see("end")
+        text_widget.configure(state="disabled")
+
+    def _flush(self):
+        messages = []
+        while len(messages) < 200:
             try:
-                self.text_widget.configure(state="normal")
-                self.text_widget.insert("end", msg + "\n")
-                self.text_widget.see("end")
-                self.text_widget.configure(state="disabled")
-            except:
-                pass
-        self.text_widget.after(0, append)
+                messages.append(self.pending.get_nowait())
+            except queue.Empty:
+                break
+        try:
+            if messages:
+                batches = {key: [] for key in self.text_widgets}
+                for category, message in messages:
+                    batches["all"].append(message)
+                    if category in batches and category != "all":
+                        batches[category].append(message)
+                for key, text_widget in self.text_widgets.items():
+                    self._append_messages(text_widget, batches[key])
+        except Exception:
+            pass
+        finally:
+            with self.schedule_lock:
+                self.flush_scheduled = False
+            if not self.pending.empty():
+                with self.schedule_lock:
+                    self.flush_scheduled = True
+                try:
+                    self.text_widget.after(100, self._flush)
+                except Exception:
+                    with self.schedule_lock:
+                        self.flush_scheduled = False
 
 class App(ctk.CTk):
-    def __init__(self, engine):
+    def __init__(self, engine, instance_guard=None):
         super().__init__()
         self.title("Streamer Suite")
         self.geometry("1100x800")
+        self.instance_guard = instance_guard
+
+        self.icon_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "icon.ico"))
+        if os.path.exists(self.icon_path):
+            try:
+                self.iconbitmap(self.icon_path)
+            except Exception:
+                pass
         
         self.engine = engine
         self.logger = get_logger("App")
@@ -58,6 +128,7 @@ class App(ctk.CTk):
         self.opt_config = load_opt_config()
         self.opt_running = False
         self.opt_stop_event = threading.Event()
+        self.cpu_monitor_stop_event = threading.Event()
         
         # Variables for Optimizer / System
         self.opt_auto_shutdown = ctk.BooleanVar(value=self.opt_config["Settings"].getboolean("auto_shutdown", fallback=False))
@@ -99,6 +170,8 @@ class App(ctk.CTk):
         # General App Settings
         self.start_minimized = ctk.BooleanVar(value=self.config.getboolean(s, "start_minimized", fallback=False))
         self.run_on_startup = ctk.BooleanVar(value=self.config.getboolean(s, "run_on_startup", fallback=False))
+        self.auto_start_optimizer = ctk.BooleanVar(value=self.config.getboolean(s, "auto_start_optimizer", fallback=False))
+        self.windows_notifications = ctk.BooleanVar(value=self.config.getboolean(s, "windows_notifications", fallback=True))
         
         # Initialize Logic
         self.logic = AppLogic(self, self.engine)
@@ -125,17 +198,24 @@ class App(ctk.CTk):
             frame.grid(row=0, column=0, sticky="nsew")
             
         # Setup Logger Redirect
-        self.log_handler = GuiLogHandler(self.frames["dashboard"].log_box)
+        self.log_handler = GuiLogHandler(self.frames["dashboard"].log_boxes)
         self.log_handler.setFormatter(logging.Formatter('%(asctime)s: %(message)s', datefmt='%H:%M:%S'))
         base_logger.addHandler(self.log_handler)
         
-        # Initial topology stats update
-        self.after(500, self.logic.update_topology_stats)
+        # CPU monitoring runs outside Tk's UI thread.
+        self.logic.start_cpu_monitor()
         
         self._setup_listeners()
         self._setup_shortcut_handler()
         self.show_frame("dashboard")
         self.apply_language()
+
+        # Start only after every frame and control has been initialized.
+        if self.auto_start_optimizer.get():
+            self.after(800, self.logic.start_optimizer_automatically)
+        if self.instance_guard:
+            self.after(250, self._poll_activation_request)
+        self.after(1500, lambda: self.notify_windows("Streamer Suite", self.tr("Application is ready")))
         
         # Auto-minimize to system tray if configured
         if self.start_minimized.get():
@@ -254,10 +334,13 @@ class App(ctk.CTk):
                 update_tree(child)
 
         update_tree(self)
+        dashboard = self.frames.get("dashboard")
+        if dashboard is not None:
+            dashboard.apply_language()
 
     # --- System Tray Methods ---
     def create_tray_icon(self):
-        icon_path = 'gui/icon.ico'
+        icon_path = self.icon_path
         if os.path.exists(icon_path):
             image = Image.open(icon_path)
         else:
@@ -268,12 +351,37 @@ class App(ctk.CTk):
         self.tray_icon = pystray.Icon("StreamerSuite", image, "Streamer Suite", menu)
         threading.Thread(target=self.tray_icon.run, daemon=True).start()
 
+    def _poll_activation_request(self):
+        """Restore the existing window when the user launches the app again."""
+        if self.instance_guard and self.instance_guard.activation_requested():
+            self.show_from_tray()
+        self.after(250, self._poll_activation_request)
+
+    def notify_windows(self, title, message):
+        """Show a native tray notification using the application's icon."""
+        if not self.windows_notifications.get() or not hasattr(self, "tray_icon"):
+            return
+        try:
+            self.tray_icon.notify(message, title)
+        except Exception as error:
+            self.logger.debug(f"Windows notification unavailable: {error}")
+
     def withdraw_to_tray(self):
         self.withdraw()
 
     def show_from_tray(self, icon=None, item=None):
-        self.after(0, self.deiconify)
-        self.after(0, self.focus_force)
+        def restore_window():
+            self.deiconify()
+            self.state("normal")
+            self.lift()
+            # A short topmost pulse reliably brings the existing window to
+            # the foreground after a duplicate launch, then restores normal
+            # window behavior.
+            self.attributes("-topmost", True)
+            self.after(150, lambda: self.attributes("-topmost", False))
+            self.focus_force()
+
+        self.after(0, restore_window)
 
     def exit_app(self, icon=None, item=None):
         self.logger.info("Exiting application...")
@@ -281,6 +389,7 @@ class App(ctk.CTk):
             self.tray_icon.stop()
         self.engine.stop()
         self.opt_stop_event.set()
+        self.cpu_monitor_stop_event.set()
         self.quit()
         sys.exit(0)
 
@@ -293,6 +402,10 @@ class App(ctk.CTk):
     def refresh_opt_list(self): self.logic.refresh_opt_list()
     def refresh_path_list(self): self.logic.refresh_path_list()
     def add_opt_target(self): self.logic.add_opt_target()
+    def add_selected_process(self): self.logic.add_selected_process()
+    def refresh_running_processes(self): self.logic.refresh_running_processes()
+    def filter_running_processes(self): self.logic.filter_running_processes()
+    def browse_opt_target(self): self.logic.browse_opt_target()
     def remove_opt_target(self, name): self.logic.remove_opt_target(name)
     def add_opt_path(self): self.logic.add_opt_path()
     def remove_opt_path(self, path): self.logic.remove_opt_path(path)
