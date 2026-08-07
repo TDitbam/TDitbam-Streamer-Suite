@@ -36,17 +36,62 @@ class OptimizerFrame(ctk.CTkFrame):
     def setup_games_tab(self, tab):
         self.app.g_scroll = ctk.CTkScrollableFrame(tab, fg_color="transparent")
         self.app.g_scroll.pack(fill="both", expand=True)
-        ui = ctk.CTkFrame(tab, fg_color="transparent"); ui.pack(fill="x", pady=5)
-        self.app.entry_new_game = ctk.CTkEntry(ui, placeholder_text="game.exe", font=self.app.default_font)
-        self.app.entry_new_game.pack(side="left", expand=True, fill="x")
-        
+
+        self.app.opt_priority_var = ctk.StringVar(value="P-CORE")
+        add_modes = ctk.CTkTabview(tab, height=150, fg_color="#252525")
+        add_modes.pack(fill="x", pady=5)
+
+        # Quick mode: select an already-running process.
+        quick_tab = add_modes.add("Quick Add")
+        search_row = ctk.CTkFrame(quick_tab, fg_color="transparent")
+        search_row.pack(fill="x", padx=8, pady=(6, 2))
+        self.app.process_search_var = ctk.StringVar()
+        self.app.process_search_entry = ctk.CTkEntry(
+            search_row,
+            textvariable=self.app.process_search_var,
+            placeholder_text="Search running processes...",
+            font=self.app.default_font,
+        )
+        self.app.process_search_entry.pack(fill="x", expand=True)
+
+        quick_row = ctk.CTkFrame(quick_tab, fg_color="transparent")
+        quick_row.pack(fill="x", padx=8, pady=(2, 6))
+        self.app.running_process_var = ctk.StringVar(value="No running process found")
+        self.app.running_process_menu = ctk.CTkOptionMenu(
+            quick_row, values=["No running process found"],
+            variable=self.app.running_process_var, font=self.app.default_font,
+        )
+        self.app.running_process_menu.pack(side="left", expand=True, fill="x")
+        ctk.CTkOptionMenu(
+            quick_row, values=["P-CORE", "E-CORE", "NORMAL"],
+            variable=self.app.opt_priority_var, width=100, font=self.app.default_font,
+        ).pack(side="left", padx=5)
+        ctk.CTkButton(quick_row, text="Add Selected", width=100, command=self.app.add_selected_process, font=self.app.default_font).pack(side="left")
+
         from .context_menu import ContextMenu
+        ContextMenu.add_context_menu(self.app.process_search_entry)
+        self.app.process_search_var.trace_add("write", lambda *_: self.app.filter_running_processes())
+
+        # Manual mode: preserve the original text-entry workflow and add a
+        # file picker for programs that are not currently running.
+        manual_tab = add_modes.add("Manual Entry")
+        manual_row = ctk.CTkFrame(manual_tab, fg_color="transparent")
+        manual_row.pack(fill="x", padx=8, pady=8)
+        self.app.entry_new_game = ctk.CTkEntry(manual_row, placeholder_text="game.exe", font=self.app.default_font)
+        self.app.entry_new_game.pack(side="left", expand=True, fill="x")
+
         ContextMenu.add_context_menu(self.app.entry_new_game)
-        
-        self.app.opt_prio_menu = ctk.CTkOptionMenu(ui, values=["P-CORE", "E-CORE", "NORMAL"], width=100, font=self.app.default_font)
+
+        self.app.opt_prio_menu = ctk.CTkOptionMenu(
+            manual_row, values=["P-CORE", "E-CORE", "NORMAL"],
+            variable=self.app.opt_priority_var, width=100, font=self.app.default_font,
+        )
         self.app.opt_prio_menu.pack(side="left", padx=5)
-        ctk.CTkButton(ui, text="Add", width=60, command=self.app.add_opt_target, font=self.app.default_font).pack(side="right")
+        ctk.CTkButton(manual_row, text="Browse .exe", width=90, command=self.app.browse_opt_target, font=self.app.default_font).pack(side="left", padx=(0, 5))
+        ctk.CTkButton(manual_row, text="Add", width=60, command=self.app.add_opt_target, font=self.app.default_font).pack(side="left")
+
         self.app.refresh_opt_list()
+        self.app.after(200, self.app.refresh_running_processes)
 
     def setup_dirs_tab(self, tab):
         self.app.d_scroll = ctk.CTkScrollableFrame(tab, fg_color="transparent")

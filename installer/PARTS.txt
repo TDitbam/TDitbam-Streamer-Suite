@@ -1,0 +1,5 @@
+﻿TDitbam Streamer Suite v3.6.0 installer parts
+Keep the Setup EXE and every BIN part in the same directory.
+
+TDitbam-Streamer-Suite-Setup-v3.6.0.exe	2427842 bytes	SHA256 CEF13CDEF40D8FE6316999D263D071D15465CCF60DEE991E3AC2306CD468140F
+TDitbam-Streamer-Suite-Setup-v3.6.0-1.bin	28582827 bytes	SHA256 349B7F24C39A2CAC2D17F34D3662D3152B56120FDF71FCD5BD5B43C89AF55F61

@@ -1,7 +1,18 @@
-# 🎙️ TDitbam Streamer Suite (v3.5.0)
+# 🎙️ TDitbam Streamer Suite (v3.6.0)
 
-## อัปเดตล่าสุด — 6 สิงหาคม 2026
+## อัปเดตล่าสุด — 7 สิงหาคม 2026
 
+- เพิ่มระบบ **Single Instance** ป้องกันการเปิดโปรแกรมซ้ำ โดยตรวจสอบก่อนโหลด GUI, ระบบเสียง และ log handlers
+- เพิ่ม **Auto Start Optimizer** ใน App Settings ให้ Optimizer เริ่มทำงานเองหลังเปิดโปรแกรม
+- เปิดโปรแกรมซ้ำจะเรียกหน้าต่างเดิมขึ้นมาจาก System Tray แทนการเปิด instance ใหม่
+- เพิ่มการแจ้งเตือน Windows โดยใช้ไอคอนหลัก `icon.ico` และสามารถปิดได้จาก App Settings
+- Dashboard แสดง CPU usage ของ P-Core และ E-Core แยกกัน พร้อมจำนวนคอร์ที่ Optimizer ใช้เทียบกับจำนวน logical cores ทั้งหมด
+- Console บน Dashboard แยกแท็บ All Logs, Bot Live Chat และ Optimizer เพื่ออ่านสถานะของแต่ละระบบได้ง่าย
+- Build v3.6.0 ใช้โหมดโฟลเดอร์แยก: `dist/StreamerSuite/StreamerSuite.exe` และไฟล์ประกอบอยู่ใน `parts/` เพื่ออัปเดตเป็นส่วนได้ง่าย
+- Installer แยก payload ทุก 50 MB เป็น `Setup-1.bin`, `Setup-2.bin`, ... โดยต้องวาง Setup `.exe` และทุก Part ไว้ในโฟลเดอร์เดียวกัน
+- หน้า Optimizer เพิ่มโปรแกรมได้จากรายชื่อโปรเซสที่กำลังรัน พร้อมแยกโหมด Quick Add และ Manual Entry
+- ปรับประสิทธิภาพ UI: ย้าย CPU monitoring/process scan ไป background, cache topology และรวม log updates เป็นชุด
+- Quick Add ค้นหาโปรเซสได้ทันทีขณะพิมพ์ และรีเฟรชรายการอัตโนมัติทุก 5 วินาที
 - เปลี่ยนชื่อระบบอ่านแชทเป็น **Bot Live Chat**
 - รองรับ YouTube Live, Twitch และ TikTok Live
 - เพิ่ม Voice Provider 4 ระบบ: **Edge TTS**, **gTTS**, **Gemini API Voice** และ **OpenAI API Voice**
@@ -54,18 +65,30 @@
 
 ### สำหรับผู้ใช้งานทั่วไป (Standard Users)
 1. ไปที่โฟลเดอร์ `installer/`
-2. รันไฟล์ `TDitbam-Streamer-Suite-Setup-v3.3.0.exe`
-3. ทำตามขั้นตอนการติดตั้งบนหน้าจอ
+2. วาง `TDitbam-Streamer-Suite-Setup-v3.6.0.exe` และไฟล์ `TDitbam-Streamer-Suite-Setup-v3.6.0-*.bin` ทุก Part ไว้ในโฟลเดอร์เดียวกัน
+3. รันไฟล์ `TDitbam-Streamer-Suite-Setup-v3.6.0.exe`
+4. ทำตามขั้นตอนการติดตั้งบนหน้าจอ
 
 ### สำหรับนักพัฒนา (Developers)
 หากต้องการรันจาก Source Code:
 ```bash
 # ติดตั้ง Library ที่จำเป็น
-pip install customtkinter TikTokLive edge-tts deep-translator pygame psutil pystray Pillow
+pip install -r requirements.txt
 
 # รันโปรแกรม
 python main.py
 ```
+
+### สร้าง EXE และ Installer Parts
+```powershell
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements-build.txt
+powershell -ExecutionPolicy Bypass -File .\build_release.ps1
+```
+
+- App แบบแยกไฟล์: `dist\StreamerSuite\StreamerSuite.exe` + `dist\StreamerSuite\parts\`
+- Installer แบบแยก Part: `installer\TDitbam-Streamer-Suite-Setup-v3.6.0.exe` + ไฟล์ `.bin` ทุก Part
+- ห้ามเปลี่ยนชื่อหรือแยกตำแหน่งไฟล์ `.bin` ออกจาก Setup `.exe`
 
 ---
 
@@ -83,6 +106,7 @@ python main.py
 - `gui/`: หน้าต่างการใช้งานและเมนูต่างๆ
 - `optimizer/`: ระบบจัดการ CPU และการล้างไฟล์ขยะ
 - `config.ini`: ไฟล์เก็บค่าตั้งค่าหลักของโปรแกรม
+- `build_release.ps1`: สร้าง App EXE, โฟลเดอร์ `parts`, Installer Parts และไฟล์ SHA-256 manifest อัตโนมัติ
 
 ---
 
@@ -92,9 +116,13 @@ python main.py
 ---
 
 ## 🤝 เครดิต (Credits)
-- **Developer:** Tditbam
-- **AI Assistant:** Gemini CLI , Openai codex
-- **Libraries:** CustomTkinter, Edge-TTS, TikTokLive, psutil
+- **Developer & Release Owner:** Tditbam
+- **AI Development Assistance:** Gemini CLI และ OpenAI Codex
+- **Runtime:** CustomTkinter, TikTokLive, edge-tts, deep-translator, pygame-ce, psutil, pystray, Pillow, gTTS และ pytchat
+- **Voice/API Services:** Microsoft Edge Speech, Google Translate/gTTS, Gemini API และ OpenAI API
+- **Build & Distribution:** Python, PyInstaller, Inno Setup, Git และ GitHub
+
+ดูรายชื่อผู้พัฒนา เครื่องมือ บริการ ไลบรารี และหมายเหตุเครื่องหมายการค้าแบบเต็มได้ที่ [CREDITS.md](./CREDITS.md)
 
 ---
 *Released under MIT License - 2026 TDitbam*

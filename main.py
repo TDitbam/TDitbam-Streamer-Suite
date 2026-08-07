@@ -1,9 +1,6 @@
 import sys
 import os
 import ctypes
-import customtkinter as ctk
-from core.tts_engine import ChatTTSEngine
-from gui.app import App
 
 def is_admin():
     try:
@@ -32,7 +29,22 @@ def main():
                 print(f"[!] Failed to elevate: {e}")
             sys.exit(0)
 
+    # Acquire the process lock before importing GUI/TTS modules. This prevents
+    # a duplicate launch from initializing audio, collectors, tray icons, or
+    # log handlers before it is rejected.
+    from core.single_instance import SingleInstance
+
+    instance = SingleInstance()
+    if not instance.acquire():
+        if os.name != "nt":
+            print("TDitbam Streamer Suite is already running.")
+        return
+
     try:
+        import customtkinter as ctk
+        from core.tts_engine import ChatTTSEngine
+        from gui.app import App
+
         # Set theme
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("blue")
@@ -41,14 +53,16 @@ def main():
         engine = ChatTTSEngine()
         
         # Initialize Main App
-        app = App(engine)
+        app = App(engine, instance_guard=instance)
         
         # Start the application
         app.run()
     except Exception as e:
         import tkinter.messagebox as messagebox
         messagebox.showerror("Startup Error", f"Failed to start application:\n{e}")
-        sys.exit(1)
+        raise
+    finally:
+        instance.release()
 
 if __name__ == "__main__":
     main()

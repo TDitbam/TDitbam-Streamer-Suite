@@ -1,6 +1,18 @@
-# 🚀 TDitbam Streamer Suite - v3.5.0
+# 🚀 TDitbam Streamer Suite - v3.6.0
 
-## August 6, 2026 Update
+## August 7, 2026 Update
+
+- Added an OS-level **Single Instance** guard. Duplicate launches are rejected before GUI, audio, collectors, tray icons, or log handlers initialize.
+- Added **Auto Start Optimizer** so the optimization service can start automatically after the app UI is ready.
+- A duplicate launch now restores the existing window from the system tray instead of displaying an already-running dialog.
+- Added optional native Windows notifications using the project-level `icon.ico`.
+- Dashboard now reports separate P-Core and E-Core utilization percentages, plus active Optimizer cores versus total logical cores.
+- Dashboard console output is split into All Logs, Bot Live Chat, and Optimizer tabs.
+- The v3.6.0 application uses PyInstaller one-folder mode, keeping `StreamerSuite.exe` separate from its support files under `parts/`.
+- Inno Setup disk spanning separates installer payloads into 50 MB numbered BIN parts and writes a SHA-256 part manifest.
+- Optimizer targets can be selected from running processes in Quick Add; the original text/file workflow remains isolated under Manual Entry.
+- Improved UI responsiveness by moving CPU sampling and process discovery off the Tk thread, caching CPU topology, batching log rendering, and limiting retained dashboard logs.
+- Quick Add now filters running processes while typing and refreshes its process cache automatically every five seconds.
 
 ### Bot Live Chat
 
@@ -65,4 +77,8 @@ Resolved the `ModuleNotFoundError` by implementing a robust **Auto-Path Correcti
 ---
 
 **Released on:** Wednesday, June 17, 2026
-**Author:** Tditbam & Gemini CLI
+**Project Owner:** Tditbam
+
+**Development Assistance:** Gemini CLI & OpenAI Codex
+
+**Full Credits:** See [CREDITS.md](./CREDITS.md)

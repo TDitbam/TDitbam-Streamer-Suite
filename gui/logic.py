@@ -3,6 +3,7 @@ import os
 import sys
 import threading
 import logging
+import psutil
 from tkinter import filedialog
 from core.app_logger import get_app_dir, get_logger, get_config_path
 from optimizer.optimizer_core.config_loader import save_config as save_opt_config, get_targets as get_opt_targets, get_paths as get_opt_paths
@@ -15,12 +16,24 @@ class AppLogic:
         self.app = app
         self.engine = engine
         self.logger = get_logger("Logic")
+        self._cpu_monitor_thread = None
+        self._optimizer_p_core_count = 0
+        self._optimizer_e_core_count = 0
+        self._topology_refresh_id = 0
+        self._process_refresh_running = False
+        self._running_process_names = []
+        self._process_refresh_after_id = None
 
     def toggle_tts(self):
         btn_dash = self.app.frames["dashboard"].btn_toggle_tts
         btn_chat = self.app.btn_toggle_tts_chat
         
         if btn_dash.cget("state") == "disabled": return
+
+        if not self.app.engine.is_running:
+            # A new chat session gets a clean focused tab; All Logs remains a
+            # complete application history.
+            self.app.frames["dashboard"].clear_log("chat")
         
         btn_dash.configure(state="disabled")
         btn_chat.configure(state="disabled")
@@ -31,15 +44,6 @@ class AppLogic:
                     self.logger.info("Starting Bot Live Chat...")
                     # 1. Save current UI to disk
                     self.save_chat_settings()
-                    
-                    # Clear log box for new session
-                    try:
-                        log_box = self.app.frames["dashboard"].log_box
-                        log_box.configure(state="normal")
-                        log_box.delete("1.0", "end")
-                        log_box.configure(state="disabled")
-                    except:
-                        pass
                     
                     # 2. Build config dict from the fresh app state (already updated by save_chat_settings)
                     s = "settings"
@@ -74,6 +78,7 @@ class AppLogic:
                         btn_dash.configure(text=self.app.tr("STOP BOT LIVE CHAT"), fg_color="#dc3545", state="normal")
                         btn_chat.configure(text=self.app.tr("STOP BOT LIVE CHAT"), fg_color="#dc3545", state="normal")
                         self.app.frames["dashboard"].status_label.configure(text=self.app.tr("RUNNING"), text_color="#28a745")
+                        self.app.notify_windows("Bot Live Chat", self.app.tr("Bot Live Chat started"))
                     
                     self.app.after(0, _update_ui_start)
                 else:
@@ -85,6 +90,7 @@ class AppLogic:
                         btn_chat.configure(text=self.app.tr("START BOT LIVE CHAT"), fg_color="#28a745", state="normal")
                         if not self.app.opt_running:
                             self.app.frames["dashboard"].status_label.configure(text=self.app.tr("IDLE"), text_color="#ABB2BF")
+                        self.app.notify_windows("Bot Live Chat", self.app.tr("Bot Live Chat stopped"))
                     
                     self.app.after(0, _update_ui_stop)
             except Exception as e:
@@ -106,6 +112,7 @@ class AppLogic:
                     threading.Thread(target=self._run_opt_service, daemon=True).start()
                     self.app.after(0, lambda: self.app.frames["dashboard"].btn_toggle_opt.configure(text=self.app.tr("STOP OPTIMIZER"), fg_color="#dc3545", state="normal"))
                     self.app.after(0, lambda: self.app.frames["dashboard"].status_label.configure(text=self.app.tr("RUNNING"), text_color="#28a745"))
+                    self.app.after(0, lambda: self.app.notify_windows("Optimizer", self.app.tr("Optimizer started")))
                 else:
                     self.logger.info("Stopping Optimizer Service...")
                     self.app.opt_stop_event.set()
@@ -113,11 +120,19 @@ class AppLogic:
                     self.app.after(0, lambda: self.app.frames["dashboard"].btn_toggle_opt.configure(text=self.app.tr("START OPTIMIZER"), fg_color="#17a2b8", state="normal"))
                     if not self.app.engine.is_running:
                         self.app.after(0, lambda: self.app.frames["dashboard"].status_label.configure(text=self.app.tr("IDLE"), text_color="#ABB2BF"))
+                    self.app.after(0, lambda: self.app.notify_windows("Optimizer", self.app.tr("Optimizer stopped")))
             except Exception as e:
                 self.logger.error(f"Optimizer Toggle Error: {e}")
                 self.app.after(0, lambda: self.app.frames["dashboard"].btn_toggle_opt.configure(state="normal"))
         
         threading.Thread(target=_task, daemon=True).start()
+
+    def start_optimizer_automatically(self):
+        """Start Optimizer once after launch when enabled in App Settings."""
+        if self.app.opt_running or not self.app.auto_start_optimizer.get():
+            return
+        self.logger.info("Auto Start Optimizer enabled; starting service...")
+        self.toggle_optimizer()
 
     def _run_opt_service(self):
         try: 
@@ -256,8 +271,12 @@ class AppLogic:
 
     def save_app_settings(self):
         s = "settings"
+        if not self.app.config.has_section(s):
+            self.app.config.add_section(s)
         self.app.config.set(s, "start_minimized", str(self.app.start_minimized.get()))
         self.app.config.set(s, "run_on_startup", str(self.app.run_on_startup.get()))
+        self.app.config.set(s, "auto_start_optimizer", str(self.app.auto_start_optimizer.get()))
+        self.app.config.set(s, "windows_notifications", str(self.app.windows_notifications.get()))
         
         # Save to config file
         from core.app_logger import get_config_path
@@ -312,12 +331,71 @@ class AppLogic:
             else:
                 self.logger.error(f"Failed to schedule startup task. Error: {res.stderr.strip()}")
 
+    def start_cpu_monitor(self):
+        """Sample per-core CPU usage off the Tk main thread."""
+        if self._cpu_monitor_thread and self._cpu_monitor_thread.is_alive():
+            return
+        self.app.cpu_monitor_stop_event.clear()
+        exclude_core_0 = self.app.opt_exclude_c0.get()
+        disable_smt = self.app.opt_disable_smt.get()
+
+        def monitor():
+            # CPU topology is stable for the lifetime of the process, so do
+            # the Windows API query once instead of on every UI refresh.
+            p_cores, e_cores = split_p_e_cores(False, False)
+            optimizer_p, optimizer_e = split_p_e_cores(exclude_core_0, disable_smt)
+            self._optimizer_p_core_count = len(optimizer_p)
+            self._optimizer_e_core_count = len(optimizer_e)
+            psutil.cpu_percent(interval=None, percpu=True)  # Prime counters.
+            while not self.app.cpu_monitor_stop_event.wait(1.0):
+                per_cpu = psutil.cpu_percent(interval=None, percpu=True)
+                self.app.after(
+                    0,
+                    lambda p=p_cores, e=e_cores, usage=per_cpu:
+                        self._render_cpu_stats(p, e, usage),
+                )
+
+        self._cpu_monitor_thread = threading.Thread(target=monitor, daemon=True)
+        self._cpu_monitor_thread.start()
+
     def update_topology_stats(self):
-        ex = self.app.opt_exclude_c0.get()
-        smt = self.app.opt_disable_smt.get()
-        p, e = split_p_e_cores(ex, smt)
-        self.app.frames["dashboard"].pcore_lbl.configure(text=str(len(p)))
-        self.app.frames["dashboard"].ecore_lbl.configure(text=str(len(e)))
+        """Refresh the effective Optimizer pools without blocking Tk."""
+        exclude_core_0 = self.app.opt_exclude_c0.get()
+        disable_smt = self.app.opt_disable_smt.get()
+        self._topology_refresh_id += 1
+        refresh_id = self._topology_refresh_id
+
+        def refresh():
+            p_cores, e_cores = split_p_e_cores(exclude_core_0, disable_smt)
+            if refresh_id != self._topology_refresh_id:
+                return
+            self._optimizer_p_core_count = len(p_cores)
+            self._optimizer_e_core_count = len(e_cores)
+
+        threading.Thread(target=refresh, daemon=True).start()
+
+    def _render_cpu_stats(self, p, e, per_cpu):
+        """Render a prepared CPU sample on Tk's UI thread."""
+
+        def average_usage(core_ids):
+            values = [per_cpu[index] for index in core_ids if 0 <= index < len(per_cpu)]
+            return sum(values) / len(values) if values else None
+
+        p_usage = average_usage(p)
+        e_usage = average_usage(e)
+        dashboard = self.app.frames["dashboard"]
+        dashboard.pcore_lbl.configure(text=f"{p_usage:.0f}%" if p_usage is not None else "N/A")
+        dashboard.ecore_lbl.configure(text=f"{e_usage:.0f}%" if e_usage is not None else "N/A")
+        optimizer_uses = self.app.tr("Optimizer uses")
+        logical_cores = self.app.tr("logical cores")
+        optimizer_p_count = self._optimizer_p_core_count if self.app.opt_running else 0
+        optimizer_e_count = self._optimizer_e_core_count if self.app.opt_running else 0
+        dashboard.pcore_count_lbl.configure(
+            text=f"{optimizer_uses} {optimizer_p_count} / {len(p)} {logical_cores}"
+        )
+        dashboard.ecore_count_lbl.configure(
+            text=f"{optimizer_uses} {optimizer_e_count} / {len(e)} {logical_cores}"
+        )
 
     def run_junk_cleanup(self):
         def _target():
@@ -334,6 +412,10 @@ class AppLogic:
             log_fn(f"Files deleted: {files}")
             log_fn(f"Space recovered: {mb:.2f} MB")
             self.app.after(0, lambda: self.app.clean_log.configure(state="disabled"))
+            self.app.after(0, lambda: self.app.notify_windows(
+                self.app.tr("Cleanup"),
+                f"{self.app.tr('Cleanup completed')}: {files} files, {mb:.2f} MB",
+            ))
             
         threading.Thread(target=_target, daemon=True).start()
 
@@ -357,11 +439,85 @@ class AppLogic:
     def add_opt_target(self):
         n = self.app.entry_new_game.get().strip()
         if n:
-            if "Targets" not in self.app.opt_config: self.app.opt_config["Targets"] = {}
-            self.app.opt_config["Targets"][n] = self.app.opt_prio_menu.get()
+            self._save_opt_target(n)
             self.app.entry_new_game.delete(0, 'end')
-            self.save_opt_settings()
-            self.refresh_opt_list()
+
+    def _save_opt_target(self, process_name):
+        process_name = os.path.basename(process_name.strip())
+        if not process_name:
+            return
+        if "Targets" not in self.app.opt_config:
+            self.app.opt_config["Targets"] = {}
+        self.app.opt_config["Targets"][process_name] = self.app.opt_priority_var.get()
+        self.save_opt_settings()
+        self.refresh_opt_list()
+        self.app.notify_windows("Optimizer", f"{self.app.tr('Program added')}: {process_name}")
+
+    def add_selected_process(self):
+        process_name = self.app.running_process_var.get().strip()
+        unavailable = {
+            self.app.tr("No running process found"),
+            self.app.tr("No matching process"),
+        }
+        if process_name and process_name not in unavailable:
+            self._save_opt_target(process_name)
+
+    def filter_running_processes(self):
+        """Filter the cached process list immediately as the user types."""
+        query = self.app.process_search_var.get().strip().casefold()
+        if query:
+            values = [name for name in self._running_process_names if query in name.casefold()]
+        else:
+            values = list(self._running_process_names)
+        if not values:
+            placeholder = "No matching process" if query else "No running process found"
+            values = [self.app.tr(placeholder)]
+        self.app.running_process_menu.configure(values=values)
+        self.app.running_process_var.set(values[0])
+
+    def refresh_running_processes(self):
+        if self._process_refresh_running:
+            return
+        if self._process_refresh_after_id:
+            try:
+                self.app.after_cancel(self._process_refresh_after_id)
+            except Exception:
+                pass
+            self._process_refresh_after_id = None
+        self._process_refresh_running = True
+
+        def scan():
+            names = set()
+            for process in psutil.process_iter(["name"]):
+                try:
+                    name = (process.info.get("name") or "").strip()
+                    if name:
+                        names.add(name)
+                except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                    continue
+            values = sorted(names, key=str.casefold)
+
+            def apply_values():
+                self._running_process_names = values
+                self.filter_running_processes()
+                self._process_refresh_running = False
+                # Keep the cache fresh automatically; only one timer exists.
+                self._process_refresh_after_id = self.app.after(
+                    5000, self.refresh_running_processes
+                )
+
+            self.app.after(0, apply_values)
+
+        threading.Thread(target=scan, daemon=True).start()
+
+    def browse_opt_target(self):
+        path = filedialog.askopenfilename(
+            title=self.app.tr("Select a program"),
+            filetypes=[("Windows programs", "*.exe"), ("All files", "*.*")],
+        )
+        if path:
+            self.app.entry_new_game.delete(0, "end")
+            self.app.entry_new_game.insert(0, os.path.basename(path))
 
     def remove_opt_target(self, name):
         self.app.opt_config.remove_option("Targets", name)
