@@ -2,10 +2,10 @@ import customtkinter as ctk
 import configparser
 import threading
 import os
-import sys
 import logging
 import queue
 import pystray
+from tkinter import TclError
 from pystray import MenuItem as item
 from PIL import Image
 from core.tts_engine import ChatTTSEngine
@@ -104,6 +104,7 @@ class GuiLogHandler(logging.Handler):
 class App(ctk.CTk):
     def __init__(self, engine, instance_guard=None):
         super().__init__()
+        self.shutdown_event = threading.Event()
         # Keep the native window hidden and transparent until the first dark
         # frame is fully laid out. This prevents Windows/Tk from exposing its
         # default white client area during startup.
@@ -445,9 +446,33 @@ class App(ctk.CTk):
 
     def _poll_activation_request(self):
         """Restore the existing window when the user launches the app again."""
+        if self.shutdown_event.is_set():
+            return
         if self.instance_guard and self.instance_guard.activation_requested():
             self.show_from_tray()
-        self.after(250, self._poll_activation_request)
+        try:
+            self.after(250, self._poll_activation_request)
+        except (RuntimeError, TclError):
+            pass
+
+    def call_in_ui(self, callback):
+        """Queue a UI callback only while the Tk application is alive."""
+        if self.shutdown_event.is_set():
+            return False
+
+        def guarded_callback():
+            if self.shutdown_event.is_set():
+                return
+            try:
+                callback()
+            except (RuntimeError, TclError):
+                pass
+
+        try:
+            self.after(0, guarded_callback)
+            return True
+        except (RuntimeError, TclError):
+            return False
 
     def notify_windows(self, title, message):
         """Show a native tray notification using the application's icon."""
@@ -459,7 +484,8 @@ class App(ctk.CTk):
             self.logger.debug(f"Windows notification unavailable: {error}")
 
     def withdraw_to_tray(self):
-        self.withdraw()
+        if not self.shutdown_event.is_set():
+            self.withdraw()
 
     def show_from_tray(self, icon=None, item=None):
         def restore_window():
@@ -482,17 +508,42 @@ class App(ctk.CTk):
             self.after(150, lambda: self.attributes("-topmost", False))
             self.focus_force()
 
-        self.after(0, restore_window)
+        self.call_in_ui(restore_window)
 
     def exit_app(self, icon=None, item=None):
+        """Request a clean shutdown from either Tk or the tray thread."""
+        if self.shutdown_event.is_set():
+            return
+        if threading.current_thread() is threading.main_thread():
+            self._shutdown_ui()
+        else:
+            self.call_in_ui(self._shutdown_ui)
+
+    def _shutdown_ui(self):
+        if self.shutdown_event.is_set():
+            return
+        self.shutdown_event.set()
         self.logger.info("Exiting application...")
-        if hasattr(self, 'tray_icon'):
-            self.tray_icon.stop()
-        self.engine.stop()
         self.opt_stop_event.set()
         self.cpu_monitor_stop_event.set()
-        self.quit()
-        sys.exit(0)
+        self.logic.shutdown()
+        for frame in tuple(self.frames.values()):
+            shutdown = getattr(frame, "shutdown", None)
+            if callable(shutdown):
+                shutdown()
+        self.engine.stop()
+        if hasattr(self, "tray_icon"):
+            try:
+                self.tray_icon.stop()
+            except Exception:
+                pass
+        if hasattr(self, "log_handler"):
+            base_logger.removeHandler(self.log_handler)
+        try:
+            self.quit()
+            self.destroy()
+        except (RuntimeError, TclError):
+            pass
 
     # Delegate logic methods for easier access from frames
     def toggle_tts(self): self.logic.toggle_tts()

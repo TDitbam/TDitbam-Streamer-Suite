@@ -17,6 +17,7 @@ class WindowsToolsFrame(ctk.CTkFrame):
     def __init__(self, master, app):
         super().__init__(master, fg_color="transparent")
         self.app = app
+        self._winget_process = None
         self.setup_ui()
 
     def setup_ui(self):
@@ -298,6 +299,7 @@ class WindowsToolsFrame(ctk.CTkFrame):
 
         def _task():
             creation_flags = 0x08000000 if os.name == "nt" else 0
+            process = None
             try:
                 process = subprocess.Popen(
                     command,
@@ -309,21 +311,27 @@ class WindowsToolsFrame(ctk.CTkFrame):
                     errors="replace",
                     creationflags=creation_flags,
                 )
+                self._winget_process = process
                 batch = []
                 for line in process.stdout:
+                    if self.app.shutdown_event.is_set():
+                        break
                     batch.append(line)
                     if len(batch) >= 10:
                         chunk = "".join(batch)
                         batch.clear()
-                        self.app.after(0, lambda output=chunk: self._append_winget_log(output))
+                        self.app.call_in_ui(lambda output=chunk: self._append_winget_log(output))
                 if batch:
                     chunk = "".join(batch)
-                    self.app.after(0, lambda output=chunk: self._append_winget_log(output))
+                    self.app.call_in_ui(lambda output=chunk: self._append_winget_log(output))
                 return_code = process.wait()
-                self.app.after(0, lambda code=return_code: self._finish_winget_command(code))
+                self.app.call_in_ui(lambda code=return_code: self._finish_winget_command(code))
             except Exception as error:
                 message = str(error)
-                self.app.after(0, lambda text=message: self._fail_winget_command(text))
+                self.app.call_in_ui(lambda text=message: self._fail_winget_command(text))
+            finally:
+                if self._winget_process is process:
+                    self._winget_process = None
 
         threading.Thread(target=_task, daemon=True).start()
 
@@ -370,6 +378,20 @@ class WindowsToolsFrame(ctk.CTkFrame):
     def _fail_winget_command(self, message):
         self._append_winget_log("\n" + self.app.tr("Error") + f": {message}\n")
         self._set_winget_state(False, "Error", "error")
+
+    def shutdown(self):
+        """Stop an active WinGet child when the application exits."""
+        process = self._winget_process
+        self._winget_process = None
+        if process and process.poll() is None:
+            try:
+                process.terminate()
+                process.wait(timeout=1.0)
+            except Exception:
+                try:
+                    process.kill()
+                except Exception:
+                    pass
 
     def clear_winget_output(self):
         self.winget_log.configure(state="normal")

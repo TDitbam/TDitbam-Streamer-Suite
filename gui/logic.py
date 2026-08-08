@@ -29,6 +29,18 @@ class AppLogic:
         self._last_process_menu_values = None
         self._process_refresh_after_id = None
 
+    def shutdown(self):
+        """Stop recurring work before Tk widgets are destroyed."""
+        self.app.opt_stop_event.set()
+        self.app.cpu_monitor_stop_event.set()
+        if self._process_refresh_after_id:
+            try:
+                self.app.after_cancel(self._process_refresh_after_id)
+            except (RuntimeError, TclError):
+                pass
+            self._process_refresh_after_id = None
+        self._process_refresh_running = False
+
     def toggle_tts(self):
         btn_dash = self.app.frames["dashboard"].btn_toggle_tts
         btn_chat = getattr(self.app, "btn_toggle_tts_chat", None)
@@ -88,7 +100,7 @@ class AppLogic:
                         self.app.frames["dashboard"].status_label.configure(text=self.app.tr("RUNNING"), text_color=COLORS["success"])
                         self.app.notify_windows("Bot Live Chat", self.app.tr("Bot Live Chat started"))
                     
-                    self.app.after(0, _update_ui_start)
+                    self.app.call_in_ui(_update_ui_start)
                 else:
                     self.logger.info("Stopping Bot Live Chat...")
                     self.app.engine.stop()
@@ -101,14 +113,14 @@ class AppLogic:
                             self.app.frames["dashboard"].status_label.configure(text=self.app.tr("IDLE"), text_color=COLORS["muted"])
                         self.app.notify_windows("Bot Live Chat", self.app.tr("Bot Live Chat stopped"))
                     
-                    self.app.after(0, _update_ui_stop)
+                    self.app.call_in_ui(_update_ui_stop)
             except Exception as e:
                 self.logger.error(f"TTS Toggle Error: {e}")
                 def restore_buttons():
                     btn_dash.configure(state="normal")
                     if btn_chat is not None:
                         btn_chat.configure(state="normal")
-                self.app.after(0, restore_buttons)
+                self.app.call_in_ui(restore_buttons)
         
         threading.Thread(target=_task, daemon=True).start()
 
@@ -123,20 +135,20 @@ class AppLogic:
                     self.app.opt_stop_event.clear()
                     self.app.opt_running = True
                     threading.Thread(target=self._run_opt_service, daemon=True).start()
-                    self.app.after(0, lambda: self.app.frames["dashboard"].btn_toggle_opt.configure(text=self.app.tr("STOP OPTIMIZER"), fg_color=COLORS["danger"], hover_color=COLORS["danger_hover"], state="normal"))
-                    self.app.after(0, lambda: self.app.frames["dashboard"].status_label.configure(text=self.app.tr("RUNNING"), text_color=COLORS["success"]))
-                    self.app.after(0, lambda: self.app.notify_windows("Optimizer", self.app.tr("Optimizer started")))
+                    self.app.call_in_ui(lambda: self.app.frames["dashboard"].btn_toggle_opt.configure(text=self.app.tr("STOP OPTIMIZER"), fg_color=COLORS["danger"], hover_color=COLORS["danger_hover"], state="normal"))
+                    self.app.call_in_ui(lambda: self.app.frames["dashboard"].status_label.configure(text=self.app.tr("RUNNING"), text_color=COLORS["success"]))
+                    self.app.call_in_ui(lambda: self.app.notify_windows("Optimizer", self.app.tr("Optimizer started")))
                 else:
                     self.logger.info("Stopping Optimizer Service...")
                     self.app.opt_stop_event.set()
                     self.app.opt_running = False
-                    self.app.after(0, lambda: self.app.frames["dashboard"].btn_toggle_opt.configure(text=self.app.tr("START OPTIMIZER"), fg_color=COLORS["cyan"], hover_color="#117A8B", state="normal"))
+                    self.app.call_in_ui(lambda: self.app.frames["dashboard"].btn_toggle_opt.configure(text=self.app.tr("START OPTIMIZER"), fg_color=COLORS["cyan"], hover_color="#117A8B", state="normal"))
                     if not self.app.engine.is_running:
-                        self.app.after(0, lambda: self.app.frames["dashboard"].status_label.configure(text=self.app.tr("IDLE"), text_color=COLORS["muted"]))
-                    self.app.after(0, lambda: self.app.notify_windows("Optimizer", self.app.tr("Optimizer stopped")))
+                        self.app.call_in_ui(lambda: self.app.frames["dashboard"].status_label.configure(text=self.app.tr("IDLE"), text_color=COLORS["muted"]))
+                    self.app.call_in_ui(lambda: self.app.notify_windows("Optimizer", self.app.tr("Optimizer stopped")))
             except Exception as e:
                 self.logger.error(f"Optimizer Toggle Error: {e}")
-                self.app.after(0, lambda: self.app.frames["dashboard"].btn_toggle_opt.configure(state="normal"))
+                self.app.call_in_ui(lambda: self.app.frames["dashboard"].btn_toggle_opt.configure(state="normal"))
         
         threading.Thread(target=_task, daemon=True).start()
 
@@ -375,11 +387,12 @@ class AppLogic:
                 if self.app.cpu_monitor_stop_event.is_set():
                     break
                 try:
-                    self.app.after(
-                        0,
+                    queued = self.app.call_in_ui(
                         lambda p=p_cores, e=e_cores, usage=per_cpu:
-                            self._render_cpu_stats(p, e, usage),
+                            self._render_cpu_stats(p, e, usage)
                     )
+                    if not queued:
+                        break
                 except (RuntimeError, TclError):
                     break
 
@@ -452,10 +465,11 @@ class AppLogic:
                     if self.app.cpu_monitor_stop_event.is_set():
                         break
                     try:
-                        self.app.after(
-                            0,
-                            lambda data=snapshot: self._render_system_metrics(data),
+                        queued = self.app.call_in_ui(
+                            lambda data=snapshot: self._render_system_metrics(data)
                         )
+                        if not queued:
+                            break
                     except (RuntimeError, TclError):
                         break
                     error_reported = False
@@ -492,23 +506,33 @@ class AppLogic:
 
     def run_junk_cleanup(self):
         def _target():
+            if self.app.shutdown_event.is_set():
+                return
+
             def prepare_log():
                 self.app.clean_log.configure(state="normal")
                 self.app.clean_log.insert("end", "Starting junk cleanup...\n")
                 self.app.clean_log.see("end")
 
-            self.app.after(0, prepare_log)
+            self.app.call_in_ui(prepare_log)
             
             def log_fn(msg):
-                self.app.after(0, lambda: (self.app.clean_log.insert("end", f"{msg}\n"), self.app.clean_log.see("end")))
+                self.app.call_in_ui(
+                    lambda: (
+                        self.app.clean_log.insert("end", f"{msg}\n"),
+                        self.app.clean_log.see("end"),
+                    )
+                )
             
-            files, bytes_saved = clean_junk(log_fn)
+            files, bytes_saved = clean_junk(log_fn, cancel_event=self.app.shutdown_event)
+            if self.app.shutdown_event.is_set():
+                return
             mb = bytes_saved / (1024 * 1024)
             log_fn(f"--- Cleanup Finished ---")
             log_fn(f"Files deleted: {files}")
             log_fn(f"Space recovered: {mb:.2f} MB")
-            self.app.after(0, lambda: self.app.clean_log.configure(state="disabled"))
-            self.app.after(0, lambda: self.app.notify_windows(
+            self.app.call_in_ui(lambda: self.app.clean_log.configure(state="disabled"))
+            self.app.call_in_ui(lambda: self.app.notify_windows(
                 self.app.tr("Cleanup"),
                 f"{self.app.tr('Cleanup completed')}: {files} files, {mb:.2f} MB",
             ))
@@ -628,6 +652,8 @@ class AppLogic:
             self.app.running_process_var.set(values[0])
 
     def refresh_running_processes(self):
+        if self.app.shutdown_event.is_set():
+            return
         if self._process_refresh_running:
             return
         if self._process_refresh_after_id:
@@ -641,6 +667,9 @@ class AppLogic:
         def scan():
             names = set()
             for process in psutil.process_iter(["name"]):
+                if self.app.shutdown_event.is_set():
+                    self._process_refresh_running = False
+                    return
                 try:
                     name = (process.info.get("name") or "").strip()
                     if name:
@@ -650,6 +679,9 @@ class AppLogic:
             values = sorted(names, key=str.casefold)
 
             def apply_values():
+                if self.app.shutdown_event.is_set():
+                    self._process_refresh_running = False
+                    return
                 if values != self._running_process_names:
                     self._running_process_names = values
                     self.filter_running_processes()
@@ -659,7 +691,8 @@ class AppLogic:
                     5000, self.refresh_running_processes
                 )
 
-            self.app.after(0, apply_values)
+            if not self.app.call_in_ui(apply_values):
+                self._process_refresh_running = False
 
         threading.Thread(target=scan, daemon=True).start()
 

@@ -17,3 +17,9 @@ msg_queue/
 dist/
 build/
 *.spec
+
+# Release binaries belong in GitHub Releases, not source history.
+installer/*.exe
+installer/*.bin
+installer/*.zip
+installer/*-SHA256.txt
