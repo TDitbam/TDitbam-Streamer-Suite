@@ -3,10 +3,7 @@
 block_cipher = None
 
 added_files = [
-    ('config.ini', '.'),
-    ('core', 'core'),
-    ('gui', 'gui'),
-    ('optimizer', 'optimizer'),
+    ('icon.ico', '.'),
     ('resources', 'resources'),
 ]
 
@@ -44,10 +41,8 @@ pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 exe = EXE(
     pyz,
     a.scripts,
-    a.binaries,
-    a.zipfiles,
-    a.datas,
     [],
+    exclude_binaries=True,
     name='StreamerSuite',
     debug=False,
     bootloader_ignore_signals=False,
@@ -61,6 +56,17 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    uac_admin=True, # Ensure .exe requests Admin rights
-    icon=['gui/icon.ico' if os.path.exists('gui/icon.ico') else None][0]
+    uac_admin=True,
+    icon='icon.ico',
+    contents_directory='parts',
+)
+
+coll = COLLECT(
+    exe,
+    a.binaries,
+    a.datas,
+    strip=False,
+    upx=True,
+    upx_exclude=[],
+    name='StreamerSuite',
 )

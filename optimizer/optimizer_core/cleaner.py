@@ -24,7 +24,7 @@ def get_junk_paths():
                 paths.append(expanded)
     return paths
 
-def clean_junk(progress_callback=None):
+def clean_junk(progress_callback=None, cancel_event=None):
     def _log(msg):
         if progress_callback: progress_callback(msg)
 
@@ -34,12 +34,18 @@ def clean_junk(progress_callback=None):
     paths = get_junk_paths()
     
     for path in paths:
+        if cancel_event and cancel_event.is_set():
+            break
         if not os.path.exists(path): continue
         _log(f"[*] Scanning: {path}")
         for root, dirs, files in os.walk(path, topdown=False):
+            if cancel_event and cancel_event.is_set():
+                break
             if any(w_word in root.lower() for w_word in whitelist): continue
             
             for name in files:
+                if cancel_event and cancel_event.is_set():
+                    break
                 file_path = os.path.join(root, name)
                 try:
                     size = os.path.getsize(file_path)
@@ -51,6 +57,8 @@ def clean_junk(progress_callback=None):
                     continue
             
             for name in dirs:
+                if cancel_event and cancel_event.is_set():
+                    break
                 dir_path = os.path.join(root, name)
                 if any(w_word in dir_path.lower() for w_word in whitelist): continue
                 try:

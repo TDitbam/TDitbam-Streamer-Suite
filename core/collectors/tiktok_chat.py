@@ -1,4 +1,5 @@
 import asyncio
+import queue
 from TikTokLive import TikTokLiveClient
 from TikTokLive.events import CommentEvent, DisconnectEvent
 from ..app_logger import get_logger
@@ -22,7 +23,10 @@ def tiktok_collector(username, msg_queue, is_running_func):
             try:
                 if not is_running_func():
                     return
-                msg_queue.put({"author": event.user.nickname, "message": event.comment})
+                try:
+                    msg_queue.put_nowait({"author": event.user.nickname, "message": event.comment})
+                except queue.Full:
+                    logger.warning("Message queue full; dropping TikTok message.")
             except Exception as e:
                 if "'str' object has no attribute 'get_type'" in str(e):
                     pass # Ignore this specific internal library error during parsing

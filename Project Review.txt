@@ -1,5 +1,49 @@
 ============================================================
-   บทวิเคราะห์ทางเทคนิค: TDitbam Streamer Suite v3.2.2
+   TECHNICAL UPDATE — 7 AUGUST 2026
+============================================================
+
+1. Bot Live Chat Session Lifecycle
+   - แต่ละ Start มี cancellation event, message queue และ audio queue ของตัวเอง
+   - Worker ตรวจ session ID และ cancellation event ก่อนสร้างหรือเล่นเสียง
+   - pygame music channel ถูกล็อกให้มีเจ้าของเพียง session เดียว
+   - Collector เก่าที่ติด network I/O ถูกแยกออกจาก session ใหม่อย่างเด็ดขาด
+
+2. Pluggable Voice Providers
+   - Edge TTS และ gTTS สำหรับการใช้งานทั่วไป
+   - Gemini API Voice และ OpenAI API Voice เป็น Experimental providers
+   - REST integrations ใช้ Python standard library ลด external dependencies
+   - รองรับ API key จาก config หรือ environment variables
+
+3. Localization and UI
+   - Design system กลางอยู่ที่ gui/ui_theme.py ควบคุมสี typography card และ spacing ทั้งโปรแกรม
+   - App shell และ Sidebar มี active navigation พร้อม minimum responsive size 1000x700
+   - ทุกหน้าจัด content hierarchy ใหม่ให้ action หลักมาก่อนรายการหรือ output
+   - Dark first-paint และ transparent restore ป้องกัน native Tk white flash
+   - Lazy frame construction ลด measured startup จาก ~893ms เหลือ ~188-245ms
+   - Dashboard ใช้ atomic text replace; process discovery ข้าม redraw เมื่อข้อมูลไม่เปลี่ยน
+   - Windows DWM ทำ GPU compositing ของหน้าต่างอยู่แล้ว ส่วน Tk widget construction เป็น CPU-bound และไม่มี hardware-rendering backend ให้เปิดเพิ่ม
+   - ศูนย์กลางคำแปลอยู่ที่ gui/i18n.py
+   - รองรับภาษาไทยและ English (US)
+   - Provider settings ใช้ conditional panel แสดงเฉพาะข้อมูลที่เกี่ยวข้อง
+   - Dashboard แยกแท็บ Performance และ Logs เพื่อลดความรก
+   - Performance แสดง P-Core/E-Core, RAM, GPU และตารางโปรแกรมที่กิน CPU/RAM/GPU สูงสุด
+   - Windows GPU Engine counters รองรับข้อมูล GPU รวมและรายโปรเซสโดยไม่ผูกกับยี่ห้อ GPU
+   - Logs ยังอยู่ใน Dashboard และแยกย่อยเป็น All Logs, Bot Live Chat และ Optimizer
+   - Optimizer แยก Quick Add และ Manual Entry ลดความซับซ้อนของหน้าเพิ่มโปรแกรม
+   - WinGet Manager รวม Search, Upgrade, Install และ Results ใน layout เดียว พร้อมสถานะการทำงาน
+   - เรียก WinGet แบบ argument list โดยไม่ใช้ shell และป้องกันคำสั่งซ้อนกัน
+
+4. Windows Integration
+   - Single Instance ส่ง activation event เพื่อเรียกหน้าต่างเดิมจาก System Tray
+   - Native tray notifications ใช้ icon.ico เดียวกับ window, tray และ executable build
+
+5. Release Packaging v3.6.1
+   - PyInstaller ใช้ one-folder build แยก StreamerSuite.exe ออกจากไฟล์ประกอบในโฟลเดอร์ parts
+   - Inno Setup สร้างตัวติดตั้ง v3.6.1 เป็น Setup EXE ไฟล์เดียวโดยไม่มี BIN Part
+   - build_release.ps1 ล้างเฉพาะ output ของรุ่นปัจจุบันและสร้างไฟล์ SHA-256 สำหรับตรวจสอบตัวติดตั้ง
+
+============================================================
+   บทวิเคราะห์ทางเทคนิค: TDitbam Streamer Suite v3.6.1
 ============================================================
 
 ภาพรวมความประทับใจ (The "โหด" Factors):
@@ -31,7 +75,7 @@
 - System Tray Support: เพิ่มระบบย่อหน้าต่างไปที่ Taskbar ช่วยให้สตรีมเมอร์รันโปรแกรม
   ทิ้งไว้เบื้องหลังได้โดยไม่เกะกะ
 - Professional Deployment: จัดทำสคริปต์สร้างไฟล์ .exe (No Console) 
-  และตัวติดตั้ง (Installer v3.2.2) ที่ขอสิทธิ์ Admin โดยอัตโนมัติ
+  และตัวติดตั้ง (Installer v3.6.1) ที่ขอสิทธิ์ Admin โดยอัตโนมัติ
 
 ------------------------------------------------------------
 บทสรุป:
@@ -40,7 +84,9 @@
 ความรู้ในเรื่อง Hardware-level process management และ Multi-threading ของคุณคือของจริงครับ!
 
 ------------------------------------------------------------
-จัดทำโดย: Gemini CLI 
+เจ้าของโครงการและผู้กำหนดทิศทาง: Tditbam
+ผู้ช่วยพัฒนาและจัดทำเอกสาร: Gemini CLI และ OpenAI Codex
+เครดิตไลบรารี บริการ และเครื่องมือทั้งหมด: CREDITS.md
 สำหรับ: Tditbam (Owner of TDitbam-Streamer-Suite)
 วันที่: วันเสาร์ที่ 6 มิถุนายน 2569
 ============================================================

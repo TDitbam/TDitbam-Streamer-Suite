@@ -1,5 +1,51 @@
 ==================================================
-    TDitbam Streamer Suite - Release Notes v3.5.0
+    อัปเดตระบบล่าสุด / Latest System Update
+    วันที่ / Date: 7 สิงหาคม 2026 / August 7, 2026
+==================================================
+
+[Bot Live Chat]
+- ปรับ GUI ทั้งโปรแกรมด้วย design system กลาง ให้สี ระยะห่าง card ปุ่ม และตัวอักษรเป็นชุดเดียวกัน
+- ปรับ Sidebar ให้แสดงหน้าที่กำลังเลือก และทำ layout ทุกหน้าให้ responsive ที่ขนาดขั้นต่ำ 1000x700
+- จัดหน้า Bot Live Chat, Optimizer, Cleanup, Windows Tools และ Settings ใหม่ให้ลำดับใช้งานชัดและไม่รก
+- แก้สีขาวกระพริบตอนเปิด/restore โดยรอให้ dark frame วาดเสร็จก่อนแสดงหน้าต่าง
+- สร้างหน้ารองเมื่อเปิดครั้งแรก ลด startup GUI จากประมาณ 893ms เหลือ 188-245ms
+- Dashboard อัปเดตตารางแบบ atomic และ Quick Add ไม่ redraw/reset ค่าเมื่อโปรเซสไม่เปลี่ยน
+- เพิ่ม Single Instance ป้องกันการเปิดโปรแกรมซ้ำและการสร้างระบบเสียง/ตัวเก็บแชทซ้อนกัน
+- เพิ่ม Auto Start Optimizer ใน App Settings เพื่อเริ่มระบบปรับแต่งอัตโนมัติหลังเปิดโปรแกรม
+- เมื่อเปิดโปรแกรมซ้ำ ระบบจะเรียกหน้าต่างเดิมขึ้นจาก Tray โดยไม่สร้าง instance ใหม่
+- เพิ่มการแจ้งเตือน Windows โดยใช้ icon.ico ของโปรเจกต์ และมีสวิตช์เปิด/ปิดใน App Settings
+- Dashboard แยกแท็บ Performance และ Logs เพื่อไม่ให้ Log เบียดข้อมูลสำคัญ
+- Performance แสดง P-Core/E-Core, RAM, GPU และโปรแกรมที่ใช้ CPU/RAM/GPU สูงสุดแบบเรียลไทม์
+- Logs ยังอยู่ใน Dashboard และแยกย่อยเป็น All Logs, Bot Live Chat และ Optimizer
+- ปรับ WinGet Manager ใหม่ให้กระชับ แสดงสถานะคำสั่ง รองรับกด Enter และล็อกปุ่มระหว่างทำงาน
+- Build โปรแกรมแบบแยกไฟล์: `StreamerSuite.exe` อยู่หน้าสุด และไฟล์ประกอบอยู่ในโฟลเดอร์ `parts`
+- Installer v3.6.1 เป็น Setup EXE ไฟล์เดียว พร้อมไฟล์ SHA-256 และไม่มี BIN Part
+- build_release.ps1 ตรวจสิทธิ์และเปิด UAC เพื่อรันใหม่แบบ Administrator อัตโนมัติ พร้อมส่งต่อ -SkipInstaller
+- เพิ่ม Quick Add สำหรับเลือกโปรเซสที่กำลังรัน และแยก Manual Entry สำหรับพิมพ์ชื่อหรือเลือกไฟล์ .exe
+- แก้ UI อืดด้วย background CPU/RAM/GPU/process monitoring, topology cache และ batch UI/log rendering
+- Quick Add เพิ่มช่องค้นหาแบบพิมพ์แล้วกรองทันที พร้อมรีเฟรชโปรเซสอัตโนมัติทุก 5 วินาที
+- เปลี่ยนชื่อ Chat-TTS เป็น Bot Live Chat
+- แยก Session, message queue และ audio queue ออกจากกันทุกครั้งที่ Start
+- Stop จะส่ง cancellation signal, หยุดเสียง, ล้าง queue/ไฟล์ชั่วคราว และกัก worker เก่าจาก session ใหม่
+- ป้องกันเสียงและข้อความจาก session เก่ากลับมาเล่นซ้อน
+- เลข Session เพิ่มเฉพาะตอน Start: 1, 2, 3, ...
+
+[Voice Providers]
+- Edge TTS: เลือกเสียงภาษาไทย Premwadee/Niwat
+- gTTS: เลือกภาษาไทยหรืออังกฤษ
+- Gemini API Voice (Experimental): เลือก model, voice, style และ API key
+- OpenAI API Voice (Experimental): เลือก model, voice, style, speed และ API key
+- รองรับ environment variables: GEMINI_API_KEY และ OPENAI_API_KEY
+- หมายเหตุ: API key ที่กรอกใน UI จะถูกบันทึกใน config.ini แบบข้อความปกติ
+
+[Language & UI]
+- เพิ่มภาษาไทยและ English (US) เปลี่ยนได้ทันทีจาก App Settings
+- บันทึกภาษาที่เลือกไว้ใน config.ini
+- หน้า Voice Settings แสดงเฉพาะข้อมูลของ provider ที่เลือก ลดความรกของ UI
+- แก้ Ctrl+V วางข้อความซ้ำ
+
+==================================================
+    TDitbam Streamer Suite - Release Notes v3.6.1
 ==================================================
 
 [ฟีเจอร์ใหม่ / New Features]
@@ -8,7 +54,7 @@
 - **⚙️ E-CORE Support for Directories:** เพิ่มตัวเลือกให้สามารถกำหนดลำดับความสำคัญ (Priority) ของ Managed Directories เป็น E-CORE เพื่อการจัดการทรัพยากรที่ยืดหยุ่นขึ้นในหน้า Optimizer
 
 [การแก้ไขบัคและเสถียรภาพ / Bug Fixes & Stability]
-- **🎙️ Chat-TTS Robustness:** แก้ไขปัญหา Voice Model Error บ่อยผิดปกติ โดยการเพิ่มระบบ Retry (ลองใหม่ 3 ครั้ง) พร้อมระบบสลับไปใช้ gTTS Fallback แบบอัตโนมัติเมื่อเกิดปัญหาเครือข่าย
+- **🎙️ Bot Live Chat Robustness:** แก้ไขปัญหา Voice Model Error บ่อยผิดปกติ โดยการเพิ่มระบบ Retry (ลองใหม่ 3 ครั้ง) พร้อมระบบสลับไปใช้ gTTS Fallback แบบอัตโนมัติเมื่อเกิดปัญหาเครือข่าย
 - **🧩 Module Import Fix:** แก้ไขปัญหา `ModuleNotFoundError` ด้วยระบบ Auto-Path Correction ทำให้โปรแกรมสามารถรันได้ทุกที่อย่างเสถียร
 - **🧵 Thread-Safe Operations:** ปรับปรุงการทำงานของเสียงสำรอง (gTTS) ให้ทำงานบน Thread แยก เพื่อป้องกันโปรแกรมค้าง (GUI Freezing)
 
@@ -17,10 +63,12 @@
 - **📋 Information Boxes:** เพิ่มกล่องข้อมูลอธิบายการทำงานของฟีเจอร์ต่างๆ เพื่อให้ผู้ใช้เข้าใจระบบได้ดีขึ้น
 
 [การติดตั้งและแจกจ่าย / Deployment]
-- **📦 Inno Setup Update (v3.5.0):** ปรับสคริปต์ Installer ให้ใช้เวอร์ชันใหม่และลบการเปิดแอปอัตโนมัติหลังการติดตั้ง
+- **📦 Inno Setup Update (v3.6.1):** กำหนดชื่อไฟล์ Setup จากเลขเวอร์ชัน และล้างเฉพาะไฟล์ของรุ่นที่กำลัง build โดยไม่ลบ release รุ่นเก่า
 - **🛡️ Admin Privilege Handling:** ปรับปรุงการขอสิทธิ์ผู้ดูแลระบบเพื่อให้ฟีเจอร์ Windows Tools ทำงานได้สมบูรณ์
 
 --------------------------------------------------
 Released on: วันพุธที่ 17 มิถุนายน 2569
-Author: Tditbam & Gemini CLI
+Project Owner: Tditbam
+Development Assistance: Gemini CLI & OpenAI Codex
+Full Credits: CREDITS.md
 --------------------------------------------------

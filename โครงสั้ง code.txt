@@ -1,3 +1,84 @@
+โครงสร้างล่าสุด (7 สิงหาคม 2026)
+
+main.py
+- สร้าง ChatTTSEngine และเริ่ม GUI
+
+gui/app.py
+- จัดการหน้าหลัก config ภาษา shortcut และ lifecycle ของ UI
+- Dark first-paint/transparent tray restore ป้องกันสีขาวกระพริบ
+- สร้าง Dashboard ก่อนและ lazy-load หน้ารองเมื่อเปิดใช้งานครั้งแรก
+
+gui/i18n.py
+- คำแปลภาษาไทยและ English (US)
+
+gui/ui_theme.py
+- Design tokens กลางสำหรับสี typography spacing และ card
+- Helper สำหรับ page header และ section heading ที่ใช้ร่วมกันทุกหน้า
+
+gui/sidebar.py
+- Navigation หลักพร้อม active page state
+- ปุ่ม Settings และ Donate แยกไว้ส่วนล่าง
+
+gui/chat_frame.py
+- ตั้งค่าแพลตฟอร์ม Bot Live Chat
+- เลือก Voice Provider: edge, gtts, gemini, openai
+- แสดงเฉพาะ panel ของ provider ที่เลือก
+- แยก Connections, Voice และ Speech Behavior เป็น card ตาม workflow
+
+gui/dashboard.py
+- แยก Dashboard เป็นแท็บ Performance และ Logs
+- Performance แสดง P-Core/E-Core, RAM, GPU และโปรแกรมที่ใช้ทรัพยากรสูงสุด
+- Logs แยกย่อยเป็นแท็บ All Logs, Bot Live Chat และ Optimizer
+
+gui/optimizer_frame.py
+- Quick Add เลือกโปรเซสที่กำลังทำงาน
+- Manual Entry สำหรับพิมพ์ชื่อหรือเลือกไฟล์ .exe แบบเดิม
+
+gui/windows_tools_frame.py
+- Scheduler สำหรับตั้งเวลาปิดเครื่อง
+- WinGet Manager แบบกระชับสำหรับค้นหา ติดตั้ง และอัปเกรดแอป
+- แสดงสถานะคำสั่งและป้องกันการรัน WinGet ซ้อนกัน
+
+gui/logic.py
+- บันทึก config และส่งค่าจาก UI ไปยัง engine
+
+core/tts_engine.py
+- Session isolation, cancellation, message/audio queues และ audio player
+- สร้างเสียงผ่าน Edge TTS, gTTS, Gemini API และ OpenAI API
+
+core/system_metrics.py
+- อ่าน Windows GPU Engine counters แบบไม่ผูกกับยี่ห้อ GPU
+- รวม CPU/RAM/GPU ตามชื่อโปรแกรมสำหรับ Dashboard
+
+core/collectors/
+- รับแชทจาก YouTube, Twitch และ TikTok
+- ใช้ queue แบบไม่ block เพื่อไม่ให้ worker ค้างตอน Stop
+
+core/single_instance.py
+- กันเปิดโปรแกรมซ้ำและส่งสัญญาณเรียกหน้าต่างเดิมจาก System Tray
+
+icon.ico
+- ไอคอนหลักสำหรับ window, tray, notification และ executable
+
+build_exe.spec
+- สร้าง `dist/StreamerSuite/StreamerSuite.exe` แบบ one-folder
+- เก็บ dependency และไฟล์ประกอบแยกใน `dist/StreamerSuite/parts/`
+
+installer_script.iss
+- สร้าง Installer v3.6.1 เป็น Setup EXE ไฟล์เดียว
+- ไม่มีระบบ Disk Spanning หรือไฟล์ BIN Part
+
+build_release.ps1
+- Clean build, สร้าง App EXE, Installer Parts และ SHA-256 manifests อัตโนมัติ
+
+requirements-build.txt
+- dependency สำหรับ build รวม PyInstaller
+
+CREDITS.md
+- เครดิตเจ้าของโครงการ, AI assistants, runtime libraries, Voice/API services และเครื่องมือ build/distribution
+
+หมายเหตุ: Gemini API Voice และ OpenAI API Voice อยู่ในขั้นทดลอง
+
 main.py จะดึง gui มาเสร็จ
 
 

@@ -10,14 +10,12 @@ def get_app_dir():
     else:
         app_dir = os.path.join(os.path.expanduser("~"), ".tditbam-streamer-suite")
     
-    if not os.path.exists(app_dir):
-        os.makedirs(app_dir)
+    os.makedirs(app_dir, exist_ok=True)
     return app_dir
 
-# สร้างโฟลเดอร์ logs ถ้ายังไม่มี
+# สร้างโฟลเดอร์ logs แบบ atomic ป้องกันหลาย instance ชนกันตอนเริ่มโปรแกรม
 LOG_DIR = os.path.join(get_app_dir(), "logs")
-if not os.path.exists(LOG_DIR):
-    os.makedirs(LOG_DIR)
+os.makedirs(LOG_DIR, exist_ok=True)
 
 # ตั้งค่าชื่อไฟล์ log ตามวันที่
 log_filename = os.path.join(LOG_DIR, f"chat_tts_{datetime.now().strftime('%Y-%m-%d')}.log")
