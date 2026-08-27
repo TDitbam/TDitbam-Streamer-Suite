@@ -1,5 +1,7 @@
 import customtkinter as ctk
 
+from core.version import APP_VERSION
+
 from .i18n import LANGUAGE_NAMES
 from .ui_theme import COLORS, PAGE_PAD, card, page_header, section_heading
 
@@ -105,6 +107,77 @@ class SettingsFrame(ctk.CTkFrame):
             last=True,
         )
 
+        updates_card = card(container)
+        updates_card.pack(fill="x", pady=10)
+        updates_inner = ctk.CTkFrame(updates_card, fg_color="transparent")
+        updates_inner.pack(fill="x", padx=16, pady=14)
+        section_heading(
+            updates_inner,
+            self.app,
+            "Version & Updates",
+            "Check stable GitHub tags without interrupting your work.",
+        )
+
+        version_row = ctk.CTkFrame(updates_inner, fg_color="transparent")
+        version_row.pack(fill="x", pady=(12, 8))
+        self.current_version_title = ctk.CTkLabel(
+            version_row, text="Current version", font=self.app.default_font
+        )
+        self.current_version_title.pack(side="left")
+        self.current_version_value = ctk.CTkLabel(
+            version_row, text=f"v{APP_VERSION}", font=self.app.bold_font
+        )
+        self.current_version_value.pack(side="right")
+
+        latest_row = ctk.CTkFrame(updates_inner, fg_color="transparent")
+        latest_row.pack(fill="x", pady=8)
+        self.latest_tag_title = ctk.CTkLabel(
+            latest_row, text="Latest GitHub tag", font=self.app.default_font
+        )
+        self.latest_tag_title.pack(side="left")
+        self.latest_tag_value = ctk.CTkLabel(
+            latest_row, text="—", font=self.app.bold_font
+        )
+        self.latest_tag_value.pack(side="right")
+
+        self.update_status_label = ctk.CTkLabel(
+            updates_inner,
+            text="",
+            anchor="w",
+            font=self.app.small_font,
+            text_color=COLORS["muted"],
+        )
+        self.update_status_label.pack(fill="x", pady=(6, 4))
+
+        self._switch_row(
+            updates_inner,
+            "Automatically check for updates",
+            "Check GitHub tags once in the background after the app starts.",
+            self.app.auto_check_updates,
+            last=True,
+        )
+
+        update_buttons = ctk.CTkFrame(updates_inner, fg_color="transparent")
+        update_buttons.pack(fill="x", pady=(10, 0))
+        self.check_updates_button = ctk.CTkButton(
+            update_buttons,
+            text="CHECK NOW",
+            height=36,
+            command=self.app.check_for_updates,
+            font=self.app.bold_font,
+        )
+        self.check_updates_button.pack(side="left", fill="x", expand=True)
+        self.open_release_button = ctk.CTkButton(
+            update_buttons,
+            text="OPEN RELEASE",
+            height=36,
+            command=self.app.open_update_page,
+            font=self.app.bold_font,
+            fg_color=COLORS["surface_hover"],
+            hover_color=COLORS["border"],
+        )
+        self.open_release_button.pack(side="left", fill="x", expand=True, padx=(8, 0))
+
         info_card = ctk.CTkFrame(
             container,
             fg_color="#172338",
@@ -132,3 +205,33 @@ class SettingsFrame(ctk.CTkFrame):
             font=self.app.bold_font,
             command=self.app.save_app_settings,
         ).pack(fill="x", pady=(10, 4))
+        self.refresh_update_state()
+
+    def refresh_update_state(self):
+        status_key = self.app.update_status_key
+        status_colors = {
+            "A new version is available": COLORS["success"],
+            "Unable to check for updates": COLORS["danger"],
+        }
+        self.current_version_title.configure(text=self.app.tr("Current version"))
+        self.latest_tag_title.configure(text=self.app.tr("Latest GitHub tag"))
+        self.latest_tag_value.configure(
+            text=self.app.latest_update_tag or self.app.tr("Not checked")
+        )
+        self.update_status_label.configure(
+            text=self.app.tr(status_key),
+            text_color=status_colors.get(status_key, COLORS["muted"]),
+        )
+        checking = status_key == "Checking GitHub tags..."
+        self.check_updates_button.configure(
+            text=self.app.tr("CHECKING...") if checking else self.app.tr("CHECK NOW"),
+            state="disabled" if checking else "normal",
+        )
+        self.open_release_button.configure(
+            text=self.app.tr("OPEN RELEASE"),
+            state="normal" if self.app.latest_update_tag else "disabled",
+        )
+
+    def apply_language(self):
+        self.language_menu.set(LANGUAGE_NAMES[self.app.language_code])
+        self.refresh_update_state()

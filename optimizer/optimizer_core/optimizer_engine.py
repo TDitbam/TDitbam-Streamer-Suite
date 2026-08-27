@@ -69,6 +69,8 @@ def optimize_processes(stop_event, default_interval, log_callback=None):
                 
                 exe_path = exe_path or ""
                 decision = policy_engine.decide(name, exe_path, disable_smt)
+                if decision is None:
+                    continue
                 state = registry.update_or_create(pid, create_time, exe_path)
                 
                 if enforcer.enforce(proc, state, decision):

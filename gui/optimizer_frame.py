@@ -1,5 +1,7 @@
 import customtkinter as ctk
 
+from optimizer.optimizer_core.config_loader import get_popular_game_count
+
 from .context_menu import ContextMenu
 from .ui_theme import COLORS, PAGE_PAD, card, page_header, section_heading
 
@@ -9,6 +11,13 @@ class OptimizerFrame(ctk.CTkFrame):
         super().__init__(master, fg_color="transparent")
         self.app = app
         self.setup_ui()
+
+    def _preset_summary(self):
+        preset_count = get_popular_game_count(self.app.opt_config)
+        return (
+            f"{preset_count} {self.app.tr('popular game presets active')} • "
+            f"{self.app.tr('custom programs below')}"
+        )
 
     def setup_ui(self):
         page_header(
@@ -182,12 +191,13 @@ class OptimizerFrame(ctk.CTkFrame):
         ctk.CTkLabel(
             list_header, text="Managed Programs", font=self.app.section_font
         ).pack(side="left")
-        ctk.CTkLabel(
+        self.app.popular_presets_label = ctk.CTkLabel(
             list_header,
-            text="Process priority and preferred core group",
+            text=self._preset_summary(),
             font=self.app.small_font,
             text_color=COLORS["muted"],
-        ).pack(side="right")
+        )
+        self.app.popular_presets_label.pack(side="right")
         self.app.g_scroll = ctk.CTkScrollableFrame(
             tab,
             fg_color=COLORS["surface_alt"],
@@ -244,6 +254,7 @@ class OptimizerFrame(ctk.CTkFrame):
         self.app.refresh_path_list()
 
     def apply_language(self):
+        self.app.popular_presets_label.configure(text=self._preset_summary())
         for key, english_title in (("games", "Programs"), ("directories", "Directories")):
             current_title = self._opt_tab_titles[key]
             translated_title = self.app.tr(english_title)

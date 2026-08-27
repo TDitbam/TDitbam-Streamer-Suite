@@ -1,6 +1,6 @@
 ==================================================
     อัปเดตระบบล่าสุด / Latest System Update
-    วันที่ / Date: 7 สิงหาคม 2026 / August 7, 2026
+    วันที่ / Date: 23 สิงหาคม 2026 / August 23, 2026
 ==================================================
 
 [Bot Live Chat]
@@ -12,6 +12,14 @@
 - Dashboard อัปเดตตารางแบบ atomic และ Quick Add ไม่ redraw/reset ค่าเมื่อโปรเซสไม่เปลี่ยน
 - เพิ่ม Single Instance ป้องกันการเปิดโปรแกรมซ้ำและการสร้างระบบเสียง/ตัวเก็บแชทซ้อนกัน
 - เพิ่ม Auto Start Optimizer ใน App Settings เพื่อเริ่มระบบปรับแต่งอัตโนมัติหลังเปิดโปรแกรม
+- แก้ Optimizer ให้ปรับเฉพาะโปรแกรม/โฟลเดอร์ที่ผู้ใช้เพิ่ม ไม่แตะ explorer.exe, dwm.exe และโปรเซสระบบที่ไม่ได้กำหนด
+- แยกการทำงาน Start Minimized ออกจาก Run on Windows Startup โดย Task Scheduler จะเปลี่ยนเฉพาะเมื่อสวิตช์ Startup เปลี่ยนจริง
+- เพิ่ม preset โปรเซสเกมยอดนิยม 97 รายการ พร้อมรองรับเกมจาก Steam, Epic, Riot, Battle.net และเกมออนไลน์หลัก
+- แยก PopularGames ออกจาก Custom Targets เพื่อให้ UI ไม่รก และค่า Custom ของผู้ใช้มีสิทธิ์สูงกว่า preset เสมอ
+- เพิ่ม migration config แบบครั้งเดียวโดยไม่เขียนทับค่าเดิม และบันทึก optimizer_config.ini แบบ atomic
+- เพิ่มระบบเช็กอัปเดตอัตโนมัติจาก GitHub Tag แบบ background ไม่ทำให้ UI ค้าง
+- หน้า Settings แสดง Current Version, Latest GitHub Tag, สถานะอัปเดต, สวิตช์ Auto Check และปุ่มเปิดหน้า Release
+- ระบบตรวจสอบเท่านั้น ไม่ดาวน์โหลดหรือติดตั้งไฟล์เอง
 - เมื่อเปิดโปรแกรมซ้ำ ระบบจะเรียกหน้าต่างเดิมขึ้นจาก Tray โดยไม่สร้าง instance ใหม่
 - เพิ่มการแจ้งเตือน Windows โดยใช้ icon.ico ของโปรเจกต์ และมีสวิตช์เปิด/ปิดใน App Settings
 - Dashboard แยกแท็บ Performance และ Logs เพื่อไม่ให้ Log เบียดข้อมูลสำคัญ
@@ -19,7 +27,7 @@
 - Logs ยังอยู่ใน Dashboard และแยกย่อยเป็น All Logs, Bot Live Chat และ Optimizer
 - ปรับ WinGet Manager ใหม่ให้กระชับ แสดงสถานะคำสั่ง รองรับกด Enter และล็อกปุ่มระหว่างทำงาน
 - Build โปรแกรมแบบแยกไฟล์: `StreamerSuite.exe` อยู่หน้าสุด และไฟล์ประกอบอยู่ในโฟลเดอร์ `parts`
-- Installer v3.6.1 เป็น Setup EXE ไฟล์เดียว พร้อมไฟล์ SHA-256 และไม่มี BIN Part
+- Installer v3.6.2 เป็น Setup EXE ไฟล์เดียว พร้อมไฟล์ SHA-256 และไม่มี BIN Part
 - build_release.ps1 ตรวจสิทธิ์และเปิด UAC เพื่อรันใหม่แบบ Administrator อัตโนมัติ พร้อมส่งต่อ -SkipInstaller
 - เพิ่ม Quick Add สำหรับเลือกโปรเซสที่กำลังรัน และแยก Manual Entry สำหรับพิมพ์ชื่อหรือเลือกไฟล์ .exe
 - แก้ UI อืดด้วย background CPU/RAM/GPU/process monitoring, topology cache และ batch UI/log rendering
@@ -45,7 +53,7 @@
 - แก้ Ctrl+V วางข้อความซ้ำ
 
 ==================================================
-    TDitbam Streamer Suite - Release Notes v3.6.1
+    TDitbam Streamer Suite - Release Notes v3.6.2
 ==================================================
 
 [ฟีเจอร์ใหม่ / New Features]
@@ -63,7 +71,7 @@
 - **📋 Information Boxes:** เพิ่มกล่องข้อมูลอธิบายการทำงานของฟีเจอร์ต่างๆ เพื่อให้ผู้ใช้เข้าใจระบบได้ดีขึ้น
 
 [การติดตั้งและแจกจ่าย / Deployment]
-- **📦 Inno Setup Update (v3.6.1):** กำหนดชื่อไฟล์ Setup จากเลขเวอร์ชัน และล้างเฉพาะไฟล์ของรุ่นที่กำลัง build โดยไม่ลบ release รุ่นเก่า
+- **📦 Inno Setup Update (v3.6.2):** กำหนดชื่อไฟล์ Setup จากเลขเวอร์ชัน และล้างเฉพาะไฟล์ของรุ่นที่กำลัง build โดยไม่ลบ release รุ่นเก่า
 - **🛡️ Admin Privilege Handling:** ปรับปรุงการขอสิทธิ์ผู้ดูแลระบบเพื่อให้ฟีเจอร์ Windows Tools ทำงานได้สมบูรณ์
 
 --------------------------------------------------

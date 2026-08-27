@@ -205,13 +205,17 @@ class App(ctk.CTk):
         # General App Settings
         self.start_minimized = ctk.BooleanVar(value=self.config.getboolean(s, "start_minimized", fallback=False))
         self.run_on_startup = ctk.BooleanVar(value=self.config.getboolean(s, "run_on_startup", fallback=False))
+        self._saved_run_on_startup = self.run_on_startup.get()
         self.auto_start_optimizer = ctk.BooleanVar(value=self.config.getboolean(s, "auto_start_optimizer", fallback=False))
         self.windows_notifications = ctk.BooleanVar(value=self.config.getboolean(s, "windows_notifications", fallback=True))
+        self.auto_check_updates = ctk.BooleanVar(value=self.config.getboolean(s, "auto_check_updates", fallback=True))
+        self.latest_update_tag = None
+        self.update_download_url = None
+        self.update_status_key = "Updates have not been checked yet"
         
         # Initialize Logic
         self.logic = AppLogic(self, self.engine)
         self.logic.sync_shutdown_task()
-        self.logic.sync_startup_task()
         
         # UI Setup
         self.grid_columnconfigure(1, weight=1)
@@ -261,6 +265,8 @@ class App(ctk.CTk):
         if self.instance_guard:
             self.after(250, self._poll_activation_request)
         self.after(1500, lambda: self.notify_windows("Streamer Suite", self.tr("Application is ready")))
+        if self.auto_check_updates.get():
+            self.after(2200, lambda: self.logic.check_for_updates(automatic=True))
         
         # Reveal only after Tk has rendered a complete dark first frame.
         if not self.start_minimized.get():
@@ -551,6 +557,8 @@ class App(ctk.CTk):
     def save_chat_settings(self): self.logic.save_chat_settings()
     def save_opt_settings(self): self.logic.save_opt_settings()
     def save_app_settings(self): self.logic.save_app_settings()
+    def check_for_updates(self): self.logic.check_for_updates()
+    def open_update_page(self): self.logic.open_update_page()
     def refresh_opt_list(self): self.logic.refresh_opt_list()
     def refresh_path_list(self): self.logic.refresh_path_list()
     def add_opt_target(self): self.logic.add_opt_target()

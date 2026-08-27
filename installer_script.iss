@@ -1,5 +1,5 @@
 #define MyAppName "TDitbam Streamer Suite"
-#define MyAppVersion "3.6.1"
+#define MyAppVersion "3.6.2"
 #define MyAppPublisher "Tditbam"
 #define MyAppURL "https://github.com/TDitbam/TDitbam-Streamer-Suite"
 #define MyAppExeName "StreamerSuite.exe"

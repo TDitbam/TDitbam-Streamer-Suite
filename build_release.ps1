@@ -4,7 +4,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 $projectRoot = $PSScriptRoot
-$AppVersion = "3.6.1"
+$AppVersion = "3.6.2"
 $InstallerBaseName = "TDitbam-Streamer-Suite-Setup-v$AppVersion"
 
 function Test-IsAdministrator {
@@ -37,6 +37,27 @@ if (-not (Test-IsAdministrator)) {
 }
 
 Set-Location -LiteralPath $projectRoot
+
+$versionMarkers = @(
+    @{
+        Path = "installer_script.iss"
+        Text = "#define MyAppVersion `"$AppVersion`""
+    },
+    @{
+        Path = "core\version.py"
+        Text = "APP_VERSION = `"$AppVersion`""
+    },
+    @{
+        Path = "version_info.txt"
+        Text = "StringStruct('ProductVersion', '$AppVersion')"
+    }
+)
+foreach ($marker in $versionMarkers) {
+    $markerPath = Join-Path $projectRoot $marker.Path
+    if (-not (Select-String -LiteralPath $markerPath -SimpleMatch $marker.Text -Quiet)) {
+        throw "$($marker.Path) is not synchronized with release version $AppVersion."
+    }
+}
 
 function Remove-ProjectOutput {
     param([Parameter(Mandatory = $true)][string]$RelativePath)

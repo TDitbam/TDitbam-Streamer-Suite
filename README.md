@@ -1,6 +1,6 @@
-# 🎙️ TDitbam Streamer Suite (v3.6.1)
+# 🎙️ TDitbam Streamer Suite (v3.6.2)
 
-## อัปเดตล่าสุด — 7 สิงหาคม 2026
+## อัปเดตล่าสุด — 23 สิงหาคม 2026
 
 - ปรับ GUI ทั้งโปรแกรมด้วย design system กลาง: สี ระยะห่าง card ปุ่ม input และ typography เป็นชุดเดียวกัน
 - ปรับ Sidebar ใหม่พร้อมสถานะหน้าที่เลือก และจัดทุกหน้าให้ responsive ตั้งแต่ขนาดหน้าต่าง 1000×700
@@ -10,14 +10,21 @@
 - Quick Add ไม่ redraw หรือ reset โปรแกรมที่เลือกเมื่อรายการโปรเซสจากรอบ refresh ไม่มีการเปลี่ยนแปลง
 - เพิ่มระบบ **Single Instance** ป้องกันการเปิดโปรแกรมซ้ำ โดยตรวจสอบก่อนโหลด GUI, ระบบเสียง และ log handlers
 - เพิ่ม **Auto Start Optimizer** ใน App Settings ให้ Optimizer เริ่มทำงานเองหลังเปิดโปรแกรม
+- Optimizer ปรับ affinity/priority เฉพาะรายการที่ผู้ใช้กำหนด และไม่แตะ Explorer, DWM หรือโปรเซส Windows อื่นโดยอัตโนมัติ
+- แยก **Start Minimized** และ **Run on Windows Startup** ออกจากกัน โดยแก้ Task Scheduler เฉพาะเมื่อค่า Startup เปลี่ยน
+- เพิ่ม preset โปรเซสเกมยอดนิยม 97 รายการ ครอบคลุม Steam, Epic, Riot, Battle.net และเกมออนไลน์หลัก โดยผู้ใช้ยังเพิ่มหรือกำหนด policy เองได้
+- แยก preset เกมออกจากรายการ Custom Programs เพื่อให้หน้า Optimizer โหลดเร็วและไม่รก พร้อม migration ครั้งเดียวที่ไม่เขียนทับค่าของผู้ใช้
+- บันทึก `optimizer_config.ini` แบบ atomic ลดโอกาสไฟล์ config เสียหายเมื่อ UI และ Optimizer ทำงานพร้อมกัน
+- เพิ่ม Auto Update Check ผ่าน GitHub Tags API แบบ background พร้อมแสดง Current Version, Latest Tag และสถานะในหน้า Settings
+- ผู้ใช้กดตรวจสอบซ้ำหรือเปิดหน้า GitHub Release ได้เอง ระบบจะไม่ดาวน์โหลดหรือติดตั้งอัปเดตอัตโนมัติ
 - เปิดโปรแกรมซ้ำจะเรียกหน้าต่างเดิมขึ้นมาจาก System Tray แทนการเปิด instance ใหม่
 - เพิ่มการแจ้งเตือน Windows โดยใช้ไอคอนหลัก `icon.ico` และสามารถปิดได้จาก App Settings
 - Dashboard แยกแท็บ **Performance** และ **Logs** ชัดเจน โดย Log ไม่เบียดข้อมูลสำคัญบนหน้าหลัก
 - Performance แสดง P-Core/E-Core, RAM, GPU และตารางโปรแกรมที่ใช้ CPU/RAM/GPU สูงสุดแบบเรียลไทม์
 - Logs ยังอยู่ใน Dashboard และแยกย่อยเป็น All Logs, Bot Live Chat และ Optimizer
 - ปรับ WinGet Manager เป็น UI แบบกระชับ มีสถานะคำสั่ง ค้นหา/ติดตั้งด้วย Enter และป้องกันคำสั่งทำงานซ้อนกัน
-- Build v3.6.1 ใช้โหมดโฟลเดอร์แยก: `dist/StreamerSuite/StreamerSuite.exe` และไฟล์ประกอบอยู่ใน `parts/` เพื่ออัปเดตเป็นส่วนได้ง่าย
-- Installer v3.6.1 เป็น Setup `.exe` ไฟล์เดียว พร้อมไฟล์ SHA-256 สำหรับตรวจสอบความสมบูรณ์
+- Build v3.6.2 ใช้โหมดโฟลเดอร์แยก: `dist/StreamerSuite/StreamerSuite.exe` และไฟล์ประกอบอยู่ใน `parts/` เพื่ออัปเดตเป็นส่วนได้ง่าย
+- Installer v3.6.2 เป็น Setup `.exe` ไฟล์เดียว พร้อมไฟล์ SHA-256 สำหรับตรวจสอบความสมบูรณ์
 - หน้า Optimizer เพิ่มโปรแกรมได้จากรายชื่อโปรเซสที่กำลังรัน พร้อมแยกโหมด Quick Add และ Manual Entry
 - ปรับประสิทธิภาพ UI: ย้าย CPU/RAM/GPU monitoring และ process scan ไป background, cache topology และรวมการอัปเดต UI/log เป็นชุด
 - Quick Add ค้นหาโปรเซสได้ทันทีขณะพิมพ์ และรีเฟรชรายการอัตโนมัติทุก 5 วินาที
@@ -73,7 +80,7 @@
 
 ### สำหรับผู้ใช้งานทั่วไป (Standard Users)
 1. ไปที่โฟลเดอร์ `installer/`
-2. รันไฟล์ `TDitbam-Streamer-Suite-Setup-v3.6.1.exe`
+2. รันไฟล์ `TDitbam-Streamer-Suite-Setup-v3.6.2.exe`
 3. ทำตามขั้นตอนการติดตั้งบนหน้าจอ
 
 ### สำหรับนักพัฒนา (Developers)
@@ -96,8 +103,8 @@ powershell -ExecutionPolicy Bypass -File .\build_release.ps1
 หาก PowerShell ปัจจุบันไม่ได้รันเป็น Administrator สคริปต์จะเปิดหน้าต่าง UAC และเริ่ม build ใหม่ด้วยสิทธิ์ผู้ดูแลระบบอัตโนมัติ
 
 - App แบบแยกไฟล์: `dist\StreamerSuite\StreamerSuite.exe` + `dist\StreamerSuite\parts\`
-- Installer ไฟล์เดียว: `installer\TDitbam-Streamer-Suite-Setup-v3.6.1.exe`
-- Checksum: `installer\TDitbam-Streamer-Suite-Setup-v3.6.1-SHA256.txt`
+- Installer ไฟล์เดียว: `installer\TDitbam-Streamer-Suite-Setup-v3.6.2.exe`
+- Checksum: `installer\TDitbam-Streamer-Suite-Setup-v3.6.2-SHA256.txt`
 
 ---
 

@@ -40,8 +40,9 @@ The project is not affiliated with or endorsed by Microsoft, Google, OpenAI, You
 
 - [Python](https://www.python.org/) and its standard library, including Tk/Tcl bindings.
 - [PyInstaller](https://pyinstaller.org/) — Windows one-folder executable packaging.
-- [Inno Setup](https://jrsoftware.org/isinfo.php) — Windows installer and numbered disk-spanning parts.
+- [Inno Setup](https://jrsoftware.org/isinfo.php) — Windows single-file installer packaging.
 - [Git](https://git-scm.com/) and [GitHub](https://github.com/) — source control and project distribution.
+- **GitHub REST API** — public repository tag checks for update availability.
 
 ## Project assets and platform integration
 

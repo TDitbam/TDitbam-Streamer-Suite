@@ -1,4 +1,4 @@
-โครงสร้างล่าสุด (7 สิงหาคม 2026)
+โครงสร้างล่าสุด (23 สิงหาคม 2026)
 
 main.py
 - สร้าง ChatTTSEngine และเริ่ม GUI
@@ -33,6 +33,13 @@ gui/dashboard.py
 gui/optimizer_frame.py
 - Quick Add เลือกโปรเซสที่กำลังทำงาน
 - Manual Entry สำหรับพิมพ์ชื่อหรือเลือกไฟล์ .exe แบบเดิม
+- แสดงจำนวน popular game presets แบบกระชับโดยไม่สร้างรายการ UI จำนวนมาก
+
+optimizer/optimizer_core/game_presets.py
+- preset โปรเซสเกมยอดนิยม 97 รายการ โดยไม่รวม launcher, anti-cheat และ shared runtime
+
+optimizer/optimizer_core/config_loader.py
+- migration PopularGames แบบครั้งเดียว ไม่ทับ Custom Targets และบันทึก config แบบ atomic
 
 gui/windows_tools_frame.py
 - Scheduler สำหรับตั้งเวลาปิดเครื่อง
@@ -57,6 +64,12 @@ core/collectors/
 core/single_instance.py
 - กันเปิดโปรแกรมซ้ำและส่งสัญญาณเรียกหน้าต่างเดิมจาก System Tray
 
+core/version.py
+- แหล่งเลขเวอร์ชันกลางและ URL ของ GitHub Repository/Tags/Releases
+
+core/update_checker.py
+- อ่าน public GitHub Tags API, เลือก stable semantic version สูงสุด และสร้างลิงก์ Release
+
 icon.ico
 - ไอคอนหลักสำหรับ window, tray, notification และ executable
 
@@ -65,7 +78,7 @@ build_exe.spec
 - เก็บ dependency และไฟล์ประกอบแยกใน `dist/StreamerSuite/parts/`
 
 installer_script.iss
-- สร้าง Installer v3.6.1 เป็น Setup EXE ไฟล์เดียว
+- สร้าง Installer v3.6.2 เป็น Setup EXE ไฟล์เดียว
 - ไม่มีระบบ Disk Spanning หรือไฟล์ BIN Part
 
 build_release.ps1

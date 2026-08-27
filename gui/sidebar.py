@@ -2,6 +2,8 @@ import tkinter.messagebox as messagebox
 
 import customtkinter as ctk
 
+from core.version import APP_VERSION
+
 from .ui_theme import COLORS
 
 
@@ -41,7 +43,7 @@ class SidebarFrame(ctk.CTkFrame):
         ).pack(anchor="w")
         ctk.CTkLabel(
             brand_text,
-            text="VERSION 3.6.1",
+            text=f"VERSION {APP_VERSION}",
             font=self.app.small_font,
             text_color=COLORS["muted"],
         ).pack(anchor="w")

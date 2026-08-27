@@ -7,8 +7,10 @@ import psutil
 from tkinter import TclError, filedialog
 from core.app_logger import get_app_dir, get_logger, get_config_path
 from core.system_metrics import sample_program_usage, sample_windows_gpu
+from core.update_checker import compare_versions, fetch_latest_tag, parse_version_tag
+from core.version import APP_VERSION, GITHUB_RELEASES_URL
 from .ui_theme import COLORS
-from optimizer.optimizer_core.config_loader import save_config as save_opt_config, get_targets as get_opt_targets, get_paths as get_opt_paths
+from optimizer.optimizer_core.config_loader import save_config as save_opt_config, get_user_targets as get_opt_targets, get_paths as get_opt_paths
 from optimizer.optimizer_core.optimizer_engine import optimize_processes
 from optimizer.optimizer_core.cleaner import clean_junk
 from optimizer.optimizer_core.cpu_topology import split_p_e_cores
@@ -28,6 +30,7 @@ class AppLogic:
         self._running_process_names = []
         self._last_process_menu_values = None
         self._process_refresh_after_id = None
+        self._update_check_running = False
 
     def shutdown(self):
         """Stop recurring work before Tk widgets are destroyed."""
@@ -306,12 +309,17 @@ class AppLogic:
 
     def save_app_settings(self):
         s = "settings"
+        startup_changed = (
+            self.app.run_on_startup.get()
+            != getattr(self.app, "_saved_run_on_startup", False)
+        )
         if not self.app.config.has_section(s):
             self.app.config.add_section(s)
         self.app.config.set(s, "start_minimized", str(self.app.start_minimized.get()))
         self.app.config.set(s, "run_on_startup", str(self.app.run_on_startup.get()))
         self.app.config.set(s, "auto_start_optimizer", str(self.app.auto_start_optimizer.get()))
         self.app.config.set(s, "windows_notifications", str(self.app.windows_notifications.get()))
+        self.app.config.set(s, "auto_check_updates", str(self.app.auto_check_updates.get()))
         
         # Save to config file
         from core.app_logger import get_config_path
@@ -319,11 +327,83 @@ class AppLogic:
             self.app.config.write(f)
             
         self.logger.info("General application settings saved.")
-        self.sync_startup_task()
+        if startup_changed and self.sync_startup_task():
+            self.app._saved_run_on_startup = self.app.run_on_startup.get()
+
+    def refresh_update_ui(self):
+        settings_frame = self.app.frames.get("settings")
+        if settings_frame is not None:
+            settings_frame.refresh_update_state()
+
+    def check_for_updates(self, automatic=False):
+        """Check stable GitHub tags without blocking Tk's main thread."""
+        if self._update_check_running or self.app.shutdown_event.is_set():
+            return
+        self._update_check_running = True
+        self.app.update_status_key = "Checking GitHub tags..."
+        self.refresh_update_ui()
+
+        def worker():
+            try:
+                update_info = fetch_latest_tag()
+                current_version = parse_version_tag(APP_VERSION)
+                if current_version is None:
+                    raise ValueError(f"Invalid application version: {APP_VERSION}")
+                comparison = compare_versions(current_version, update_info.version)
+
+                def apply_success():
+                    self._update_check_running = False
+                    self.app.latest_update_tag = update_info.tag_name
+                    self.app.update_download_url = update_info.download_url
+                    if comparison < 0:
+                        self.app.update_status_key = "A new version is available"
+                        self.logger.info(
+                            f"Update available: {update_info.tag_name} "
+                            f"(current: v{APP_VERSION})"
+                        )
+                        self.app.notify_windows(
+                            "Streamer Suite",
+                            f"{self.app.tr('A new version is available')}: "
+                            f"{update_info.tag_name}",
+                        )
+                    elif comparison == 0:
+                        self.app.update_status_key = "You are using the latest version"
+                        self.logger.info(f"Update check complete: v{APP_VERSION} is current.")
+                    else:
+                        self.app.update_status_key = "This build is newer than the latest GitHub tag"
+                        self.logger.info(
+                            f"Development build v{APP_VERSION}; latest tag is "
+                            f"{update_info.tag_name}."
+                        )
+                    self.refresh_update_ui()
+
+                self.app.call_in_ui(apply_success)
+            except Exception as error:
+                self.logger.warning(f"Update check failed: {error}")
+
+                def apply_error():
+                    self._update_check_running = False
+                    self.app.update_status_key = "Unable to check for updates"
+                    self.refresh_update_ui()
+
+                self.app.call_in_ui(apply_error)
+
+        threading.Thread(target=worker, daemon=True).start()
+
+    def open_update_page(self):
+        """Open the matching GitHub release after an explicit user action."""
+        import webbrowser
+
+        url = self.app.update_download_url or GITHUB_RELEASES_URL
+        try:
+            webbrowser.open_new_tab(url)
+        except Exception as error:
+            self.logger.error(f"Unable to open GitHub releases: {error}")
 
     def sync_startup_task(self):
         """Sync the elevated startup task with Windows Task Scheduler."""
-        if os.name != 'nt': return
+        if os.name != 'nt':
+            return True
         
         import subprocess
         import sys
@@ -333,11 +413,6 @@ class AppLogic:
         # Flags to hide console window
         CREATE_NO_WINDOW = 0x08000000
         
-        # 1. Always try to delete existing task first to ensure clean state
-        subprocess.run(['schtasks', '/delete', '/tn', task_name, '/f'], 
-                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, 
-                       creationflags=CREATE_NO_WINDOW)
-                       
         if enabled:
             # Determine path to execute
             if getattr(sys, 'frozen', False):
@@ -356,15 +431,44 @@ class AppLogic:
             # Create Task
             # /sc onlogon: run at logon
             # /rl highest: run with administrator/highest privileges (bypasses UAC)
-            # /f: force creation (overwrite if exists)
+            # /f updates the task in place. Do not delete it first: if task
+            # creation fails, the previously working startup entry survives.
             cmd = ['schtasks', '/create', '/tn', task_name, '/tr', task_run, '/sc', 'onlogon', '/rl', 'highest', '/f']
             res = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
                                  creationflags=CREATE_NO_WINDOW)
                                  
             if res.returncode == 0:
                 self.logger.info("Startup task scheduled successfully with highest privileges (bypassing UAC).")
+                return True
             else:
                 self.logger.error(f"Failed to schedule startup task. Error: {res.stderr.strip()}")
+                return False
+
+        delete_result = subprocess.run(
+            ['schtasks', '/delete', '/tn', task_name, '/f'],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            creationflags=CREATE_NO_WINDOW,
+        )
+        if delete_result.returncode == 0:
+            self.logger.info("Windows startup task disabled.")
+            return True
+
+        # Deleting an already absent task is also a successful disabled state.
+        query_result = subprocess.run(
+            ['schtasks', '/query', '/tn', task_name],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            creationflags=CREATE_NO_WINDOW,
+        )
+        if query_result.returncode != 0:
+            self.logger.info("Windows startup task is already disabled.")
+            return True
+
+        error = delete_result.stderr.strip() or delete_result.stdout.strip()
+        self.logger.error(f"Failed to disable the Windows startup task. Error: {error}")
+        return False
 
     def start_cpu_monitor(self):
         """Sample per-core CPU usage off the Tk main thread."""

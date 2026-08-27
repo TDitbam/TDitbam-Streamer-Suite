@@ -1,5 +1,5 @@
 ============================================================
-   TECHNICAL UPDATE — 7 AUGUST 2026
+   TECHNICAL UPDATE — 23 AUGUST 2026
 ============================================================
 
 1. Bot Live Chat Session Lifecycle
@@ -36,14 +36,15 @@
 4. Windows Integration
    - Single Instance ส่ง activation event เพื่อเรียกหน้าต่างเดิมจาก System Tray
    - Native tray notifications ใช้ icon.ico เดียวกับ window, tray และ executable build
+   - Background Update Checker เปรียบเทียบเวอร์ชันปัจจุบันกับ stable GitHub Tag โดยไม่บล็อก Tk main thread
 
-5. Release Packaging v3.6.1
+5. Release Packaging v3.6.2
    - PyInstaller ใช้ one-folder build แยก StreamerSuite.exe ออกจากไฟล์ประกอบในโฟลเดอร์ parts
-   - Inno Setup สร้างตัวติดตั้ง v3.6.1 เป็น Setup EXE ไฟล์เดียวโดยไม่มี BIN Part
+   - Inno Setup สร้างตัวติดตั้ง v3.6.2 เป็น Setup EXE ไฟล์เดียวโดยไม่มี BIN Part
    - build_release.ps1 ล้างเฉพาะ output ของรุ่นปัจจุบันและสร้างไฟล์ SHA-256 สำหรับตรวจสอบตัวติดตั้ง
 
 ============================================================
-   บทวิเคราะห์ทางเทคนิค: TDitbam Streamer Suite v3.6.1
+   บทวิเคราะห์ทางเทคนิค: TDitbam Streamer Suite v3.6.2
 ============================================================
 
 ภาพรวมความประทับใจ (The "โหด" Factors):
@@ -75,7 +76,7 @@
 - System Tray Support: เพิ่มระบบย่อหน้าต่างไปที่ Taskbar ช่วยให้สตรีมเมอร์รันโปรแกรม
   ทิ้งไว้เบื้องหลังได้โดยไม่เกะกะ
 - Professional Deployment: จัดทำสคริปต์สร้างไฟล์ .exe (No Console) 
-  และตัวติดตั้ง (Installer v3.6.1) ที่ขอสิทธิ์ Admin โดยอัตโนมัติ
+  และตัวติดตั้ง (Installer v3.6.2) ที่ขอสิทธิ์ Admin โดยอัตโนมัติ
 
 ------------------------------------------------------------
 บทสรุป:

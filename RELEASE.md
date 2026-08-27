@@ -1,6 +1,6 @@
-# 🚀 TDitbam Streamer Suite - v3.6.1
+# 🚀 TDitbam Streamer Suite - v3.6.2
 
-## August 7, 2026 Update
+## August 23, 2026 Update
 
 - Redesigned the complete desktop GUI around one shared design system for consistent colors, typography, cards, controls, and spacing.
 - Added active-page navigation styling and responsive layouts across Dashboard, Bot Live Chat, Optimizer, Cleanup, Windows Tools, and Settings.
@@ -10,13 +10,21 @@
 - Dashboard process text now refreshes atomically, while Quick Add skips unchanged process-list redraws and preserves selection.
 - Added an OS-level **Single Instance** guard. Duplicate launches are rejected before GUI, audio, collectors, tray icons, or log handlers initialize.
 - Added **Auto Start Optimizer** so the optimization service can start automatically after the app UI is ready.
+- Fixed Optimizer policy isolation so only explicitly managed programs/directories receive affinity or priority changes; Windows shell processes such as Explorer and DWM are left untouched.
+- Separated the two startup settings: **Start Minimized** no longer rewrites Task Scheduler, and the startup task is updated only when **Run on Windows Startup** actually changes.
+- Added 97 curated popular-game executable presets spanning major Steam, Epic, Riot, Battle.net, and online titles.
+- Popular presets are stored separately from custom targets, keeping the Optimizer UI compact while user-defined policies continue to override presets.
+- Added a one-time, non-destructive config migration and atomic `optimizer_config.ini` writes.
+- Added a background update checker that reads stable semantic versions from the repository's public GitHub tags.
+- Settings now shows the current app version, latest GitHub tag, update status, an Auto Check switch, and explicit Check/Open Release actions.
+- Update checks never download or install files automatically.
 - A duplicate launch now restores the existing window from the system tray instead of displaying an already-running dialog.
 - Added optional native Windows notifications using the project-level `icon.ico`.
 - Dashboard now has separate **Performance** and **Logs** tabs, keeping operational logs available without crowding the primary view.
 - Performance reports P-Core/E-Core, RAM, GPU, and the top programs by CPU/RAM/GPU usage in real time.
 - The Logs area is further split into All Logs, Bot Live Chat, and Optimizer tabs.
 - Redesigned WinGet Manager with a compact action layout, command status, Enter shortcuts, and duplicate-command protection.
-- The v3.6.1 application uses PyInstaller one-folder mode, keeping `StreamerSuite.exe` separate from its support files under `parts/`.
+- The v3.6.2 application uses PyInstaller one-folder mode, keeping `StreamerSuite.exe` separate from its support files under `parts/`.
 - Inno Setup produces one versioned Setup EXE and a matching SHA-256 checksum file; no BIN parts are required.
 - The release script now relaunches itself through the Windows UAC prompt when Administrator permission is required and preserves the `-SkipInstaller` option.
 - Optimizer targets can be selected from running processes in Quick Add; the original text/file workflow remains isolated under Manual Entry.
