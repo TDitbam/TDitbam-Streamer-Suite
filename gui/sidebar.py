@@ -132,7 +132,6 @@ class SidebarFrame(ctk.CTkFrame):
         try:
             self.app.clipboard_clear()
             self.app.clipboard_append("0646923502")
-            self.app.update()
         except Exception:
             pass
         messagebox.showinfo(

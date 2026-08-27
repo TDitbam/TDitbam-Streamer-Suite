@@ -25,7 +25,7 @@ class Enforcer:
             return False
 
         try:
-            if self.cache.needs_update(proc.pid, cores, priority):
+            if self.cache.needs_update(state.identity, cores, priority):
                 if cores:
                     proc.cpu_affinity(cores)
                 proc.nice(priority)
@@ -34,7 +34,7 @@ class Enforcer:
                 state.last_decision_id = decision.get_stable_id()
                 return True
         except (psutil.AccessDenied, psutil.ZombieProcess, psutil.NoSuchProcess):
-            self.cache.remove_pid(proc.pid)
+            self.cache.remove(state.identity)
             return False
         return False
 

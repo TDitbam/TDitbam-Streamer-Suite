@@ -3,6 +3,7 @@ import os
 import sys
 import threading
 import logging
+import time
 import psutil
 from tkinter import TclError, filedialog
 from core.app_logger import get_app_dir, get_logger, get_config_path
@@ -10,7 +11,7 @@ from core.system_metrics import sample_program_usage, sample_windows_gpu
 from core.update_checker import compare_versions, fetch_latest_tag, parse_version_tag
 from core.version import APP_VERSION, GITHUB_RELEASES_URL
 from .ui_theme import COLORS
-from optimizer.optimizer_core.config_loader import save_config as save_opt_config, get_user_targets as get_opt_targets, get_paths as get_opt_paths
+from optimizer.optimizer_core.config_loader import update_config as update_opt_config, get_user_targets as get_opt_targets, get_paths as get_opt_paths
 from optimizer.optimizer_core.optimizer_engine import optimize_processes
 from optimizer.optimizer_core.cleaner import clean_junk
 from optimizer.optimizer_core.cpu_topology import split_p_e_cores
@@ -31,9 +32,16 @@ class AppLogic:
         self._last_process_menu_values = None
         self._process_refresh_after_id = None
         self._update_check_running = False
+        self._optimizer_thread = None
+        self._optimizer_stop_event = getattr(app, "opt_stop_event", threading.Event())
+        self._optimizer_state_lock = threading.Lock()
 
     def shutdown(self):
         """Stop recurring work before Tk widgets are destroyed."""
+        with self._optimizer_state_lock:
+            optimizer_event = self._optimizer_stop_event
+            optimizer_thread = self._optimizer_thread
+        optimizer_event.set()
         self.app.opt_stop_event.set()
         self.app.cpu_monitor_stop_event.set()
         if self._process_refresh_after_id:
@@ -43,6 +51,12 @@ class AppLogic:
                 pass
             self._process_refresh_after_id = None
         self._process_refresh_running = False
+        if (
+            optimizer_thread
+            and optimizer_thread.is_alive()
+            and optimizer_thread is not threading.current_thread()
+        ):
+            optimizer_thread.join(timeout=1.5)
 
     def toggle_tts(self):
         btn_dash = self.app.frames["dashboard"].btn_toggle_tts
@@ -133,18 +147,47 @@ class AppLogic:
         
         def _task():
             try:
-                if not self.app.opt_running:
+                with self._optimizer_state_lock:
+                    running = bool(
+                        self._optimizer_thread
+                        and self._optimizer_thread.is_alive()
+                    )
+
+                if not running:
                     self.logger.info("Starting Optimizer Service...")
-                    self.app.opt_stop_event.clear()
-                    self.app.opt_running = True
-                    threading.Thread(target=self._run_opt_service, daemon=True).start()
+                    stop_event = threading.Event()
+                    worker = threading.Thread(
+                        target=self._run_opt_service,
+                        args=(stop_event,),
+                        name="OptimizerWorker",
+                        daemon=True,
+                    )
+                    with self._optimizer_state_lock:
+                        current = self._optimizer_thread
+                        if current and current.is_alive():
+                            raise RuntimeError("Optimizer is still stopping")
+                        self._optimizer_stop_event = stop_event
+                        self.app.opt_stop_event = stop_event
+                        self._optimizer_thread = worker
+                        self.app.opt_running = True
+                    worker.start()
                     self.app.call_in_ui(lambda: self.app.frames["dashboard"].btn_toggle_opt.configure(text=self.app.tr("STOP OPTIMIZER"), fg_color=COLORS["danger"], hover_color=COLORS["danger_hover"], state="normal"))
                     self.app.call_in_ui(lambda: self.app.frames["dashboard"].status_label.configure(text=self.app.tr("RUNNING"), text_color=COLORS["success"]))
                     self.app.call_in_ui(lambda: self.app.notify_windows("Optimizer", self.app.tr("Optimizer started")))
                 else:
                     self.logger.info("Stopping Optimizer Service...")
-                    self.app.opt_stop_event.set()
-                    self.app.opt_running = False
+                    with self._optimizer_state_lock:
+                        stop_event = self._optimizer_stop_event
+                        worker = self._optimizer_thread
+                    stop_event.set()
+                    # This wait runs outside Tk. Keeping the button disabled
+                    # until the worker really exits prevents overlapping runs.
+                    if worker and worker is not threading.current_thread():
+                        worker.join()
+                    with self._optimizer_state_lock:
+                        if self._optimizer_thread is worker:
+                            self._optimizer_thread = None
+                        self.app.opt_running = False
                     self.app.call_in_ui(lambda: self.app.frames["dashboard"].btn_toggle_opt.configure(text=self.app.tr("START OPTIMIZER"), fg_color=COLORS["cyan"], hover_color="#117A8B", state="normal"))
                     if not self.app.engine.is_running:
                         self.app.call_in_ui(lambda: self.app.frames["dashboard"].status_label.configure(text=self.app.tr("IDLE"), text_color=COLORS["muted"]))
@@ -162,11 +205,36 @@ class AppLogic:
         self.logger.info("Auto Start Optimizer enabled; starting service...")
         self.toggle_optimizer()
 
-    def _run_opt_service(self):
-        try: 
-            optimize_processes(self.app.opt_stop_event, 5.0, log_callback=lambda m: self.logger.info(f"[OPT] {m}"))
-        except Exception as e: 
+    def _run_opt_service(self, stop_event):
+        failed = False
+        try:
+            optimize_processes(stop_event, 5.0, log_callback=lambda m: self.logger.info(f"[OPT] {m}"))
+        except Exception as e:
+            failed = True
             self.logger.error(f"Optimizer error: {e}")
+        finally:
+            current_thread = threading.current_thread()
+            with self._optimizer_state_lock:
+                is_current = self._optimizer_thread is current_thread
+                if is_current:
+                    self._optimizer_thread = None
+                    self.app.opt_running = False
+            if failed and is_current:
+                def restore_optimizer_ui():
+                    dashboard = self.app.frames.get("dashboard")
+                    if dashboard is None:
+                        return
+                    dashboard.btn_toggle_opt.configure(
+                        text=self.app.tr("START OPTIMIZER"),
+                        fg_color=COLORS["cyan"],
+                        hover_color="#117A8B",
+                        state="normal",
+                    )
+                    if not self.app.engine.is_running:
+                        dashboard.status_label.configure(
+                            text=self.app.tr("IDLE"), text_color=COLORS["muted"]
+                        )
+                self.app.call_in_ui(restore_optimizer_ui)
 
     def save_chat_settings(self):
         """Save current GUI state to config.ini with standardized lowercase keys."""
@@ -259,20 +327,31 @@ class AppLogic:
             self.logger.info("Real-time configuration applied.")
 
     def save_opt_settings(self):
-        self.app.opt_config["Settings"]["exclude_core_0"] = str(self.app.opt_exclude_c0.get()).lower()
-        self.app.opt_config["Settings"]["disable_smt"] = str(self.app.opt_disable_smt.get()).lower()
-        self.app.opt_config["Settings"]["auto_cleanup"] = str(self.app.opt_auto_clean.get()).lower()
-        self.app.opt_config["Settings"]["cleanup_interval"] = str(self.app.opt_clean_interval.get())
-        self.app.opt_config["Settings"]["auto_shutdown"] = str(self.app.opt_auto_shutdown.get()).lower()
-        self.app.opt_config["Settings"]["shutdown_time"] = str(self.app.opt_shutdown_time.get())
-        
-        save_opt_config(self.app.opt_config)
-        self.sync_shutdown_task()
+        shutdown_changed = (
+            self.app.opt_auto_shutdown.get()
+            != getattr(self.app, "_saved_opt_auto_shutdown", False)
+            or self.app.opt_shutdown_time.get().strip()
+            != getattr(self.app, "_saved_opt_shutdown_time", "23:59")
+        )
+        values = {
+            "exclude_core_0": str(self.app.opt_exclude_c0.get()).lower(),
+            "disable_smt": str(self.app.opt_disable_smt.get()).lower(),
+            "auto_cleanup": str(self.app.opt_auto_clean.get()).lower(),
+            "cleanup_interval": str(self.app.opt_clean_interval.get()),
+            "auto_shutdown": str(self.app.opt_auto_shutdown.get()).lower(),
+            "shutdown_time": str(self.app.opt_shutdown_time.get()),
+        }
+        self.app.opt_config = update_opt_config(
+            lambda latest: latest["Settings"].update(values)
+        )
+        if shutdown_changed and self.sync_shutdown_task():
+            self.app._saved_opt_auto_shutdown = self.app.opt_auto_shutdown.get()
+            self.app._saved_opt_shutdown_time = self.app.opt_shutdown_time.get().strip()
         self.update_topology_stats()
 
     def sync_shutdown_task(self):
         """Sync the auto-shutdown task with Windows Task Scheduler."""
-        if os.name != 'nt': return
+        if os.name != 'nt': return True
         
         import subprocess
         task_name = "TDitbam_AutoShutdown"
@@ -300,12 +379,16 @@ class AppLogic:
                 
                 if res.returncode == 0:
                     self.logger.info(f"Auto-Shutdown scheduled at {time_str} (Daily)")
+                    return True
                 else:
                     self.logger.error(f"Failed to schedule task. Error: {res.stderr.strip()}")
+                    return False
             else:
                 self.logger.error(f"Invalid shutdown time format: '{time_str}'. Use HH:mm (e.g., 23:30)")
+                return False
         else:
             self.logger.info("Auto-Shutdown task disabled (or time is empty).")
+            return True
 
     def save_app_settings(self):
         s = "settings"
@@ -487,6 +570,8 @@ class AppLogic:
             self._optimizer_e_core_count = len(optimizer_e)
             psutil.cpu_percent(interval=None, percpu=True)  # Prime counters.
             while not self.app.cpu_monitor_stop_event.wait(1.0):
+                if not self.app.dashboard_metrics_active.is_set():
+                    continue
                 per_cpu = psutil.cpu_percent(interval=None, percpu=True)
                 if self.app.cpu_monitor_stop_event.is_set():
                     break
@@ -547,17 +632,21 @@ class AppLogic:
             return
 
         def monitor():
-            # Prime per-process CPU counters. Subsequent samples use the same
-            # Process objects so the reported values cover a real interval.
-            try:
-                sample_program_usage({}, self._process_cpu_cache, limit=0)
-            except Exception as error:
-                self.logger.debug(f"Unable to prime process counters: {error}")
             error_reported = False
+            last_gpu_sample = 0.0
+            gpu_usage = None
+            gpu_by_pid = {}
             while not self.app.cpu_monitor_stop_event.is_set():
+                if not self.app.dashboard_metrics_active.is_set():
+                    if self.app.cpu_monitor_stop_event.wait(0.25):
+                        break
+                    continue
                 try:
                     memory = psutil.virtual_memory()
-                    gpu_usage, gpu_by_pid = sample_windows_gpu()
+                    now = time.monotonic()
+                    if now - last_gpu_sample >= 5.0:
+                        gpu_usage, gpu_by_pid = sample_windows_gpu()
+                        last_gpu_sample = time.monotonic()
                     rows = sample_program_usage(gpu_by_pid, self._process_cpu_cache)
                     snapshot = {
                         "ram_percent": memory.percent,
@@ -583,7 +672,7 @@ class AppLogic:
                     if not error_reported:
                         self.logger.debug(f"Performance monitor retrying after error: {error}")
                         error_reported = True
-                if self.app.cpu_monitor_stop_event.wait(1.0):
+                if self.app.cpu_monitor_stop_event.wait(2.0):
                     break
 
         self._system_metrics_thread = threading.Thread(target=monitor, daemon=True)
@@ -720,9 +809,10 @@ class AppLogic:
         process_name = os.path.basename(process_name.strip())
         if not process_name:
             return
-        if "Targets" not in self.app.opt_config:
-            self.app.opt_config["Targets"] = {}
-        self.app.opt_config["Targets"][process_name] = self.app.opt_priority_var.get()
+        priority = self.app.opt_priority_var.get()
+        self.app.opt_config = update_opt_config(
+            lambda latest: latest["Targets"].__setitem__(process_name, priority)
+        )
         self.save_opt_settings()
         self.refresh_opt_list()
         self.app.notify_windows("Optimizer", f"{self.app.tr('Program added')}: {process_name}")
@@ -810,21 +900,26 @@ class AppLogic:
             self.app.entry_new_game.insert(0, os.path.basename(path))
 
     def remove_opt_target(self, name):
-        self.app.opt_config.remove_option("Targets", name)
+        self.app.opt_config = update_opt_config(
+            lambda latest: latest.remove_option("Targets", name)
+        )
         self.save_opt_settings()
         self.refresh_opt_list()
 
     def add_opt_path(self):
         f = filedialog.askdirectory()
         if f:
-            if "Paths" not in self.app.opt_config: self.app.opt_config["Paths"] = {}
             prio = self.app.opt_dir_prio_menu.get()
-            self.app.opt_config["Paths"][f] = prio
+            self.app.opt_config = update_opt_config(
+                lambda latest: latest["Paths"].__setitem__(f, prio)
+            )
             self.save_opt_settings()
             self.refresh_path_list()
 
     def remove_opt_path(self, path):
-        self.app.opt_config.remove_option("Paths", path)
+        self.app.opt_config = update_opt_config(
+            lambda latest: latest.remove_option("Paths", path)
+        )
         self.save_opt_settings()
         self.refresh_path_list()
 

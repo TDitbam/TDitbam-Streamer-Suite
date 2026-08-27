@@ -4,6 +4,7 @@ import csv
 import os
 import re
 import subprocess
+import time
 
 import psutil
 
@@ -94,28 +95,41 @@ def sample_windows_gpu(timeout=5.0):
 def sample_program_usage(gpu_by_pid, process_cache, limit=10):
     """Aggregate CPU, RAM and GPU percentages by executable name."""
     logical_cpus = max(1, psutil.cpu_count(logical=True) or 1)
+    memory_total = max(1, psutil.virtual_memory().total)
+    sampled_at = time.monotonic()
     seen_pids = set()
     programs = {}
 
-    for listed_process in psutil.process_iter(["pid", "name", "memory_percent", "memory_info"]):
+    # A single bulk snapshot is significantly cheaper on Windows than calling
+    # Process.cpu_percent() and Process.is_running() for every PID each cycle.
+    for listed_process in psutil.process_iter(
+        ["pid", "name", "create_time", "cpu_times", "memory_info"]
+    ):
         try:
             pid = listed_process.info["pid"]
             if pid == 0:
                 continue
             seen_pids.add(pid)
-            process = process_cache.get(pid)
-            if process is None or not process.is_running():
-                process = listed_process
-                process.cpu_percent(interval=None)
-                process_cache[pid] = process
-                cpu_percent = 0.0
-            else:
-                cpu_percent = max(0.0, process.cpu_percent(interval=None) / logical_cpus)
+            create_time = listed_process.info.get("create_time")
+            cpu_times = listed_process.info.get("cpu_times")
+            cpu_total = (
+                float(cpu_times.user) + float(cpu_times.system)
+                if cpu_times is not None
+                else 0.0
+            )
+            previous = process_cache.get(pid)
+            cpu_percent = 0.0
+            if previous and previous[0] == create_time:
+                elapsed = sampled_at - previous[2]
+                cpu_delta = max(0.0, cpu_total - previous[1])
+                if elapsed > 0:
+                    cpu_percent = (cpu_delta / elapsed) * 100.0 / logical_cpus
+            process_cache[pid] = (create_time, cpu_total, sampled_at)
 
             name = (listed_process.info.get("name") or f"PID {pid}").strip()
-            memory_percent = max(0.0, listed_process.info.get("memory_percent") or 0.0)
             memory_info = listed_process.info.get("memory_info")
             memory_mb = (memory_info.rss / (1024 * 1024)) if memory_info else 0.0
+            memory_percent = (memory_info.rss / memory_total * 100.0) if memory_info else 0.0
             gpu_percent = max(0.0, gpu_by_pid.get(pid, 0.0))
         except (psutil.AccessDenied, psutil.NoSuchProcess, psutil.ZombieProcess, OSError):
             continue

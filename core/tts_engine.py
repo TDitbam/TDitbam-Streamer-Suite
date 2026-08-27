@@ -68,8 +68,6 @@ class ChatTTSEngine:
         self.profanity_list = []
         self._load_profanity_list()
         
-        self._init_mixer()
-
     def _clear_queues(self):
         """Empty both message and audio queues."""
         while not self.msg_queue.empty():
@@ -100,11 +98,14 @@ class ChatTTSEngine:
                 os.makedirs(d)
 
     def _init_mixer(self):
-        """Initialize pygame mixer."""
+        """Initialize pygame mixer only when a chat session needs audio."""
+        if mixer.get_init():
+            return
         try:
             mixer.init()
         except Exception as e:
             logger.error(f"Failed to initialize pygame mixer: {e}")
+            raise RuntimeError(f"Audio system unavailable: {e}") from e
 
     def _cleanup_temp_files(self):
         """Remove old files from transient directories."""
@@ -423,6 +424,7 @@ class ChatTTSEngine:
             logger.info(f"Config: Voice={self.voice}, AutoTranslate={self.auto_translate}, Profanity={self.profanity_enabled}")
 
             try:
+                self._init_mixer()
                 self._cleanup_temp_files()
                 self._load_profanity_list()
                 
@@ -465,6 +467,7 @@ class ChatTTSEngine:
             except Exception as e:
                 logger.error(f"Failed to start engine: {e}\n{traceback.format_exc()}")
                 self._stop_locked()
+                raise
 
     def stop(self):
         """Stop all engine components."""

@@ -64,6 +64,24 @@ class PopularGamePresetTests(unittest.TestCase):
 
             self.assertNotIn("cs2.exe", reloaded["PopularGames"])
 
+    def test_focused_update_preserves_concurrent_sections(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = os.path.join(directory, "optimizer_config.ini")
+            with patch.object(config_loader, "get_opt_config_path", return_value=path):
+                config_loader.update_config(
+                    lambda config: config["Targets"].__setitem__(
+                        "stream-game.exe", "P-CORE"
+                    )
+                )
+                updated = config_loader.update_config(
+                    lambda config: config["Settings"].__setitem__(
+                        "last_cleanup", "12345"
+                    )
+                )
+
+            self.assertEqual("P-CORE", updated["Targets"]["stream-game.exe"])
+            self.assertEqual("12345", updated["Settings"]["last_cleanup"])
+
 
 if __name__ == "__main__":
     unittest.main()

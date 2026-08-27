@@ -29,20 +29,27 @@ class GuiLogHandler(logging.Handler):
         self.text_widgets = text_widgets
         self.text_widget = text_widgets["all"]
         self.pending = queue.SimpleQueue()
-        self.flush_scheduled = False
-        self.schedule_lock = threading.Lock()
+        self._after_id = None
+        self._stopped = False
 
     def emit(self, record):
         self.pending.put((self._category_for(record), self.format(record)))
-        with self.schedule_lock:
-            if self.flush_scheduled:
-                return
-            self.flush_scheduled = True
+
+    def start(self):
+        """Start the Tk-owned log pump from the main UI thread."""
+        if self._stopped or self._after_id is not None:
+            return
+        self._after_id = self.text_widget.after(100, self._flush)
+
+    def stop(self):
+        self._stopped = True
+        if self._after_id is None:
+            return
         try:
-            self.text_widget.after(100, self._flush)
-        except Exception:
-            with self.schedule_lock:
-                self.flush_scheduled = False
+            self.text_widget.after_cancel(self._after_id)
+        except (RuntimeError, TclError):
+            pass
+        self._after_id = None
 
     @staticmethod
     def _category_for(record):
@@ -72,6 +79,9 @@ class GuiLogHandler(logging.Handler):
         text_widget.configure(state="disabled")
 
     def _flush(self):
+        self._after_id = None
+        if self._stopped:
+            return
         messages = []
         while len(messages) < 200:
             try:
@@ -90,21 +100,19 @@ class GuiLogHandler(logging.Handler):
         except Exception:
             pass
         finally:
-            with self.schedule_lock:
-                self.flush_scheduled = False
-            if not self.pending.empty():
-                with self.schedule_lock:
-                    self.flush_scheduled = True
+            if not self._stopped:
+                delay = 0 if not self.pending.empty() else 100
                 try:
-                    self.text_widget.after(100, self._flush)
-                except Exception:
-                    with self.schedule_lock:
-                        self.flush_scheduled = False
+                    self._after_id = self.text_widget.after(delay, self._flush)
+                except (RuntimeError, TclError):
+                    self._after_id = None
 
 class App(ctk.CTk):
     def __init__(self, engine, instance_guard=None):
         super().__init__()
         self.shutdown_event = threading.Event()
+        self._ui_callbacks = queue.SimpleQueue()
+        self._ui_pump_after_id = None
         # Keep the native window hidden and transparent until the first dark
         # frame is fully laid out. This prevents Windows/Tk from exposing its
         # default white client area during startup.
@@ -150,10 +158,14 @@ class App(ctk.CTk):
         self.opt_running = False
         self.opt_stop_event = threading.Event()
         self.cpu_monitor_stop_event = threading.Event()
+        self.dashboard_metrics_active = threading.Event()
+        self._window_visible = False
         
         # Variables for Optimizer / System
         self.opt_auto_shutdown = ctk.BooleanVar(value=self.opt_config["Settings"].getboolean("auto_shutdown", fallback=False))
         self.opt_shutdown_time = ctk.StringVar(value=self.opt_config["Settings"].get("shutdown_time", fallback="23:59"))
+        self._saved_opt_auto_shutdown = self.opt_auto_shutdown.get()
+        self._saved_opt_shutdown_time = self.opt_shutdown_time.get().strip()
         self.opt_exclude_c0 = ctk.BooleanVar(
             value=self.opt_config["Settings"].getboolean("exclude_core_0", fallback=True)
         )
@@ -215,7 +227,6 @@ class App(ctk.CTk):
         
         # Initialize Logic
         self.logic = AppLogic(self, self.engine)
-        self.logic.sync_shutdown_task()
         
         # UI Setup
         self.grid_columnconfigure(1, weight=1)
@@ -248,6 +259,8 @@ class App(ctk.CTk):
         self.log_handler = GuiLogHandler(self.frames["dashboard"].log_boxes)
         self.log_handler.setFormatter(logging.Formatter('%(asctime)s: %(message)s', datefmt='%H:%M:%S'))
         base_logger.addHandler(self.log_handler)
+        self.log_handler.start()
+        self._start_ui_pump()
         
         # All performance monitoring runs outside Tk's UI thread.
         self.logic.start_cpu_monitor()
@@ -356,6 +369,10 @@ class App(ctk.CTk):
                 self.configure(cursor="")
         frame.tkraise()
         self._current_page = page_name
+        if self._window_visible and page_name == "dashboard":
+            self.dashboard_metrics_active.set()
+        else:
+            self.dashboard_metrics_active.clear()
         if hasattr(self, "sidebar"):
             self.sidebar.set_active(page_name)
 
@@ -436,6 +453,9 @@ class App(ctk.CTk):
         except Exception:
             pass
         self.deiconify()
+        self._window_visible = True
+        if self._current_page == "dashboard":
+            self.dashboard_metrics_active.set()
 
     # --- System Tray Methods ---
     def create_tray_icon(self):
@@ -465,20 +485,38 @@ class App(ctk.CTk):
         """Queue a UI callback only while the Tk application is alive."""
         if self.shutdown_event.is_set():
             return False
+        self._ui_callbacks.put(callback)
+        return True
 
-        def guarded_callback():
-            if self.shutdown_event.is_set():
-                return
+    def _start_ui_pump(self):
+        """Schedule one main-thread pump for callbacks from all workers."""
+        if self._ui_pump_after_id is None and not self.shutdown_event.is_set():
+            self._ui_pump_after_id = self.after(25, self._drain_ui_callbacks)
+
+    def _drain_ui_callbacks(self):
+        self._ui_pump_after_id = None
+        if self.shutdown_event.is_set():
+            return
+        processed = 0
+        while processed < 100:
+            try:
+                callback = self._ui_callbacks.get_nowait()
+            except queue.Empty:
+                break
             try:
                 callback()
             except (RuntimeError, TclError):
                 pass
-
+            except Exception as error:
+                self.logger.error(f"UI callback failed: {error}")
+            processed += 1
+            if self.shutdown_event.is_set():
+                return
+        delay = 0 if not self._ui_callbacks.empty() else 25
         try:
-            self.after(0, guarded_callback)
-            return True
+            self._ui_pump_after_id = self.after(delay, self._drain_ui_callbacks)
         except (RuntimeError, TclError):
-            return False
+            self._ui_pump_after_id = None
 
     def notify_windows(self, title, message):
         """Show a native tray notification using the application's icon."""
@@ -491,6 +529,8 @@ class App(ctk.CTk):
 
     def withdraw_to_tray(self):
         if not self.shutdown_event.is_set():
+            self._window_visible = False
+            self.dashboard_metrics_active.clear()
             self.withdraw()
 
     def show_from_tray(self, icon=None, item=None):
@@ -501,6 +541,9 @@ class App(ctk.CTk):
                 pass
             self.deiconify()
             self.state("normal")
+            self._window_visible = True
+            if self._current_page == "dashboard":
+                self.dashboard_metrics_active.set()
             self.update_idletasks()
             try:
                 self.attributes("-alpha", 1.0)
@@ -544,7 +587,14 @@ class App(ctk.CTk):
             except Exception:
                 pass
         if hasattr(self, "log_handler"):
+            self.log_handler.stop()
             base_logger.removeHandler(self.log_handler)
+        if self._ui_pump_after_id is not None:
+            try:
+                self.after_cancel(self._ui_pump_after_id)
+            except (RuntimeError, TclError):
+                pass
+            self._ui_pump_after_id = None
         try:
             self.quit()
             self.destroy()

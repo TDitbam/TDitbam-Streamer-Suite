@@ -3,6 +3,8 @@ import logging
 import os
 import sys
 import tempfile
+import threading
+import time
 import types
 import unittest
 from types import SimpleNamespace
@@ -25,6 +27,17 @@ class BoolValue:
 
     def get(self):
         return self.value
+
+
+class FakeWidget:
+    def __init__(self):
+        self.values = {"state": "normal"}
+
+    def cget(self, name):
+        return self.values.get(name)
+
+    def configure(self, **values):
+        self.values.update(values)
 
 
 def make_app(start_minimized=False, run_on_startup=False):
@@ -82,6 +95,68 @@ class StartupSettingsTests(unittest.TestCase):
         self.assertEqual(1, len(commands))
         self.assertEqual("/create", commands[0][1])
         self.assertNotIn("/delete", commands[0])
+
+    def test_optimizer_restart_never_overlaps_workers(self):
+        app = make_app()
+        app.opt_stop_event = threading.Event()
+        app.cpu_monitor_stop_event = threading.Event()
+        app.shutdown_event = threading.Event()
+        app.opt_running = False
+        app.engine = SimpleNamespace(is_running=False)
+        app.tr = lambda text: text
+        app.notify_windows = lambda *_args: None
+        app.call_in_ui = lambda callback: (callback(), True)[1]
+        app.frames = {
+            "dashboard": SimpleNamespace(
+                btn_toggle_opt=FakeWidget(), status_label=FakeWidget()
+            )
+        }
+        logic = AppLogic(app, engine=app.engine)
+        active = 0
+        peak = 0
+        session_events = []
+        state_lock = threading.Lock()
+
+        def fake_optimizer(stop_event, _interval, log_callback=None):
+            nonlocal active, peak
+            with state_lock:
+                active += 1
+                peak = max(peak, active)
+                session_events.append(stop_event)
+            try:
+                stop_event.wait()
+            finally:
+                with state_lock:
+                    active -= 1
+
+        def wait_for(predicate, timeout=1.0):
+            deadline = time.monotonic() + timeout
+            while time.monotonic() < deadline:
+                if predicate():
+                    return True
+                time.sleep(0.005)
+            return False
+
+        with patch("gui.logic.optimize_processes", side_effect=fake_optimizer):
+            for expected_sessions in range(1, 6):
+                logic.toggle_optimizer()
+                self.assertTrue(
+                    wait_for(
+                        lambda: len(session_events) == expected_sessions
+                        and app.frames["dashboard"].btn_toggle_opt.cget("state") == "normal"
+                    )
+                )
+                logic.toggle_optimizer()
+                self.assertTrue(
+                    wait_for(
+                        lambda: not app.opt_running
+                        and logic._optimizer_thread is None
+                        and app.frames["dashboard"].btn_toggle_opt.cget("state") == "normal"
+                    )
+                )
+
+        self.assertEqual(1, peak)
+        self.assertEqual(5, len({id(event) for event in session_events}))
 
 
 if __name__ == "__main__":

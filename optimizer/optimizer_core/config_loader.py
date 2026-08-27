@@ -1,6 +1,7 @@
 import configparser
 import os
 import tempfile
+import threading
 
 from .game_presets import POPULAR_GAME_PRESETS, POPULAR_GAME_PRESET_VERSION
 
@@ -15,6 +16,8 @@ DEFAULT_SETTINGS = {
     "auto_shutdown": "false",
     "shutdown_time": "23:59",
 }
+
+_CONFIG_LOCK = threading.RLock()
 
 def get_opt_config_path():
     # ใช้ AppData\Roaming ตามมาตรฐาน Windows
@@ -68,7 +71,7 @@ def _apply_popular_game_migration(config):
     return True
 
 
-def load_config():
+def _load_config_unlocked():
     config = configparser.ConfigParser(delimiters=('=',))
     config_path = get_opt_config_path()
     if os.path.exists(config_path):
@@ -97,8 +100,23 @@ def load_config():
         _write_config(config, config_path)
     return config
 
+
+def load_config():
+    with _CONFIG_LOCK:
+        return _load_config_unlocked()
+
 def save_config(config):
-    _write_config(config, get_opt_config_path())
+    with _CONFIG_LOCK:
+        _write_config(config, get_opt_config_path())
+
+
+def update_config(mutator):
+    """Atomically apply a focused mutation to the latest on-disk config."""
+    with _CONFIG_LOCK:
+        config = _load_config_unlocked()
+        mutator(config)
+        _write_config(config, get_opt_config_path())
+        return config
 
 def get_targets(config):
     """Return active presets plus user targets, with user policies winning."""

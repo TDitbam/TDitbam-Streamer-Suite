@@ -14,6 +14,10 @@ class ProcessState:
     last_apply_ts: float = 0.0
     state: str = STATE_NEW
 
+    @property
+    def identity(self) -> Tuple:
+        return (self.pid, self.create_time, self.exe_hash)
+
 class ProcessRegistry:
     def __init__(self):
         self._entries: Dict[Tuple, ProcessState] = {}
@@ -29,9 +33,12 @@ class ProcessRegistry:
         return self._entries[key]
 
     def remove_stale(self, active_keys: Dict[Tuple, bool]):
+        removed = []
         for key in list(self._entries.keys()):
             if key not in active_keys:
+                removed.append(key)
                 del self._entries[key]
+        return removed
 
     def get_entry_key(self, pid: int, create_time: float, exe_path: str) -> Tuple:
         return (pid, create_time, self._get_exe_hash(exe_path))
