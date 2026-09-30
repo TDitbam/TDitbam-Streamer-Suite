@@ -1,6 +1,37 @@
 import configparser
 import os
-import sys
+import tempfile
+import threading
+
+from .game_presets import POPULAR_GAME_PRESETS, POPULAR_GAME_PRESET_VERSION
+
+
+DEFAULT_SETTINGS = {
+    "interval": "5",
+    "exclude_core_0": "true",
+    "disable_smt": "false",
+    "auto_cleanup": "false",
+    "cleanup_interval": "1440",
+    "last_cleanup": "0",
+    "auto_shutdown": "false",
+    "shutdown_time": "23:59",
+}
+
+_CONFIG_LOCK = threading.RLock()
+
+
+def _create_ready_default_config():
+    """Build a complete first-run profile that users can fine-tune later."""
+    config = configparser.ConfigParser(delimiters=('=',))
+    config["Settings"] = dict(DEFAULT_SETTINGS)
+    config["Targets"] = {}
+    config["PopularGames"] = dict(POPULAR_GAME_PRESETS)
+    config["Paths"] = {}
+    config["Presets"] = {
+        "popular_games_version": str(POPULAR_GAME_PRESET_VERSION),
+    }
+    return config
+
 
 def get_opt_config_path():
     # ใช้ AppData\Roaming ตามมาตรฐาน Windows
@@ -13,31 +44,122 @@ def get_opt_config_path():
         os.makedirs(app_dir)
     return os.path.join(app_dir, "optimizer_config.ini")
 
-def load_config():
-    config = configparser.ConfigParser(delimiters=('=',))
+def _write_config(config, config_path):
+    """Replace the config atomically so the Optimizer never reads half a file."""
+    file_descriptor, temp_path = tempfile.mkstemp(
+        prefix="optimizer_config_",
+        suffix=".tmp",
+        dir=os.path.dirname(config_path),
+        text=True,
+    )
+    try:
+        with os.fdopen(file_descriptor, "w", encoding="utf-8") as config_file:
+            config.write(config_file)
+        os.replace(temp_path, config_path)
+    except Exception:
+        try:
+            os.remove(temp_path)
+        except OSError:
+            pass
+        raise
+
+
+def _apply_popular_game_migration(config):
+    """Add each preset release once without overwriting existing policies."""
+    if "Presets" not in config:
+        config["Presets"] = {}
+
+    installed_version = config["Presets"].getint(
+        "popular_games_version", fallback=0
+    )
+    if installed_version >= POPULAR_GAME_PRESET_VERSION:
+        return False
+
+    presets = config["PopularGames"]
+    for executable, policy in POPULAR_GAME_PRESETS.items():
+        if executable not in presets:
+            presets[executable] = policy
+    config["Presets"]["popular_games_version"] = str(
+        POPULAR_GAME_PRESET_VERSION
+    )
+    return True
+
+
+def _load_config_unlocked():
     config_path = get_opt_config_path()
     if not os.path.exists(config_path):
-        config["Settings"] = {
-            "interval": "5",
-            "exclude_core_0": "true",
-            "disable_smt": "false",
-            "auto_cleanup": "false",
-            "cleanup_interval": "1440",
-            "last_cleanup": "0",
-            "auto_shutdown": "false",
-            "shutdown_time": "23:59"
-        }
-        config["Targets"] = {"BlackDesert64.exe": "P-CORE", "cs2.exe": "P-CORE", "cyberpunk2077.exe": "P-CORE"}
+        # First run should be useful immediately. Persist one complete,
+        # conservative profile now; every value remains editable later.
+        config = _create_ready_default_config()
+        _write_config(config, config_path)
+        return config
+
+    config = configparser.ConfigParser(delimiters=('=',))
+    config.read(config_path, encoding="utf-8")
+
+    changed = False
+    if "Settings" not in config:
+        config["Settings"] = {}
+        changed = True
+    for name, value in DEFAULT_SETTINGS.items():
+        if name not in config["Settings"]:
+            config["Settings"][name] = value
+            changed = True
+    if "Targets" not in config:
+        config["Targets"] = {}
+        changed = True
+    if "PopularGames" not in config:
+        config["PopularGames"] = {}
+        changed = True
+    if "Paths" not in config:
         config["Paths"] = {}
-        with open(config_path, "w") as f: config.write(f)
-    config.read(config_path)
-    if "Settings" not in config: config["Settings"] = {"interval": "5"}
-    if "Targets" not in config: config["Targets"] = {}
-    if "Paths" not in config: config["Paths"] = {}
+        changed = True
+    if _apply_popular_game_migration(config):
+        changed = True
+    if changed:
+        _write_config(config, config_path)
     return config
 
-def save_config(config):
-    with open(get_opt_config_path(), "w") as f: config.write(f)
 
-def get_targets(config): return config.items("Targets")
+def load_config():
+    with _CONFIG_LOCK:
+        return _load_config_unlocked()
+
+def save_config(config):
+    with _CONFIG_LOCK:
+        _write_config(config, get_opt_config_path())
+
+
+def reset_config():
+    """Replace the persisted Optimizer profile with ready-to-use defaults."""
+    with _CONFIG_LOCK:
+        config = _create_ready_default_config()
+        _write_config(config, get_opt_config_path())
+        return config
+
+
+def update_config(mutator):
+    """Atomically apply a focused mutation to the latest on-disk config."""
+    with _CONFIG_LOCK:
+        config = _load_config_unlocked()
+        mutator(config)
+        _write_config(config, get_opt_config_path())
+        return config
+
+def get_targets(config):
+    """Return active presets plus user targets, with user policies winning."""
+    targets = dict(config.items("PopularGames")) if "PopularGames" in config else {}
+    if "Targets" in config:
+        targets.update(config.items("Targets"))
+    return list(targets.items())
+
+
+def get_user_targets(config):
+    return config.items("Targets") if "Targets" in config else []
+
+
+def get_popular_game_count(config):
+    return len(config["PopularGames"]) if "PopularGames" in config else 0
+
+
 def get_paths(config): return config.items("Paths") if "Paths" in config else []

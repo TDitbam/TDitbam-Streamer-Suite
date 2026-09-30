@@ -1,4 +1,5 @@
 import time
+import queue
 import pytchat
 from ..app_logger import get_logger
 
@@ -16,7 +17,10 @@ def youtube_collector(video_id, msg_queue, is_running_func):
                 for c in chat.get().sync_items():
                     if c.id not in processed_ids:
                         processed_ids.add(c.id)
-                        msg_queue.put({"author": c.author.name, "message": c.message})
+                        try:
+                            msg_queue.put_nowait({"author": c.author.name, "message": c.message})
+                        except queue.Full:
+                            logger.warning("Message queue full; dropping YouTube message.")
                         if len(processed_ids) > 1000: processed_ids.clear()
                 time.sleep(0.5)
             if is_running_func(): time.sleep(retry_delay)

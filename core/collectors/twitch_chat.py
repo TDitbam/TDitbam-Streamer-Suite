@@ -1,6 +1,7 @@
 import time
 import socket
 import random
+import queue
 from ..app_logger import get_logger
 
 logger = get_logger("Twitch")
@@ -48,7 +49,10 @@ def twitch_collector(channel, msg_queue, is_running_func):
                                 if len(parts) >= 3:
                                     author = parts[1].split("!")[0]
                                     message = parts[2]
-                                    msg_queue.put({"author": author, "message": message})
+                                    try:
+                                        msg_queue.put_nowait({"author": author, "message": message})
+                                    except queue.Full:
+                                        logger.warning("Message queue full; dropping Twitch message.")
                             except Exception as parse_e:
                                 logger.error(f"Error parsing Twitch line: {parse_e}")
                 except socket.timeout:

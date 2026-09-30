@@ -3,9 +3,20 @@ import os
 import sys
 import threading
 import logging
-from tkinter import filedialog
+import time
+import psutil
+from tkinter import TclError, filedialog, messagebox
 from core.app_logger import get_app_dir, get_logger, get_config_path
-from optimizer.optimizer_core.config_loader import save_config as save_opt_config, get_targets as get_opt_targets, get_paths as get_opt_paths
+from core.system_metrics import sample_program_usage, sample_windows_gpu
+from core.update_checker import compare_versions, fetch_latest_tag, parse_version_tag
+from core.version import APP_VERSION, GITHUB_RELEASES_URL
+from .ui_theme import COLORS
+from optimizer.optimizer_core.config_loader import (
+    get_paths as get_opt_paths,
+    get_user_targets as get_opt_targets,
+    reset_config as reset_opt_config_file,
+    update_config as update_opt_config,
+)
 from optimizer.optimizer_core.optimizer_engine import optimize_processes
 from optimizer.optimizer_core.cleaner import clean_junk
 from optimizer.optimizer_core.cpu_topology import split_p_e_cores
@@ -15,31 +26,65 @@ class AppLogic:
         self.app = app
         self.engine = engine
         self.logger = get_logger("Logic")
+        self._cpu_monitor_thread = None
+        self._system_metrics_thread = None
+        self._process_cpu_cache = {}
+        self._optimizer_p_core_count = 0
+        self._optimizer_e_core_count = 0
+        self._topology_refresh_id = 0
+        self._process_refresh_running = False
+        self._running_process_names = []
+        self._last_process_menu_values = None
+        self._process_refresh_after_id = None
+        self._update_check_running = False
+        self._optimizer_thread = None
+        self._optimizer_stop_event = getattr(app, "opt_stop_event", threading.Event())
+        self._optimizer_state_lock = threading.Lock()
+
+    def shutdown(self):
+        """Stop recurring work before Tk widgets are destroyed."""
+        with self._optimizer_state_lock:
+            optimizer_event = self._optimizer_stop_event
+            optimizer_thread = self._optimizer_thread
+        optimizer_event.set()
+        self.app.opt_stop_event.set()
+        self.app.cpu_monitor_stop_event.set()
+        if self._process_refresh_after_id:
+            try:
+                self.app.after_cancel(self._process_refresh_after_id)
+            except (RuntimeError, TclError):
+                pass
+            self._process_refresh_after_id = None
+        self._process_refresh_running = False
+        if (
+            optimizer_thread
+            and optimizer_thread.is_alive()
+            and optimizer_thread is not threading.current_thread()
+        ):
+            optimizer_thread.join(timeout=1.5)
 
     def toggle_tts(self):
         btn_dash = self.app.frames["dashboard"].btn_toggle_tts
-        btn_chat = self.app.btn_toggle_tts_chat
+        btn_chat = getattr(self.app, "btn_toggle_tts_chat", None)
         
         if btn_dash.cget("state") == "disabled": return
+
+        if not self.app.engine.is_running:
+            # A new chat session gets a clean focused tab; All Logs remains a
+            # complete application history.
+            self.app.frames["dashboard"].clear_log("chat")
         
         btn_dash.configure(state="disabled")
-        btn_chat.configure(state="disabled")
+        if btn_chat is not None:
+            btn_chat.configure(state="disabled")
         
         def _task():
             try:
                 if not self.app.engine.is_running:
-                    self.logger.info("Starting Chat-TTS System...")
+                    self.logger.info("Starting Bot Live Chat...")
                     # 1. Save current UI to disk
-                    self.save_chat_settings()
-                    
-                    # Clear log box for new session
-                    try:
-                        log_box = self.app.frames["dashboard"].log_box
-                        log_box.configure(state="normal")
-                        log_box.delete("1.0", "end")
-                        log_box.configure(state="disabled")
-                    except:
-                        pass
+                    if "chat" in self.app.frames:
+                        self.save_chat_settings()
                     
                     # 2. Build config dict from the fresh app state (already updated by save_chat_settings)
                     s = "settings"
@@ -51,8 +96,20 @@ class AppLogic:
                         "tk_enabled": self.app.config.get(s, "tk_enabled", fallback="False"),
                         "tk_username": self.app.config.get(s, "tk_username", fallback=""),
                         "voice": self.app.config.get(s, "voice", fallback="th-TH-PremwadeeNeural"),
+                        "voice_provider": self.app.config.get(s, "voice_provider", fallback="edge"),
+                        "gtts_language": self.app.config.get(s, "gtts_language", fallback="th"),
+                        "gemini_api_key": self.app.config.get(s, "gemini_api_key", fallback=""),
+                        "gemini_model": self.app.config.get(s, "gemini_model", fallback="gemini-3.1-flash-tts-preview"),
+                        "gemini_voice": self.app.config.get(s, "gemini_voice", fallback="Kore"),
+                        "gemini_style": self.app.config.get(s, "gemini_style", fallback="Read the transcript naturally and clearly."),
+                        "openai_api_key": self.app.config.get(s, "openai_api_key", fallback=""),
+                        "openai_model": self.app.config.get(s, "openai_model", fallback="tts-1"),
+                        "openai_voice": self.app.config.get(s, "openai_voice", fallback="alloy"),
+                        "openai_instructions": self.app.config.get(s, "openai_instructions", fallback="Speak naturally and clearly."),
+                        "openai_speed": self.app.config.get(s, "openai_speed", fallback="1.0"),
                         "delay_per_char": self.app.config.get(s, "delay_per_char", fallback="0.03"),
                         "max_delay": self.app.config.get(s, "max_delay", fallback="2.0"),
+                        "speaker_change_delay": self.app.config.get(s, "speaker_change_delay", fallback="0.75"),
                         "auto_translate": self.app.config.get(s, "auto_translate", fallback="False"),
                         "profanity_enabled": self.app.config.get(s, "profanity_enabled", fallback="False")
                     }
@@ -60,25 +117,33 @@ class AppLogic:
                     self.app.engine.start(conf)
                     
                     def _update_ui_start():
-                        btn_dash.configure(text="STOP CHAT-TTS", fg_color="#dc3545", state="normal")
-                        btn_chat.configure(text="STOP CHAT-TTS", fg_color="#dc3545", state="normal")
-                        self.app.frames["dashboard"].status_label.configure(text="RUNNING", text_color="#28a745")
+                        btn_dash.configure(text=self.app.tr("STOP BOT LIVE CHAT"), fg_color=COLORS["danger"], hover_color=COLORS["danger_hover"], state="normal")
+                        if btn_chat is not None:
+                            btn_chat.configure(text=self.app.tr("STOP BOT LIVE CHAT"), fg_color=COLORS["danger"], hover_color=COLORS["danger_hover"], state="normal")
+                        self.app.frames["dashboard"].status_label.configure(text=self.app.tr("RUNNING"), text_color=COLORS["success"])
+                        self.app.notify_windows("Bot Live Chat", self.app.tr("Bot Live Chat started"))
                     
-                    self.app.after(0, _update_ui_start)
+                    self.app.call_in_ui(_update_ui_start)
                 else:
-                    self.logger.info("Stopping Chat-TTS System...")
+                    self.logger.info("Stopping Bot Live Chat...")
                     self.app.engine.stop()
                     
                     def _update_ui_stop():
-                        btn_dash.configure(text="START CHAT-TTS", fg_color="#28a745", state="normal")
-                        btn_chat.configure(text="START CHAT-TTS", fg_color="#28a745", state="normal")
+                        btn_dash.configure(text=self.app.tr("START BOT LIVE CHAT"), fg_color=COLORS["success"], hover_color=COLORS["success_hover"], state="normal")
+                        if btn_chat is not None:
+                            btn_chat.configure(text=self.app.tr("START BOT LIVE CHAT"), fg_color=COLORS["success"], hover_color=COLORS["success_hover"], state="normal")
                         if not self.app.opt_running:
-                            self.app.frames["dashboard"].status_label.configure(text="IDLE", text_color="#ABB2BF")
+                            self.app.frames["dashboard"].status_label.configure(text=self.app.tr("IDLE"), text_color=COLORS["muted"])
+                        self.app.notify_windows("Bot Live Chat", self.app.tr("Bot Live Chat stopped"))
                     
-                    self.app.after(0, _update_ui_stop)
+                    self.app.call_in_ui(_update_ui_stop)
             except Exception as e:
                 self.logger.error(f"TTS Toggle Error: {e}")
-                self.app.after(0, lambda: (btn_dash.configure(state="normal"), btn_chat.configure(state="normal")))
+                def restore_buttons():
+                    btn_dash.configure(state="normal")
+                    if btn_chat is not None:
+                        btn_chat.configure(state="normal")
+                self.app.call_in_ui(restore_buttons)
         
         threading.Thread(target=_task, daemon=True).start()
 
@@ -88,31 +153,94 @@ class AppLogic:
         
         def _task():
             try:
-                if not self.app.opt_running:
+                with self._optimizer_state_lock:
+                    running = bool(
+                        self._optimizer_thread
+                        and self._optimizer_thread.is_alive()
+                    )
+
+                if not running:
                     self.logger.info("Starting Optimizer Service...")
-                    self.app.opt_stop_event.clear()
-                    self.app.opt_running = True
-                    threading.Thread(target=self._run_opt_service, daemon=True).start()
-                    self.app.after(0, lambda: self.app.frames["dashboard"].btn_toggle_opt.configure(text="STOP OPTIMIZER", fg_color="#dc3545", state="normal"))
-                    self.app.after(0, lambda: self.app.frames["dashboard"].status_label.configure(text="RUNNING", text_color="#28a745"))
+                    stop_event = threading.Event()
+                    worker = threading.Thread(
+                        target=self._run_opt_service,
+                        args=(stop_event,),
+                        name="OptimizerWorker",
+                        daemon=True,
+                    )
+                    with self._optimizer_state_lock:
+                        current = self._optimizer_thread
+                        if current and current.is_alive():
+                            raise RuntimeError("Optimizer is still stopping")
+                        self._optimizer_stop_event = stop_event
+                        self.app.opt_stop_event = stop_event
+                        self._optimizer_thread = worker
+                        self.app.opt_running = True
+                    worker.start()
+                    self.app.call_in_ui(lambda: self.app.frames["dashboard"].btn_toggle_opt.configure(text=self.app.tr("STOP OPTIMIZER"), fg_color=COLORS["danger"], hover_color=COLORS["danger_hover"], state="normal"))
+                    self.app.call_in_ui(lambda: self.app.frames["dashboard"].status_label.configure(text=self.app.tr("RUNNING"), text_color=COLORS["success"]))
+                    self.app.call_in_ui(lambda: self.app.notify_windows("Optimizer", self.app.tr("Optimizer started")))
                 else:
                     self.logger.info("Stopping Optimizer Service...")
-                    self.app.opt_stop_event.set()
-                    self.app.opt_running = False
-                    self.app.after(0, lambda: self.app.frames["dashboard"].btn_toggle_opt.configure(text="START OPTIMIZER", fg_color="#17a2b8", state="normal"))
+                    with self._optimizer_state_lock:
+                        stop_event = self._optimizer_stop_event
+                        worker = self._optimizer_thread
+                    stop_event.set()
+                    # This wait runs outside Tk. Keeping the button disabled
+                    # until the worker really exits prevents overlapping runs.
+                    if worker and worker is not threading.current_thread():
+                        worker.join()
+                    with self._optimizer_state_lock:
+                        if self._optimizer_thread is worker:
+                            self._optimizer_thread = None
+                        self.app.opt_running = False
+                    self.app.call_in_ui(lambda: self.app.frames["dashboard"].btn_toggle_opt.configure(text=self.app.tr("START OPTIMIZER"), fg_color=COLORS["cyan"], hover_color="#117A8B", state="normal"))
                     if not self.app.engine.is_running:
-                        self.app.after(0, lambda: self.app.frames["dashboard"].status_label.configure(text="IDLE", text_color="#ABB2BF"))
+                        self.app.call_in_ui(lambda: self.app.frames["dashboard"].status_label.configure(text=self.app.tr("IDLE"), text_color=COLORS["muted"]))
+                    self.app.call_in_ui(lambda: self.app.notify_windows("Optimizer", self.app.tr("Optimizer stopped")))
             except Exception as e:
                 self.logger.error(f"Optimizer Toggle Error: {e}")
-                self.app.after(0, lambda: self.app.frames["dashboard"].btn_toggle_opt.configure(state="normal"))
+                self.app.call_in_ui(lambda: self.app.frames["dashboard"].btn_toggle_opt.configure(state="normal"))
         
         threading.Thread(target=_task, daemon=True).start()
 
-    def _run_opt_service(self):
-        try: 
-            optimize_processes(self.app.opt_stop_event, 5.0, log_callback=lambda m: self.logger.info(f"[OPT] {m}"))
-        except Exception as e: 
+    def start_optimizer_automatically(self):
+        """Start Optimizer once after launch when enabled in App Settings."""
+        if self.app.opt_running or not self.app.auto_start_optimizer.get():
+            return
+        self.logger.info("Auto Start Optimizer enabled; starting service...")
+        self.toggle_optimizer()
+
+    def _run_opt_service(self, stop_event):
+        failed = False
+        try:
+            optimize_processes(stop_event, 5.0, log_callback=lambda m: self.logger.info(f"[OPT] {m}"))
+        except Exception as e:
+            failed = True
             self.logger.error(f"Optimizer error: {e}")
+        finally:
+            current_thread = threading.current_thread()
+            with self._optimizer_state_lock:
+                is_current = self._optimizer_thread is current_thread
+                if is_current:
+                    self._optimizer_thread = None
+                    self.app.opt_running = False
+            if failed and is_current:
+                def restore_optimizer_ui():
+                    dashboard = self.app.frames.get("dashboard")
+                    if dashboard is None:
+                        return
+                    dashboard.btn_toggle_opt.configure(
+                        text=self.app.tr("START OPTIMIZER"),
+                        fg_color=COLORS["cyan"],
+                        hover_color="#117A8B",
+                        state="normal",
+                    )
+                    if not self.app.engine.is_running:
+                        dashboard.status_label.configure(
+                            text=self.app.tr("IDLE"), text_color=COLORS["muted"]
+                        )
+                self.app.call_in_ui(restore_optimizer_ui)
 
     def save_chat_settings(self):
         """Save current GUI state to config.ini with standardized lowercase keys."""
@@ -129,8 +257,22 @@ class AppLogic:
         self.app.config.set(s, "tw_channel", self.app.entry_tw.get())
         self.app.config.set(s, "tk_username", self.app.entry_tk.get())
         self.app.config.set(s, "voice", self.app.voice_var.get())
+        self.app.config.set(s, "voice_provider", self.app.voice_provider.get())
+        self.app.config.set(s, "gtts_language", self.app.gtts_language.get())
+        self.app.config.set(s, "gemini_api_key", self.app.gemini_api_key.get())
+        self.app.config.set(s, "gemini_model", self.app.gemini_model.get())
+        self.app.config.set(s, "gemini_voice", self.app.gemini_voice.get())
+        self.app.config.set(s, "gemini_style", self.app.gemini_style.get())
+        self.app.config.set(s, "openai_api_key", self.app.openai_api_key.get())
+        self.app.config.set(s, "openai_model", self.app.openai_model.get())
+        self.app.config.set(s, "openai_voice", self.app.openai_voice.get())
+        self.app.config.set(s, "openai_instructions", self.app.openai_instructions.get())
+        self.app.config.set(s, "openai_speed", self.app.openai_speed.get())
         self.app.config.set(s, "delay_per_char", self.app.entry_delay_char.get())
         self.app.config.set(s, "max_delay", self.app.entry_max_delay.get())
+        self.app.config.set(
+            s, "speaker_change_delay", self.app.entry_speaker_change_delay.get()
+        )
         
         # Backward compatibility / Clean up old keys
         for old_key in ["youtube_video_id", "VOICE", "YOUTUBE_VIDEO_ID"]:
@@ -157,15 +299,44 @@ class AppLogic:
         if self.app.engine.is_running:
             self.app.logic.apply_realtime_config()
             
-        self.logger.info("Chat-TTS Settings Saved Successfully")
+        self.logger.info("Bot Live Chat settings saved successfully")
 
     def apply_realtime_config(self):
         """Apply current GUI settings to the engine in real-time."""
         if self.app.engine.is_running:
+            delay_per_char = (
+                self.app.entry_delay_char.get()
+                if hasattr(self.app, "entry_delay_char")
+                else self.app.config.get("settings", "delay_per_char", fallback="0.03")
+            )
+            max_delay = (
+                self.app.entry_max_delay.get()
+                if hasattr(self.app, "entry_max_delay")
+                else self.app.config.get("settings", "max_delay", fallback="2.0")
+            )
+            speaker_change_delay = (
+                self.app.entry_speaker_change_delay.get()
+                if hasattr(self.app, "entry_speaker_change_delay")
+                else self.app.config.get(
+                    "settings", "speaker_change_delay", fallback="0.75"
+                )
+            )
             conf = {
                 "voice": self.app.voice_var.get(),
-                "delay_per_char": self.app.entry_delay_char.get(),
-                "max_delay": self.app.entry_max_delay.get(),
+                "voice_provider": self.app.voice_provider.get(),
+                "gtts_language": self.app.gtts_language.get(),
+                "gemini_api_key": self.app.gemini_api_key.get(),
+                "gemini_model": self.app.gemini_model.get(),
+                "gemini_voice": self.app.gemini_voice.get(),
+                "gemini_style": self.app.gemini_style.get(),
+                "openai_api_key": self.app.openai_api_key.get(),
+                "openai_model": self.app.openai_model.get(),
+                "openai_voice": self.app.openai_voice.get(),
+                "openai_instructions": self.app.openai_instructions.get(),
+                "openai_speed": self.app.openai_speed.get(),
+                "delay_per_char": delay_per_char,
+                "max_delay": max_delay,
+                "speaker_change_delay": speaker_change_delay,
                 "auto_translate": self.app.auto_translate.get(),
                 "profanity_enabled": self.app.profanity_enabled.get()
             }
@@ -173,20 +344,103 @@ class AppLogic:
             self.logger.info("Real-time configuration applied.")
 
     def save_opt_settings(self):
-        self.app.opt_config["Settings"]["exclude_core_0"] = str(self.app.opt_exclude_c0.get()).lower()
-        self.app.opt_config["Settings"]["disable_smt"] = str(self.app.opt_disable_smt.get()).lower()
-        self.app.opt_config["Settings"]["auto_cleanup"] = str(self.app.opt_auto_clean.get()).lower()
-        self.app.opt_config["Settings"]["cleanup_interval"] = str(self.app.opt_clean_interval.get())
-        self.app.opt_config["Settings"]["auto_shutdown"] = str(self.app.opt_auto_shutdown.get()).lower()
-        self.app.opt_config["Settings"]["shutdown_time"] = str(self.app.opt_shutdown_time.get())
-        
-        save_opt_config(self.app.opt_config)
-        self.sync_shutdown_task()
+        shutdown_changed = (
+            self.app.opt_auto_shutdown.get()
+            != getattr(self.app, "_saved_opt_auto_shutdown", False)
+            or self.app.opt_shutdown_time.get().strip()
+            != getattr(self.app, "_saved_opt_shutdown_time", "23:59")
+        )
+        values = {
+            "exclude_core_0": str(self.app.opt_exclude_c0.get()).lower(),
+            "disable_smt": str(self.app.opt_disable_smt.get()).lower(),
+            "auto_cleanup": str(self.app.opt_auto_clean.get()).lower(),
+            "cleanup_interval": str(self.app.opt_clean_interval.get()),
+            "auto_shutdown": str(self.app.opt_auto_shutdown.get()).lower(),
+            "shutdown_time": str(self.app.opt_shutdown_time.get()),
+        }
+        self.app.opt_config = update_opt_config(
+            lambda latest: latest["Settings"].update(values)
+        )
+        if shutdown_changed and self.sync_shutdown_task():
+            self.app._saved_opt_auto_shutdown = self.app.opt_auto_shutdown.get()
+            self.app._saved_opt_shutdown_time = self.app.opt_shutdown_time.get().strip()
         self.update_topology_stats()
+
+    def reset_opt_config(self):
+        """Confirm, persist, and immediately reflect the ready default profile."""
+        confirmed = messagebox.askyesno(
+            self.app.tr("Reset Optimizer Config"),
+            self.app.tr(
+                "This will replace Optimizer settings, custom programs, "
+                "directories, and game presets with the ready-to-use defaults. "
+                "Continue?"
+            ),
+            parent=self.app,
+        )
+        if not confirmed:
+            return False
+
+        try:
+            config = reset_opt_config_file()
+            settings = config["Settings"]
+            self.app.opt_config = config
+            self.app.opt_exclude_c0.set(
+                settings.getboolean("exclude_core_0", fallback=True)
+            )
+            self.app.opt_disable_smt.set(
+                settings.getboolean("disable_smt", fallback=False)
+            )
+            self.app.opt_auto_clean.set(
+                settings.getboolean("auto_cleanup", fallback=False)
+            )
+            self.app.opt_clean_interval.set(
+                settings.get("cleanup_interval", "1440")
+            )
+            self.app.opt_auto_shutdown.set(
+                settings.getboolean("auto_shutdown", fallback=False)
+            )
+            self.app.opt_shutdown_time.set(
+                settings.get("shutdown_time", "23:59")
+            )
+
+            # Resetting Auto Shutdown also removes any task created by the old
+            # profile. The Optimizer worker itself reloads this file each loop.
+            self.sync_shutdown_task()
+            self.app._saved_opt_auto_shutdown = self.app.opt_auto_shutdown.get()
+            self.app._saved_opt_shutdown_time = (
+                self.app.opt_shutdown_time.get().strip()
+            )
+            self.update_topology_stats()
+
+            optimizer_frame = self.app.frames.get("optimizer")
+            if optimizer_frame is not None:
+                self.refresh_opt_list()
+                self.refresh_path_list()
+                optimizer_frame.popular_presets_label.configure(
+                    text=optimizer_frame._preset_summary()
+                )
+
+            self.logger.info("Optimizer config reset to ready defaults.")
+            messagebox.showinfo(
+                self.app.tr("Reset Optimizer Config"),
+                self.app.tr(
+                    "Optimizer config has been reset to the ready-to-use defaults."
+                ),
+                parent=self.app,
+            )
+            return True
+        except Exception as error:
+            self.logger.error(f"Unable to reset Optimizer config: {error}")
+            messagebox.showerror(
+                self.app.tr("Reset Optimizer Config"),
+                self.app.tr("Unable to reset Optimizer config."),
+                parent=self.app,
+            )
+            return False
 
     def sync_shutdown_task(self):
         """Sync the auto-shutdown task with Windows Task Scheduler."""
-        if os.name != 'nt': return
+        if os.name != 'nt': return True
         
         import subprocess
         task_name = "TDitbam_AutoShutdown"
@@ -214,17 +468,30 @@ class AppLogic:
                 
                 if res.returncode == 0:
                     self.logger.info(f"Auto-Shutdown scheduled at {time_str} (Daily)")
+                    return True
                 else:
                     self.logger.error(f"Failed to schedule task. Error: {res.stderr.strip()}")
+                    return False
             else:
                 self.logger.error(f"Invalid shutdown time format: '{time_str}'. Use HH:mm (e.g., 23:30)")
+                return False
         else:
             self.logger.info("Auto-Shutdown task disabled (or time is empty).")
+            return True
 
     def save_app_settings(self):
         s = "settings"
+        startup_changed = (
+            self.app.run_on_startup.get()
+            != getattr(self.app, "_saved_run_on_startup", False)
+        )
+        if not self.app.config.has_section(s):
+            self.app.config.add_section(s)
         self.app.config.set(s, "start_minimized", str(self.app.start_minimized.get()))
         self.app.config.set(s, "run_on_startup", str(self.app.run_on_startup.get()))
+        self.app.config.set(s, "auto_start_optimizer", str(self.app.auto_start_optimizer.get()))
+        self.app.config.set(s, "windows_notifications", str(self.app.windows_notifications.get()))
+        self.app.config.set(s, "auto_check_updates", str(self.app.auto_check_updates.get()))
         
         # Save to config file
         from core.app_logger import get_config_path
@@ -232,11 +499,83 @@ class AppLogic:
             self.app.config.write(f)
             
         self.logger.info("General application settings saved.")
-        self.sync_startup_task()
+        if startup_changed and self.sync_startup_task():
+            self.app._saved_run_on_startup = self.app.run_on_startup.get()
+
+    def refresh_update_ui(self):
+        settings_frame = self.app.frames.get("settings")
+        if settings_frame is not None:
+            settings_frame.refresh_update_state()
+
+    def check_for_updates(self, automatic=False):
+        """Check stable GitHub tags without blocking Tk's main thread."""
+        if self._update_check_running or self.app.shutdown_event.is_set():
+            return
+        self._update_check_running = True
+        self.app.update_status_key = "Checking GitHub tags..."
+        self.refresh_update_ui()
+
+        def worker():
+            try:
+                update_info = fetch_latest_tag()
+                current_version = parse_version_tag(APP_VERSION)
+                if current_version is None:
+                    raise ValueError(f"Invalid application version: {APP_VERSION}")
+                comparison = compare_versions(current_version, update_info.version)
+
+                def apply_success():
+                    self._update_check_running = False
+                    self.app.latest_update_tag = update_info.tag_name
+                    self.app.update_download_url = update_info.download_url
+                    if comparison < 0:
+                        self.app.update_status_key = "A new version is available"
+                        self.logger.info(
+                            f"Update available: {update_info.tag_name} "
+                            f"(current: v{APP_VERSION})"
+                        )
+                        self.app.notify_windows(
+                            "Streamer Suite",
+                            f"{self.app.tr('A new version is available')}: "
+                            f"{update_info.tag_name}",
+                        )
+                    elif comparison == 0:
+                        self.app.update_status_key = "You are using the latest version"
+                        self.logger.info(f"Update check complete: v{APP_VERSION} is current.")
+                    else:
+                        self.app.update_status_key = "This build is newer than the latest GitHub tag"
+                        self.logger.info(
+                            f"Development build v{APP_VERSION}; latest tag is "
+                            f"{update_info.tag_name}."
+                        )
+                    self.refresh_update_ui()
+
+                self.app.call_in_ui(apply_success)
+            except Exception as error:
+                self.logger.warning(f"Update check failed: {error}")
+
+                def apply_error():
+                    self._update_check_running = False
+                    self.app.update_status_key = "Unable to check for updates"
+                    self.refresh_update_ui()
+
+                self.app.call_in_ui(apply_error)
+
+        threading.Thread(target=worker, daemon=True).start()
+
+    def open_update_page(self):
+        """Open the matching GitHub release after an explicit user action."""
+        import webbrowser
+
+        url = self.app.update_download_url or GITHUB_RELEASES_URL
+        try:
+            webbrowser.open_new_tab(url)
+        except Exception as error:
+            self.logger.error(f"Unable to open GitHub releases: {error}")
 
     def sync_startup_task(self):
         """Sync the elevated startup task with Windows Task Scheduler."""
-        if os.name != 'nt': return
+        if os.name != 'nt':
+            return True
         
         import subprocess
         import sys
@@ -246,11 +585,6 @@ class AppLogic:
         # Flags to hide console window
         CREATE_NO_WINDOW = 0x08000000
         
-        # 1. Always try to delete existing task first to ensure clean state
-        subprocess.run(['schtasks', '/delete', '/tn', task_name, '/f'], 
-                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, 
-                       creationflags=CREATE_NO_WINDOW)
-                       
         if enabled:
             # Determine path to execute
             if getattr(sys, 'frozen', False):
@@ -269,83 +603,412 @@ class AppLogic:
             # Create Task
             # /sc onlogon: run at logon
             # /rl highest: run with administrator/highest privileges (bypasses UAC)
-            # /f: force creation (overwrite if exists)
+            # /f updates the task in place. Do not delete it first: if task
+            # creation fails, the previously working startup entry survives.
             cmd = ['schtasks', '/create', '/tn', task_name, '/tr', task_run, '/sc', 'onlogon', '/rl', 'highest', '/f']
             res = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
                                  creationflags=CREATE_NO_WINDOW)
                                  
             if res.returncode == 0:
                 self.logger.info("Startup task scheduled successfully with highest privileges (bypassing UAC).")
+                return True
             else:
                 self.logger.error(f"Failed to schedule startup task. Error: {res.stderr.strip()}")
+                return False
+
+        delete_result = subprocess.run(
+            ['schtasks', '/delete', '/tn', task_name, '/f'],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            creationflags=CREATE_NO_WINDOW,
+        )
+        if delete_result.returncode == 0:
+            self.logger.info("Windows startup task disabled.")
+            return True
+
+        # Deleting an already absent task is also a successful disabled state.
+        query_result = subprocess.run(
+            ['schtasks', '/query', '/tn', task_name],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            creationflags=CREATE_NO_WINDOW,
+        )
+        if query_result.returncode != 0:
+            self.logger.info("Windows startup task is already disabled.")
+            return True
+
+        error = delete_result.stderr.strip() or delete_result.stdout.strip()
+        self.logger.error(f"Failed to disable the Windows startup task. Error: {error}")
+        return False
+
+    def start_cpu_monitor(self):
+        """Sample per-core CPU usage off the Tk main thread."""
+        if self._cpu_monitor_thread and self._cpu_monitor_thread.is_alive():
+            return
+        self.app.cpu_monitor_stop_event.clear()
+        exclude_core_0 = self.app.opt_exclude_c0.get()
+        disable_smt = self.app.opt_disable_smt.get()
+
+        def monitor():
+            # CPU topology is stable for the lifetime of the process, so do
+            # the Windows API query once instead of on every UI refresh.
+            p_cores, e_cores = split_p_e_cores(False, False)
+            optimizer_p, optimizer_e = split_p_e_cores(exclude_core_0, disable_smt)
+            self._optimizer_p_core_count = len(optimizer_p)
+            self._optimizer_e_core_count = len(optimizer_e)
+            psutil.cpu_percent(interval=None, percpu=True)  # Prime counters.
+            while not self.app.cpu_monitor_stop_event.wait(1.0):
+                if not self.app.dashboard_metrics_active.is_set():
+                    continue
+                per_cpu = psutil.cpu_percent(interval=None, percpu=True)
+                if self.app.cpu_monitor_stop_event.is_set():
+                    break
+                try:
+                    queued = self.app.call_in_ui(
+                        lambda p=p_cores, e=e_cores, usage=per_cpu:
+                            self._render_cpu_stats(p, e, usage)
+                    )
+                    if not queued:
+                        break
+                except (RuntimeError, TclError):
+                    break
+
+        self._cpu_monitor_thread = threading.Thread(target=monitor, daemon=True)
+        self._cpu_monitor_thread.start()
 
     def update_topology_stats(self):
-        ex = self.app.opt_exclude_c0.get()
-        smt = self.app.opt_disable_smt.get()
-        p, e = split_p_e_cores(ex, smt)
-        self.app.frames["dashboard"].pcore_lbl.configure(text=str(len(p)))
-        self.app.frames["dashboard"].ecore_lbl.configure(text=str(len(e)))
+        """Refresh the effective Optimizer pools without blocking Tk."""
+        exclude_core_0 = self.app.opt_exclude_c0.get()
+        disable_smt = self.app.opt_disable_smt.get()
+        self._topology_refresh_id += 1
+        refresh_id = self._topology_refresh_id
+
+        def refresh():
+            p_cores, e_cores = split_p_e_cores(exclude_core_0, disable_smt)
+            if refresh_id != self._topology_refresh_id:
+                return
+            self._optimizer_p_core_count = len(p_cores)
+            self._optimizer_e_core_count = len(e_cores)
+
+        threading.Thread(target=refresh, daemon=True).start()
+
+    def _render_cpu_stats(self, p, e, per_cpu):
+        """Render a prepared CPU sample on Tk's UI thread."""
+
+        def average_usage(core_ids):
+            values = [per_cpu[index] for index in core_ids if 0 <= index < len(per_cpu)]
+            return sum(values) / len(values) if values else None
+
+        p_usage = average_usage(p)
+        e_usage = average_usage(e)
+        dashboard = self.app.frames["dashboard"]
+        dashboard.pcore_lbl.configure(text=f"{p_usage:.0f}%" if p_usage is not None else "N/A")
+        dashboard.ecore_lbl.configure(text=f"{e_usage:.0f}%" if e_usage is not None else "N/A")
+        used = self.app.tr("Used")
+        optimizer_p_count = self._optimizer_p_core_count if self.app.opt_running else 0
+        optimizer_e_count = self._optimizer_e_core_count if self.app.opt_running else 0
+        dashboard.pcore_count_lbl.configure(
+            text=f"{used} {optimizer_p_count} / {len(p)}"
+        )
+        dashboard.ecore_count_lbl.configure(
+            text=f"{used} {optimizer_e_count} / {len(e)}"
+        )
+
+    def start_system_metrics_monitor(self):
+        """Collect RAM, GPU and per-program usage without blocking Tk."""
+        if self._system_metrics_thread and self._system_metrics_thread.is_alive():
+            return
+
+        def monitor():
+            error_reported = False
+            last_gpu_sample = 0.0
+            gpu_usage = None
+            gpu_by_pid = {}
+            while not self.app.cpu_monitor_stop_event.is_set():
+                if not self.app.dashboard_metrics_active.is_set():
+                    if self.app.cpu_monitor_stop_event.wait(0.25):
+                        break
+                    continue
+                try:
+                    memory = psutil.virtual_memory()
+                    now = time.monotonic()
+                    if now - last_gpu_sample >= 5.0:
+                        gpu_usage, gpu_by_pid = sample_windows_gpu()
+                        last_gpu_sample = time.monotonic()
+                    rows = sample_program_usage(gpu_by_pid, self._process_cpu_cache)
+                    snapshot = {
+                        "ram_percent": memory.percent,
+                        "ram_used_gb": memory.used / (1024 ** 3),
+                        "ram_total_gb": memory.total / (1024 ** 3),
+                        "gpu_percent": gpu_usage,
+                        "rows": rows,
+                    }
+                    if self.app.cpu_monitor_stop_event.is_set():
+                        break
+                    try:
+                        queued = self.app.call_in_ui(
+                            lambda data=snapshot: self._render_system_metrics(data)
+                        )
+                        if not queued:
+                            break
+                    except (RuntimeError, TclError):
+                        break
+                    error_reported = False
+                except Exception as error:
+                    # The process may be closing or Windows counters may be
+                    # temporarily unavailable; the next cycle retries cleanly.
+                    if not error_reported:
+                        self.logger.debug(f"Performance monitor retrying after error: {error}")
+                        error_reported = True
+                if self.app.cpu_monitor_stop_event.wait(2.0):
+                    break
+
+        self._system_metrics_thread = threading.Thread(target=monitor, daemon=True)
+        self._system_metrics_thread.start()
+
+    def _render_system_metrics(self, snapshot):
+        """Render a complete metrics snapshot on Tk's UI thread."""
+        dashboard = self.app.frames.get("dashboard")
+        if dashboard is None or not dashboard.winfo_exists():
+            return
+
+        dashboard.ram_lbl.configure(text=f"{snapshot['ram_percent']:.0f}%")
+        dashboard.ram_detail_lbl.configure(
+            text=f"{snapshot['ram_used_gb']:.1f} / {snapshot['ram_total_gb']:.1f} GB"
+        )
+        gpu_percent = snapshot["gpu_percent"]
+        if gpu_percent is None:
+            dashboard.gpu_lbl.configure(text="N/A")
+            dashboard.gpu_detail_lbl.configure(text=self.app.tr("GPU counters unavailable"))
+        else:
+            dashboard.gpu_lbl.configure(text=f"{gpu_percent:.0f}%")
+            dashboard.gpu_detail_lbl.configure(text=self.app.tr("Per-program GPU"))
+        dashboard.render_process_usage(snapshot["rows"])
 
     def run_junk_cleanup(self):
         def _target():
-            self.app.clean_log.configure(state="normal")
-            self.app.clean_log.insert("end", "Starting junk cleanup...\n")
-            self.app.clean_log.see("end")
+            if self.app.shutdown_event.is_set():
+                return
+
+            def prepare_log():
+                self.app.clean_log.configure(state="normal")
+                self.app.clean_log.insert("end", "Starting junk cleanup...\n")
+                self.app.clean_log.see("end")
+
+            self.app.call_in_ui(prepare_log)
             
             def log_fn(msg):
-                self.app.after(0, lambda: (self.app.clean_log.insert("end", f"{msg}\n"), self.app.clean_log.see("end")))
+                self.app.call_in_ui(
+                    lambda: (
+                        self.app.clean_log.insert("end", f"{msg}\n"),
+                        self.app.clean_log.see("end"),
+                    )
+                )
             
-            files, bytes_saved = clean_junk(log_fn)
+            files, bytes_saved = clean_junk(log_fn, cancel_event=self.app.shutdown_event)
+            if self.app.shutdown_event.is_set():
+                return
             mb = bytes_saved / (1024 * 1024)
             log_fn(f"--- Cleanup Finished ---")
             log_fn(f"Files deleted: {files}")
             log_fn(f"Space recovered: {mb:.2f} MB")
-            self.app.after(0, lambda: self.app.clean_log.configure(state="disabled"))
+            self.app.call_in_ui(lambda: self.app.clean_log.configure(state="disabled"))
+            self.app.call_in_ui(lambda: self.app.notify_windows(
+                self.app.tr("Cleanup"),
+                f"{self.app.tr('Cleanup completed')}: {files} files, {mb:.2f} MB",
+            ))
             
         threading.Thread(target=_target, daemon=True).start()
 
     def refresh_opt_list(self):
         for w in self.app.g_scroll.winfo_children(): w.destroy()
-        for name, prio in get_opt_targets(self.app.opt_config):
-            r = ctk.CTkFrame(self.app.g_scroll, fg_color="#2D2D2D", corner_radius=8)
-            r.pack(fill="x", pady=2, padx=5)
-            ctk.CTkLabel(r, text=f"{name} ({prio})", font=self.app.bold_font).pack(side="left", padx=10)
-            ctk.CTkButton(r, text="X", width=30, fg_color="#dc3545", command=lambda n=name: self.remove_opt_target(n)).pack(side="right", padx=5)
+        targets = get_opt_targets(self.app.opt_config)
+        if not targets:
+            ctk.CTkLabel(
+                self.app.g_scroll,
+                text=self.app.tr("No managed programs yet"),
+                font=self.app.default_font,
+                text_color=COLORS["muted"],
+            ).pack(pady=24)
+            return
+        for name, prio in targets:
+            r = ctk.CTkFrame(
+                self.app.g_scroll,
+                fg_color=COLORS["surface"],
+                corner_radius=9,
+                border_width=1,
+                border_color=COLORS["border"],
+            )
+            r.pack(fill="x", pady=3, padx=5)
+            ctk.CTkLabel(r, text=name, font=self.app.bold_font).pack(side="left", padx=12, pady=8)
+            ctk.CTkButton(
+                r, text="Remove", width=74, height=28,
+                fg_color="transparent", border_width=1,
+                border_color=COLORS["danger"], text_color="#FF8A8A",
+                hover_color="#3B2328",
+                command=lambda n=name: self.remove_opt_target(n),
+            ).pack(side="right", padx=8, pady=6)
+            ctk.CTkLabel(
+                r, text=prio, font=self.app.small_font,
+                text_color=COLORS["muted"],
+            ).pack(side="right", padx=6)
 
     def refresh_path_list(self):
         for w in self.app.d_scroll.winfo_children(): w.destroy()
-        for path, prio in get_opt_paths(self.app.opt_config):
-            r = ctk.CTkFrame(self.app.d_scroll, fg_color="#2D2D2D", corner_radius=8)
-            r.pack(fill="x", pady=2, padx=5)
+        paths = get_opt_paths(self.app.opt_config)
+        if not paths:
+            ctk.CTkLabel(
+                self.app.d_scroll,
+                text=self.app.tr("No managed directories yet"),
+                font=self.app.default_font,
+                text_color=COLORS["muted"],
+            ).pack(pady=24)
+            return
+        for path, prio in paths:
+            r = ctk.CTkFrame(
+                self.app.d_scroll,
+                fg_color=COLORS["surface"],
+                corner_radius=9,
+                border_width=1,
+                border_color=COLORS["border"],
+            )
+            r.pack(fill="x", pady=3, padx=5)
             display_path = (path[:40] + '...') if len(path) > 40 else path
-            ctk.CTkLabel(r, text=f"{display_path} ({prio})", font=self.app.bold_font).pack(side="left", padx=10)
-            ctk.CTkButton(r, text="X", width=30, fg_color="#dc3545", command=lambda p=path: self.remove_opt_path(p)).pack(side="right", padx=5)
+            ctk.CTkLabel(r, text=display_path, font=self.app.bold_font).pack(side="left", padx=12, pady=8)
+            ctk.CTkButton(
+                r, text="Remove", width=74, height=28,
+                fg_color="transparent", border_width=1,
+                border_color=COLORS["danger"], text_color="#FF8A8A",
+                hover_color="#3B2328",
+                command=lambda p=path: self.remove_opt_path(p),
+            ).pack(side="right", padx=8, pady=6)
+            ctk.CTkLabel(
+                r, text=prio, font=self.app.small_font,
+                text_color=COLORS["muted"],
+            ).pack(side="right", padx=6)
 
     def add_opt_target(self):
         n = self.app.entry_new_game.get().strip()
         if n:
-            if "Targets" not in self.app.opt_config: self.app.opt_config["Targets"] = {}
-            self.app.opt_config["Targets"][n] = self.app.opt_prio_menu.get()
+            self._save_opt_target(n)
             self.app.entry_new_game.delete(0, 'end')
-            self.save_opt_settings()
-            self.refresh_opt_list()
+
+    def _save_opt_target(self, process_name):
+        process_name = os.path.basename(process_name.strip())
+        if not process_name:
+            return
+        priority = self.app.opt_priority_var.get()
+        self.app.opt_config = update_opt_config(
+            lambda latest: latest["Targets"].__setitem__(process_name, priority)
+        )
+        self.save_opt_settings()
+        self.refresh_opt_list()
+        self.app.notify_windows("Optimizer", f"{self.app.tr('Program added')}: {process_name}")
+
+    def add_selected_process(self):
+        process_name = self.app.running_process_var.get().strip()
+        unavailable = {
+            self.app.tr("No running process found"),
+            self.app.tr("No matching process"),
+        }
+        if process_name and process_name not in unavailable:
+            self._save_opt_target(process_name)
+
+    def filter_running_processes(self):
+        """Filter the cached process list immediately as the user types."""
+        query = self.app.process_search_var.get().strip().casefold()
+        if query:
+            values = [name for name in self._running_process_names if query in name.casefold()]
+        else:
+            values = list(self._running_process_names)
+        if not values:
+            placeholder = "No matching process" if query else "No running process found"
+            values = [self.app.tr(placeholder)]
+        values_key = tuple(values)
+        current_value = self.app.running_process_var.get()
+        if values_key == self._last_process_menu_values and current_value in values:
+            return
+        self.app.running_process_menu.configure(values=values)
+        self._last_process_menu_values = values_key
+        if current_value not in values:
+            self.app.running_process_var.set(values[0])
+
+    def refresh_running_processes(self):
+        if self.app.shutdown_event.is_set():
+            return
+        if self._process_refresh_running:
+            return
+        if self._process_refresh_after_id:
+            try:
+                self.app.after_cancel(self._process_refresh_after_id)
+            except Exception:
+                pass
+            self._process_refresh_after_id = None
+        self._process_refresh_running = True
+
+        def scan():
+            names = set()
+            for process in psutil.process_iter(["name"]):
+                if self.app.shutdown_event.is_set():
+                    self._process_refresh_running = False
+                    return
+                try:
+                    name = (process.info.get("name") or "").strip()
+                    if name:
+                        names.add(name)
+                except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                    continue
+            values = sorted(names, key=str.casefold)
+
+            def apply_values():
+                if self.app.shutdown_event.is_set():
+                    self._process_refresh_running = False
+                    return
+                if values != self._running_process_names:
+                    self._running_process_names = values
+                    self.filter_running_processes()
+                self._process_refresh_running = False
+                # Keep the cache fresh automatically; only one timer exists.
+                self._process_refresh_after_id = self.app.after(
+                    5000, self.refresh_running_processes
+                )
+
+            if not self.app.call_in_ui(apply_values):
+                self._process_refresh_running = False
+
+        threading.Thread(target=scan, daemon=True).start()
+
+    def browse_opt_target(self):
+        path = filedialog.askopenfilename(
+            title=self.app.tr("Select a program"),
+            filetypes=[("Windows programs", "*.exe"), ("All files", "*.*")],
+        )
+        if path:
+            self.app.entry_new_game.delete(0, "end")
+            self.app.entry_new_game.insert(0, os.path.basename(path))
 
     def remove_opt_target(self, name):
-        self.app.opt_config.remove_option("Targets", name)
+        self.app.opt_config = update_opt_config(
+            lambda latest: latest.remove_option("Targets", name)
+        )
         self.save_opt_settings()
         self.refresh_opt_list()
 
     def add_opt_path(self):
         f = filedialog.askdirectory()
         if f:
-            if "Paths" not in self.app.opt_config: self.app.opt_config["Paths"] = {}
             prio = self.app.opt_dir_prio_menu.get()
-            self.app.opt_config["Paths"][f] = prio
+            self.app.opt_config = update_opt_config(
+                lambda latest: latest["Paths"].__setitem__(f, prio)
+            )
             self.save_opt_settings()
             self.refresh_path_list()
 
     def remove_opt_path(self, path):
-        self.app.opt_config.remove_option("Paths", path)
+        self.app.opt_config = update_opt_config(
+            lambda latest: latest.remove_option("Paths", path)
+        )
         self.save_opt_settings()
         self.refresh_path_list()
 
