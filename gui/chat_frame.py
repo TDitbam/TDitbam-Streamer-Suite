@@ -415,8 +415,28 @@ class ChatFrame(ctk.CTkFrame):
             fallback=self.app.config.get(old_section, "max_delay", fallback="2.0"),
         )
         self.app.entry_max_delay.insert(0, max_delay_value)
-        self.app.entry_max_delay.pack(side="left", padx=6)
-        for entry in (self.app.entry_delay_char, self.app.entry_max_delay):
+        self.app.entry_max_delay.pack(side="left", padx=(6, 18))
+        ctk.CTkLabel(
+            delay_row, text="Speaker Change Delay (sec):", font=self.app.small_font,
+            text_color=COLORS["muted"],
+        ).pack(side="left")
+        self.app.entry_speaker_change_delay = ctk.CTkEntry(
+            delay_row, width=80, height=34
+        )
+        speaker_change_delay_value = self.app.config.get(
+            settings_section,
+            "speaker_change_delay",
+            fallback=self.app.config.get(
+                old_section, "speaker_change_delay", fallback="0.75"
+            ),
+        )
+        self.app.entry_speaker_change_delay.insert(0, speaker_change_delay_value)
+        self.app.entry_speaker_change_delay.pack(side="left", padx=6)
+        for entry in (
+            self.app.entry_delay_char,
+            self.app.entry_max_delay,
+            self.app.entry_speaker_change_delay,
+        ):
             entry.bind("<FocusOut>", lambda _event: self.app.logic.apply_realtime_config())
             entry.bind("<Return>", lambda _event: self.app.logic.apply_realtime_config())
             ContextMenu.add_context_menu(entry)

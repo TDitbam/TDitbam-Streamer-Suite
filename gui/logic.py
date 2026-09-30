@@ -5,13 +5,18 @@ import threading
 import logging
 import time
 import psutil
-from tkinter import TclError, filedialog
+from tkinter import TclError, filedialog, messagebox
 from core.app_logger import get_app_dir, get_logger, get_config_path
 from core.system_metrics import sample_program_usage, sample_windows_gpu
 from core.update_checker import compare_versions, fetch_latest_tag, parse_version_tag
 from core.version import APP_VERSION, GITHUB_RELEASES_URL
 from .ui_theme import COLORS
-from optimizer.optimizer_core.config_loader import update_config as update_opt_config, get_user_targets as get_opt_targets, get_paths as get_opt_paths
+from optimizer.optimizer_core.config_loader import (
+    get_paths as get_opt_paths,
+    get_user_targets as get_opt_targets,
+    reset_config as reset_opt_config_file,
+    update_config as update_opt_config,
+)
 from optimizer.optimizer_core.optimizer_engine import optimize_processes
 from optimizer.optimizer_core.cleaner import clean_junk
 from optimizer.optimizer_core.cpu_topology import split_p_e_cores
@@ -104,6 +109,7 @@ class AppLogic:
                         "openai_speed": self.app.config.get(s, "openai_speed", fallback="1.0"),
                         "delay_per_char": self.app.config.get(s, "delay_per_char", fallback="0.03"),
                         "max_delay": self.app.config.get(s, "max_delay", fallback="2.0"),
+                        "speaker_change_delay": self.app.config.get(s, "speaker_change_delay", fallback="0.75"),
                         "auto_translate": self.app.config.get(s, "auto_translate", fallback="False"),
                         "profanity_enabled": self.app.config.get(s, "profanity_enabled", fallback="False")
                     }
@@ -264,6 +270,9 @@ class AppLogic:
         self.app.config.set(s, "openai_speed", self.app.openai_speed.get())
         self.app.config.set(s, "delay_per_char", self.app.entry_delay_char.get())
         self.app.config.set(s, "max_delay", self.app.entry_max_delay.get())
+        self.app.config.set(
+            s, "speaker_change_delay", self.app.entry_speaker_change_delay.get()
+        )
         
         # Backward compatibility / Clean up old keys
         for old_key in ["youtube_video_id", "VOICE", "YOUTUBE_VIDEO_ID"]:
@@ -305,6 +314,13 @@ class AppLogic:
                 if hasattr(self.app, "entry_max_delay")
                 else self.app.config.get("settings", "max_delay", fallback="2.0")
             )
+            speaker_change_delay = (
+                self.app.entry_speaker_change_delay.get()
+                if hasattr(self.app, "entry_speaker_change_delay")
+                else self.app.config.get(
+                    "settings", "speaker_change_delay", fallback="0.75"
+                )
+            )
             conf = {
                 "voice": self.app.voice_var.get(),
                 "voice_provider": self.app.voice_provider.get(),
@@ -320,6 +336,7 @@ class AppLogic:
                 "openai_speed": self.app.openai_speed.get(),
                 "delay_per_char": delay_per_char,
                 "max_delay": max_delay,
+                "speaker_change_delay": speaker_change_delay,
                 "auto_translate": self.app.auto_translate.get(),
                 "profanity_enabled": self.app.profanity_enabled.get()
             }
@@ -348,6 +365,78 @@ class AppLogic:
             self.app._saved_opt_auto_shutdown = self.app.opt_auto_shutdown.get()
             self.app._saved_opt_shutdown_time = self.app.opt_shutdown_time.get().strip()
         self.update_topology_stats()
+
+    def reset_opt_config(self):
+        """Confirm, persist, and immediately reflect the ready default profile."""
+        confirmed = messagebox.askyesno(
+            self.app.tr("Reset Optimizer Config"),
+            self.app.tr(
+                "This will replace Optimizer settings, custom programs, "
+                "directories, and game presets with the ready-to-use defaults. "
+                "Continue?"
+            ),
+            parent=self.app,
+        )
+        if not confirmed:
+            return False
+
+        try:
+            config = reset_opt_config_file()
+            settings = config["Settings"]
+            self.app.opt_config = config
+            self.app.opt_exclude_c0.set(
+                settings.getboolean("exclude_core_0", fallback=True)
+            )
+            self.app.opt_disable_smt.set(
+                settings.getboolean("disable_smt", fallback=False)
+            )
+            self.app.opt_auto_clean.set(
+                settings.getboolean("auto_cleanup", fallback=False)
+            )
+            self.app.opt_clean_interval.set(
+                settings.get("cleanup_interval", "1440")
+            )
+            self.app.opt_auto_shutdown.set(
+                settings.getboolean("auto_shutdown", fallback=False)
+            )
+            self.app.opt_shutdown_time.set(
+                settings.get("shutdown_time", "23:59")
+            )
+
+            # Resetting Auto Shutdown also removes any task created by the old
+            # profile. The Optimizer worker itself reloads this file each loop.
+            self.sync_shutdown_task()
+            self.app._saved_opt_auto_shutdown = self.app.opt_auto_shutdown.get()
+            self.app._saved_opt_shutdown_time = (
+                self.app.opt_shutdown_time.get().strip()
+            )
+            self.update_topology_stats()
+
+            optimizer_frame = self.app.frames.get("optimizer")
+            if optimizer_frame is not None:
+                self.refresh_opt_list()
+                self.refresh_path_list()
+                optimizer_frame.popular_presets_label.configure(
+                    text=optimizer_frame._preset_summary()
+                )
+
+            self.logger.info("Optimizer config reset to ready defaults.")
+            messagebox.showinfo(
+                self.app.tr("Reset Optimizer Config"),
+                self.app.tr(
+                    "Optimizer config has been reset to the ready-to-use defaults."
+                ),
+                parent=self.app,
+            )
+            return True
+        except Exception as error:
+            self.logger.error(f"Unable to reset Optimizer config: {error}")
+            messagebox.showerror(
+                self.app.tr("Reset Optimizer Config"),
+                self.app.tr("Unable to reset Optimizer config."),
+                parent=self.app,
+            )
+            return False
 
     def sync_shutdown_task(self):
         """Sync the auto-shutdown task with Windows Task Scheduler."""

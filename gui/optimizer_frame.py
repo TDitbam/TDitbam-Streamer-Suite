@@ -41,6 +41,16 @@ class OptimizerFrame(ctk.CTkFrame):
         )
         switches = ctk.CTkFrame(strategy_inner, fg_color="transparent")
         switches.pack(side="right", padx=(12, 0))
+        ctk.CTkButton(
+            switches,
+            text="RESET CONFIG",
+            width=112,
+            height=34,
+            command=self.app.reset_opt_config,
+            font=self.app.bold_font,
+            fg_color=COLORS["danger"],
+            hover_color=COLORS["danger_hover"],
+        ).pack(side="right", padx=(8, 0))
         if not hasattr(self.app, "opt_exclude_c0"):
             self.app.opt_exclude_c0 = ctk.BooleanVar(
                 value=self.app.opt_config["Settings"].getboolean(

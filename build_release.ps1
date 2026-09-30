@@ -4,7 +4,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 $projectRoot = $PSScriptRoot
-$AppVersion = "3.6.2"
+$AppVersion = "3.6.4"
 $InstallerBaseName = "TDitbam-Streamer-Suite-Setup-v$AppVersion"
 
 function Test-IsAdministrator {
@@ -73,7 +73,26 @@ function Remove-ProjectOutput {
 }
 
 $venvPython = Join-Path $projectRoot ".venv\Scripts\python.exe"
-$python = if (Test-Path -LiteralPath $venvPython) { $venvPython } else { "python" }
+$python = $null
+if (Test-Path -LiteralPath $venvPython) {
+    & $venvPython --version *> $null
+    if ($LASTEXITCODE -eq 0) {
+        $python = $venvPython
+    }
+}
+
+if (-not $python) {
+    $python = Get-Command "python" -ErrorAction Stop |
+        Select-Object -ExpandProperty Source
+    $venvSitePackages = Join-Path $projectRoot ".venv\Lib\site-packages"
+    if (Test-Path -LiteralPath $venvSitePackages) {
+        $env:PYTHONPATH = if ($env:PYTHONPATH) {
+            "$venvSitePackages;$env:PYTHONPATH"
+        } else {
+            $venvSitePackages
+        }
+    }
+}
 
 Remove-ProjectOutput "build"
 Remove-ProjectOutput "dist"

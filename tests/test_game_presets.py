@@ -15,6 +15,16 @@ class PopularGamePresetTests(unittest.TestCase):
             with patch.object(config_loader, "get_opt_config_path", return_value=path):
                 config = config_loader.load_config()
 
+            self.assertTrue(os.path.isfile(path))
+            self.assertEqual(
+                {"Settings", "Targets", "PopularGames", "Paths", "Presets"},
+                set(config.sections()),
+            )
+            self.assertEqual("5", config["Settings"]["interval"])
+            self.assertTrue(config["Settings"].getboolean("exclude_core_0"))
+            self.assertFalse(config["Settings"].getboolean("disable_smt"))
+            self.assertEqual(0, len(config["Targets"]))
+            self.assertEqual(0, len(config["Paths"]))
             self.assertGreaterEqual(len(config["PopularGames"]), 75)
             self.assertEqual("P-CORE", config["PopularGames"]["cs2.exe"])
             self.assertEqual(
@@ -24,6 +34,46 @@ class PopularGamePresetTests(unittest.TestCase):
             self.assertNotIn("javaw.exe", config["PopularGames"])
             self.assertFalse(
                 any(name.endswith(".tmp") for name in os.listdir(directory))
+            )
+
+    def test_first_run_defaults_remain_user_editable(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = os.path.join(directory, "optimizer_config.ini")
+            with patch.object(config_loader, "get_opt_config_path", return_value=path):
+                config = config_loader.load_config()
+                config["Settings"]["interval"] = "12"
+                config["Settings"]["exclude_core_0"] = "false"
+                config["Targets"]["my-game.exe"] = "NORMAL"
+                config_loader.save_config(config)
+                reloaded = config_loader.load_config()
+
+            self.assertEqual("12", reloaded["Settings"]["interval"])
+            self.assertFalse(
+                reloaded["Settings"].getboolean("exclude_core_0")
+            )
+            self.assertEqual("NORMAL", reloaded["Targets"]["my-game.exe"])
+
+    def test_reset_config_replaces_custom_values_with_ready_defaults(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = os.path.join(directory, "optimizer_config.ini")
+            with patch.object(config_loader, "get_opt_config_path", return_value=path):
+                config = config_loader.load_config()
+                config["Settings"]["interval"] = "30"
+                config["Targets"]["my-game.exe"] = "NORMAL"
+                config["Paths"]["c:\\games"] = "E-CORE"
+                config.remove_option("PopularGames", "cs2.exe")
+                config_loader.save_config(config)
+
+                reset = config_loader.reset_config()
+                reloaded = config_loader.load_config()
+
+            self.assertEqual("5", reset["Settings"]["interval"])
+            self.assertEqual(0, len(reset["Targets"]))
+            self.assertEqual(0, len(reset["Paths"]))
+            self.assertEqual("P-CORE", reset["PopularGames"]["cs2.exe"])
+            self.assertEqual(
+                dict(reset.items("Settings")),
+                dict(reloaded.items("Settings")),
             )
 
     def test_migration_preserves_existing_user_policy(self):

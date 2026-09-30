@@ -1,6 +1,6 @@
 """Application version and official update endpoints."""
 
-APP_VERSION = "3.6.2"
+APP_VERSION = "3.6.4"
 GITHUB_REPOSITORY = "TDitbam/TDitbam-Streamer-Suite"
 GITHUB_REPOSITORY_URL = f"https://github.com/{GITHUB_REPOSITORY}"
 GITHUB_TAGS_API_URL = (

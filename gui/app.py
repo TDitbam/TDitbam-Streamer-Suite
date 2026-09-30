@@ -160,6 +160,8 @@ class App(ctk.CTk):
         self.cpu_monitor_stop_event = threading.Event()
         self.dashboard_metrics_active = threading.Event()
         self._window_visible = False
+        self._window_has_been_revealed = False
+        self._restore_pending = False
         
         # Variables for Optimizer / System
         self.opt_auto_shutdown = ctk.BooleanVar(value=self.opt_config["Settings"].getboolean("auto_shutdown", fallback=False))
@@ -447,12 +449,15 @@ class App(ctk.CTk):
 
     def _reveal_ready_window(self):
         """Display the already-rendered first frame without a white flash."""
+        if self.shutdown_event.is_set() or self._window_has_been_revealed:
+            return
         self.update_idletasks()
         try:
             self.attributes("-alpha", 1.0)
         except Exception:
             pass
         self.deiconify()
+        self._window_has_been_revealed = True
         self._window_visible = True
         if self._current_page == "dashboard":
             self.dashboard_metrics_active.set()
@@ -534,30 +539,70 @@ class App(ctk.CTk):
             self.withdraw()
 
     def show_from_tray(self, icon=None, item=None):
-        def restore_window():
+        """Queue one non-destructive restore of the existing widget tree."""
+        if self.shutdown_event.is_set() or self._restore_pending:
+            return False
+        self._restore_pending = True
+        if not self.call_in_ui(self._restore_window):
+            self._restore_pending = False
+            return False
+        return True
+
+    def _restore_window(self):
+        """Restore/focus the window without blanking and repainting the UI."""
+        try:
+            if self.shutdown_event.is_set():
+                return
+
+            first_reveal = not self._window_has_been_revealed
             try:
-                self.attributes("-alpha", 0.0)
-            except Exception:
-                pass
-            self.deiconify()
-            self.state("normal")
+                window_state = str(self.state())
+            except (RuntimeError, TclError):
+                window_state = ""
+
+            if window_state in {"withdrawn", "iconic"} or not self._window_visible:
+                self.deiconify()
             self._window_visible = True
             if self._current_page == "dashboard":
                 self.dashboard_metrics_active.set()
-            self.update_idletasks()
-            try:
-                self.attributes("-alpha", 1.0)
-            except Exception:
-                pass
+
+            # The alpha/update sequence is only needed for the first paint
+            # (including Start Minimized). Reusing it on every tray/taskbar
+            # restore blanks the native window and visibly refreshes all UI.
+            if first_reveal:
+                try:
+                    self.update_idletasks()
+                except (RuntimeError, TclError):
+                    pass
+                try:
+                    self.attributes("-alpha", 1.0)
+                except Exception:
+                    pass
+                self._window_has_been_revealed = True
+
             self.lift()
             # A short topmost pulse reliably brings the existing window to
             # the foreground after a duplicate launch, then restores normal
             # window behavior.
-            self.attributes("-topmost", True)
-            self.after(150, lambda: self.attributes("-topmost", False))
-            self.focus_force()
+            try:
+                self.attributes("-topmost", True)
+                self.after(150, self._release_restore_topmost)
+            except (RuntimeError, TclError):
+                pass
+            try:
+                self.focus_force()
+            except (RuntimeError, TclError):
+                pass
+        finally:
+            self._restore_pending = False
 
-        self.call_in_ui(restore_window)
+    def _release_restore_topmost(self):
+        if self.shutdown_event.is_set():
+            return
+        try:
+            self.attributes("-topmost", False)
+        except (RuntimeError, TclError):
+            pass
 
     def exit_app(self, icon=None, item=None):
         """Request a clean shutdown from either Tk or the tray thread."""
@@ -606,6 +651,7 @@ class App(ctk.CTk):
     def toggle_optimizer(self): self.logic.toggle_optimizer()
     def save_chat_settings(self): self.logic.save_chat_settings()
     def save_opt_settings(self): self.logic.save_opt_settings()
+    def reset_opt_config(self): return self.logic.reset_opt_config()
     def save_app_settings(self): self.logic.save_app_settings()
     def check_for_updates(self): self.logic.check_for_updates()
     def open_update_page(self): self.logic.open_update_page()

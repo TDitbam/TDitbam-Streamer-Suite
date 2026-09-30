@@ -43,16 +43,16 @@ class UpdateCheckerTests(unittest.TestCase):
                 [
                     {"name": "v3.6.1"},
                     {"name": "v4.0.0-beta"},
-                    {"name": "v3.6.3"},
+                    {"name": "v3.6.4"},
                     {"name": "v3.6.2"},
                 ],
                 captured,
             )
         )
 
-        self.assertEqual("v3.6.3", result.tag_name)
-        self.assertEqual((3, 6, 3), result.version)
-        self.assertTrue(result.download_url.endswith("/releases/tag/v3.6.3"))
+        self.assertEqual("v3.6.4", result.tag_name)
+        self.assertEqual((3, 6, 4), result.version)
+        self.assertTrue(result.download_url.endswith("/releases/tag/v3.6.4"))
         self.assertIn("/tags?per_page=100", captured["url"])
         self.assertEqual(
             "application/vnd.github+json", captured["headers"]["Accept"]
@@ -67,7 +67,7 @@ class UpdateCheckerTests(unittest.TestCase):
     def test_version_comparison(self):
         self.assertEqual(-1, compare_versions((3, 6, 1), (3, 6, 2)))
         self.assertEqual(0, compare_versions((3, 6, 2), (3, 6, 2)))
-        self.assertEqual(1, compare_versions((3, 6, 3), (3, 6, 2)))
+        self.assertEqual(1, compare_versions((3, 6, 4), (3, 6, 2)))
 
 
 if __name__ == "__main__":

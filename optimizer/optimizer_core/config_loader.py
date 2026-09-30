@@ -19,6 +19,20 @@ DEFAULT_SETTINGS = {
 
 _CONFIG_LOCK = threading.RLock()
 
+
+def _create_ready_default_config():
+    """Build a complete first-run profile that users can fine-tune later."""
+    config = configparser.ConfigParser(delimiters=('=',))
+    config["Settings"] = dict(DEFAULT_SETTINGS)
+    config["Targets"] = {}
+    config["PopularGames"] = dict(POPULAR_GAME_PRESETS)
+    config["Paths"] = {}
+    config["Presets"] = {
+        "popular_games_version": str(POPULAR_GAME_PRESET_VERSION),
+    }
+    return config
+
+
 def get_opt_config_path():
     # ใช้ AppData\Roaming ตามมาตรฐาน Windows
     if os.name == 'nt':
@@ -72,10 +86,16 @@ def _apply_popular_game_migration(config):
 
 
 def _load_config_unlocked():
-    config = configparser.ConfigParser(delimiters=('=',))
     config_path = get_opt_config_path()
-    if os.path.exists(config_path):
-        config.read(config_path, encoding="utf-8")
+    if not os.path.exists(config_path):
+        # First run should be useful immediately. Persist one complete,
+        # conservative profile now; every value remains editable later.
+        config = _create_ready_default_config()
+        _write_config(config, config_path)
+        return config
+
+    config = configparser.ConfigParser(delimiters=('=',))
+    config.read(config_path, encoding="utf-8")
 
     changed = False
     if "Settings" not in config:
@@ -108,6 +128,14 @@ def load_config():
 def save_config(config):
     with _CONFIG_LOCK:
         _write_config(config, get_opt_config_path())
+
+
+def reset_config():
+    """Replace the persisted Optimizer profile with ready-to-use defaults."""
+    with _CONFIG_LOCK:
+        config = _create_ready_default_config()
+        _write_config(config, get_opt_config_path())
+        return config
 
 
 def update_config(mutator):

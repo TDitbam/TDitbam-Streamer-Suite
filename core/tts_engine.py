@@ -24,6 +24,7 @@ from .collectors.twitch_chat import twitch_collector
 from .collectors.tiktok_chat import tiktok_collector
 
 logger = get_logger("Engine")
+EMOJI_SHORTCODE_PATTERN = re.compile(r"(?<![\w:]):[^\s:]+:(?![\w:])")
 
 class ChatTTSEngine:
     def __init__(self):
@@ -33,6 +34,7 @@ class ChatTTSEngine:
         self.audio_queue = queue.Queue(maxsize=100)
         self.seen_messages = set()
         self.max_seen_messages = 500
+        self.last_spoken_author = None
         self.threads = []
         self._lifecycle_lock = threading.RLock()
         self._mixer_lock = threading.Lock()
@@ -60,6 +62,7 @@ class ChatTTSEngine:
         self.openai_speed = 1.0
         self.delay_per_char = 0.03
         self.max_delay = 2.0
+        self.speaker_change_delay = 0.75
         self.auto_translate = False
         self.translator = GoogleTranslator(source='auto', target='th')
         
@@ -135,10 +138,13 @@ class ChatTTSEngine:
     def _process_message(self, data: Any) -> Optional[str]:
         """Filter, translate and format the incoming message."""
         if isinstance(data, str):
-            return data
+            return self._strip_emoji_shortcodes(data) or None
             
         author = data.get("author", "Unknown")
-        message = data.get("message", "")
+        message = self._strip_emoji_shortcodes(data.get("message", ""))
+        if not message:
+            logger.debug(f"Message from {author} contained only emoji shortcodes, skipped.")
+            return None
 
         # Profanity Filter
         if self.profanity_enabled:
@@ -172,7 +178,39 @@ class ChatTTSEngine:
             except Exception as te:
                 logger.error(f"Translation Error: {te}")
         
+        if author == self.last_spoken_author:
+            return message
+
+        self.last_spoken_author = author
         return f"{author} พูดว่า {message}"
+
+    @staticmethod
+    def _strip_emoji_shortcodes(text: str) -> str:
+        """Remove standalone :emoji: style tokens before sending text to TTS."""
+        without_shortcodes = EMOJI_SHORTCODE_PATTERN.sub(" ", text)
+        return re.sub(r"\s+", " ", without_shortcodes).strip()
+
+    def _prepare_message(self, data: Any):
+        """Return processed speech text and whether this message changes speaker."""
+        previous_author = self.last_spoken_author
+        processed_text = self._process_message(data)
+        if not processed_text:
+            return None
+
+        speaker_changed = (
+            previous_author is not None
+            and not isinstance(data, str)
+            and self.last_spoken_author != previous_author
+        )
+        return processed_text, speaker_changed
+
+    @staticmethod
+    def _coerce_speaker_change_delay(value: Any, default: float = 0.75) -> float:
+        """Convert the configured delay to a safe 0-10 second range."""
+        try:
+            return max(0.0, min(float(value), 10.0))
+        except (TypeError, ValueError):
+            return default
 
     def _save_gtts(self, text: str, path: str):
         gTTS(text=text, lang=self.gtts_language).save(path)
@@ -306,6 +344,12 @@ class ChatTTSEngine:
             and session_id == self.current_session_id
         )
 
+    def _wait_for_speaker_change(self, speaker_changed: bool, stop_event) -> bool:
+        """Pause before a new speaker; return True if the session was stopped."""
+        if not speaker_changed or self.speaker_change_delay <= 0:
+            return False
+        return stop_event.wait(self.speaker_change_delay)
+
     async def generator_task(self, session_id: int, stop_event, msg_queue, audio_queue):
         """Main generator loop: process messages and generate audio."""
         logger.info(f"Generator started (Session: {session_id}, Voice: {self.voice})")
@@ -316,9 +360,10 @@ class ChatTTSEngine:
                 except queue.Empty:
                     continue
 
-                processed_text = self._process_message(data)
-                if not processed_text:
+                prepared_message = self._prepare_message(data)
+                if not prepared_message:
                     continue
+                processed_text, speaker_changed = prepared_message
 
                 logger.info(f"Processing: {processed_text}")
                 extension = ".wav" if self.voice_provider == "gemini" else ".mp3"
@@ -328,7 +373,9 @@ class ChatTTSEngine:
                     await self._generate_audio(processed_text, path)
                     # Double check session before putting to queue
                     if self._session_is_active(session_id, stop_event):
-                        audio_queue.put((path, len(processed_text)), timeout=1.0)
+                        audio_queue.put(
+                            (path, len(processed_text), speaker_changed), timeout=1.0
+                        )
                     else:
                         if os.path.exists(path): os.remove(path)
                 except queue.Full:
@@ -349,12 +396,15 @@ class ChatTTSEngine:
         while self._session_is_active(session_id, stop_event):
             try:
                 try:
-                    path, char_count = audio_queue.get(timeout=0.2)
+                    path, char_count, speaker_changed = audio_queue.get(timeout=0.2)
                 except queue.Empty:
                     continue
 
                 if os.path.exists(path):
                     try:
+                        if self._wait_for_speaker_change(speaker_changed, stop_event):
+                            continue
+
                         # Only one session may own pygame's process-global
                         # music channel. This also makes stop() wait until the
                         # previous player has fully released it.
@@ -397,6 +447,7 @@ class ChatTTSEngine:
             audio_queue = self.audio_queue
             stop_event = self._session_stop_event
             self.seen_messages.clear()
+            self.last_spoken_author = None
             self.is_running = True
             self.current_session_id += 1
             current_sid = self.current_session_id
@@ -417,6 +468,9 @@ class ChatTTSEngine:
             self.openai_speed = float(config_dict.get("openai_speed", 1.0))
             self.delay_per_char = float(config_dict.get("delay_per_char", 0.03))
             self.max_delay = float(config_dict.get("max_delay", 2.0))
+            self.speaker_change_delay = self._coerce_speaker_change_delay(
+                config_dict.get("speaker_change_delay", 0.75)
+            )
             self.auto_translate = str(config_dict.get("auto_translate")) == "True"
             self.profanity_enabled = str(config_dict.get("profanity_enabled")) == "True"
 
@@ -484,6 +538,7 @@ class ChatTTSEngine:
         # Session 1, 2, 3... instead of skipping every other number.
         self._clear_queues()
         self.seen_messages.clear()
+        self.last_spoken_author = None
 
         # Wait for any active player to observe cancellation and release
         # pygame before a subsequent start can create another player.
@@ -544,6 +599,10 @@ class ChatTTSEngine:
                 self.delay_per_char = float(config_dict.get("delay_per_char", 0.03))
             if "max_delay" in config_dict:
                 self.max_delay = float(config_dict.get("max_delay", 2.0))
+            if "speaker_change_delay" in config_dict:
+                self.speaker_change_delay = self._coerce_speaker_change_delay(
+                    config_dict["speaker_change_delay"]
+                )
             if "auto_translate" in config_dict:
                 self.auto_translate = str(config_dict["auto_translate"]) == "True"
             if "profanity_enabled" in config_dict:

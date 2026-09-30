@@ -28,6 +28,9 @@ class BoolValue:
     def get(self):
         return self.value
 
+    def set(self, value):
+        self.value = value
+
 
 class FakeWidget:
     def __init__(self):
@@ -81,6 +84,75 @@ class StartupSettingsTests(unittest.TestCase):
 
         logic.sync_startup_task.assert_called_once_with()
         self.assertTrue(app._saved_run_on_startup)
+
+    def test_optimizer_reset_requires_confirmation(self):
+        app = make_app()
+        app.tr = lambda text: text
+        logic = AppLogic(app, engine=None)
+
+        with (
+            patch("gui.logic.messagebox.askyesno", return_value=False),
+            patch("gui.logic.reset_opt_config_file") as reset_file,
+        ):
+            self.assertFalse(logic.reset_opt_config())
+
+        reset_file.assert_not_called()
+
+    def test_confirmed_optimizer_reset_updates_runtime_and_ui(self):
+        app = make_app()
+        app.tr = lambda text: text
+        app.opt_exclude_c0 = BoolValue(False)
+        app.opt_disable_smt = BoolValue(True)
+        app.opt_auto_clean = BoolValue(True)
+        app.opt_clean_interval = BoolValue("30")
+        app.opt_auto_shutdown = BoolValue(True)
+        app.opt_shutdown_time = BoolValue("20:00")
+        preset_label = FakeWidget()
+        optimizer_frame = SimpleNamespace(
+            popular_presets_label=preset_label,
+            _preset_summary=lambda: "97 presets",
+        )
+        app.frames = {"optimizer": optimizer_frame}
+
+        defaults = configparser.ConfigParser(delimiters=("=",))
+        defaults["Settings"] = {
+            "exclude_core_0": "true",
+            "disable_smt": "false",
+            "auto_cleanup": "false",
+            "cleanup_interval": "1440",
+            "auto_shutdown": "false",
+            "shutdown_time": "23:59",
+        }
+        defaults["Targets"] = {}
+        defaults["PopularGames"] = {"game.exe": "P-CORE"}
+        defaults["Paths"] = {}
+        defaults["Presets"] = {"popular_games_version": "1"}
+
+        logic = AppLogic(app, engine=None)
+        logic.sync_shutdown_task = MagicMock(return_value=True)
+        logic.update_topology_stats = MagicMock()
+        logic.refresh_opt_list = MagicMock()
+        logic.refresh_path_list = MagicMock()
+
+        with (
+            patch("gui.logic.messagebox.askyesno", return_value=True),
+            patch("gui.logic.messagebox.showinfo"),
+            patch("gui.logic.reset_opt_config_file", return_value=defaults),
+        ):
+            self.assertTrue(logic.reset_opt_config())
+
+        self.assertIs(defaults, app.opt_config)
+        self.assertTrue(app.opt_exclude_c0.get())
+        self.assertFalse(app.opt_disable_smt.get())
+        self.assertFalse(app.opt_auto_clean.get())
+        self.assertEqual("1440", app.opt_clean_interval.get())
+        self.assertFalse(app.opt_auto_shutdown.get())
+        self.assertEqual("23:59", app.opt_shutdown_time.get())
+        logic.sync_shutdown_task.assert_called_once_with()
+        logic.update_topology_stats.assert_called_once_with()
+        logic.refresh_opt_list.assert_called_once_with()
+        logic.refresh_path_list.assert_called_once_with()
+        self.assertEqual("97 presets", preset_label.cget("text"))
 
     @unittest.skipUnless(os.name == "nt", "Task Scheduler is Windows-only")
     def test_enabling_startup_updates_without_deleting_first(self):
