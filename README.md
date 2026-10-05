@@ -116,6 +116,7 @@ powershell -ExecutionPolicy Bypass -File .\build_release.ps1
 ---
 
 ## 🤝 เครดิต (Credits)
+<<<<<<< HEAD
 
 - **Developer & Release Owner:** Tditbam
 - **AI Development Assistance:** Gemini CLI และ OpenAI Codex
@@ -124,6 +125,11 @@ powershell -ExecutionPolicy Bypass -File .\build_release.ps1
 - **Build & Distribution:** Python, PyInstaller, Inno Setup, Git และ GitHub
 
 ดูรายชื่อผู้พัฒนา เครื่องมือ บริการ ไลบรารี และหมายเหตุเครื่องหมายการค้าแบบเต็มได้ที่ [CREDITS.md](./CREDITS.md)
+=======
+- **Developer:** Tditbam
+- **AI Assistant:** Gemini CLI , Openai codex
+- **Libraries:** CustomTkinter, Edge-TTS, TikTokLive, psutil
+>>>>>>> b5540d0ea2e7b7a3edb37225ee664bbc181cef1b
 
 ---
 *Released under MIT License - 2026 TDitbam*
