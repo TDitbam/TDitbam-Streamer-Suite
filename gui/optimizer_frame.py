@@ -19,6 +19,9 @@ class OptimizerFrame(ctk.CTkFrame):
             f"{self.app.tr('custom programs below')}"
         )
 
+    def refresh_preset_summary(self):
+        self.app.popular_presets_label.configure(text=self._preset_summary())
+
     def setup_ui(self):
         page_header(
             self,
@@ -264,7 +267,7 @@ class OptimizerFrame(ctk.CTkFrame):
         self.app.refresh_path_list()
 
     def apply_language(self):
-        self.app.popular_presets_label.configure(text=self._preset_summary())
+        self.refresh_preset_summary()
         for key, english_title in (("games", "Programs"), ("directories", "Directories")):
             current_title = self._opt_tab_titles[key]
             translated_title = self.app.tr(english_title)

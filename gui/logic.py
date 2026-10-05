@@ -416,9 +416,7 @@ class AppLogic:
             if optimizer_frame is not None:
                 self.refresh_opt_list()
                 self.refresh_path_list()
-                optimizer_frame.popular_presets_label.configure(
-                    text=optimizer_frame._preset_summary()
-                )
+                optimizer_frame.refresh_preset_summary()
 
             self.logger.info("Optimizer config reset to ready defaults.")
             messagebox.showinfo(

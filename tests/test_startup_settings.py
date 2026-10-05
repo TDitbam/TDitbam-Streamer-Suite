@@ -107,10 +107,8 @@ class StartupSettingsTests(unittest.TestCase):
         app.opt_clean_interval = BoolValue("30")
         app.opt_auto_shutdown = BoolValue(True)
         app.opt_shutdown_time = BoolValue("20:00")
-        preset_label = FakeWidget()
         optimizer_frame = SimpleNamespace(
-            popular_presets_label=preset_label,
-            _preset_summary=lambda: "97 presets",
+            refresh_preset_summary=MagicMock(),
         )
         app.frames = {"optimizer": optimizer_frame}
 
@@ -152,7 +150,7 @@ class StartupSettingsTests(unittest.TestCase):
         logic.update_topology_stats.assert_called_once_with()
         logic.refresh_opt_list.assert_called_once_with()
         logic.refresh_path_list.assert_called_once_with()
-        self.assertEqual("97 presets", preset_label.cget("text"))
+        optimizer_frame.refresh_preset_summary.assert_called_once_with()
 
     @unittest.skipUnless(os.name == "nt", "Task Scheduler is Windows-only")
     def test_enabling_startup_updates_without_deleting_first(self):
