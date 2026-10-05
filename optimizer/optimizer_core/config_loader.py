@@ -21,7 +21,7 @@ DEFAULT_SETTINGS = {
 
 OPTIMIZER_CONFIG_URL = (
     "https://raw.githubusercontent.com/TDitbam/"
-    "TDitbam-Streamer-Suite/main/optimizer-config.ini"
+    "TDitbam-Streamer-Suite/refs/heads/main/optimizer-config.ini"
 )
 CONFIG_DOWNLOAD_TIMEOUT = 8
 CONFIG_DOWNLOAD_MAX_BYTES = 1024 * 1024
