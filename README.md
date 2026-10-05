@@ -17,7 +17,8 @@
 - เพิ่ม **Auto Start Optimizer** ใน App Settings ให้ Optimizer เริ่มทำงานเองหลังเปิดโปรแกรม
 - Optimizer ปรับ affinity/priority เฉพาะรายการที่ผู้ใช้กำหนด และไม่แตะ Explorer, DWM หรือโปรเซส Windows อื่นโดยอัตโนมัติ
 - หากยังไม่มี optimizer_config.ini โปรแกรมจะสร้างโปรไฟล์พร้อมใช้ให้อัตโนมัติ แล้วผู้ใช้ค่อยปรับค่าได้ภายหลังโดยไม่ถูกเขียนทับ
-- หน้า Optimizer มีปุ่ม Reset Config พร้อมการยืนยัน เพื่อคืน Settings, preset เกม, custom programs และ managed directories เป็นค่าเริ่มต้นพร้อมใช้
+- เมื่อไม่พบ `optimizer_config.ini` ระบบจะดาวน์โหลดโปรไฟล์พร้อมใช้จาก `optimizer-config.ini` บน GitHub โดยตรวจรูปแบบก่อนบันทึก และใช้ค่าในโปรแกรมสำรองเมื่อออฟไลน์
+- หน้า Optimizer มีปุ่ม Reset Config พร้อมการยืนยัน เพื่อโหลด Settings, preset เกม, custom programs และ managed directories ใหม่จากโปรไฟล์เดียวกันบน GitHub
 - แยก **Start Minimized** และ **Run on Windows Startup** ออกจากกัน โดยแก้ Task Scheduler เฉพาะเมื่อค่า Startup เปลี่ยน
 - เพิ่ม preset โปรเซสเกมยอดนิยม 97 รายการ ครอบคลุม Steam, Epic, Riot, Battle.net และเกมออนไลน์หลัก โดยผู้ใช้ยังเพิ่มหรือกำหนด policy เองได้
 - แยก preset เกมออกจากรายการ Custom Programs เพื่อให้หน้า Optimizer โหลดเร็วและไม่รก พร้อม migration ครั้งเดียวที่ไม่เขียนทับค่าของผู้ใช้

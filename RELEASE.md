@@ -20,8 +20,8 @@
 - Added an OS-level **Single Instance** guard. Duplicate launches are rejected before GUI, audio, collectors, tray icons, or log handlers initialize.
 - Added **Auto Start Optimizer** so the optimization service can start automatically after the app UI is ready.
 - Fixed Optimizer policy isolation so only explicitly managed programs/directories receive affinity or priority changes; Windows shell processes such as Explorer and DWM are left untouched.
-- When optimizer_config.ini is missing, Optimizer now persists a complete ready-to-use default profile that remains fully editable on later runs.
-- Added a confirmed Reset Config action that restores the same ready-to-use Optimizer profile and refreshes the active UI immediately.
+- When `optimizer_config.ini` is missing, Optimizer downloads and validates the ready-to-use profile from GitHub, with embedded defaults available when offline.
+- Added a confirmed Reset Config action that reloads the same GitHub profile, falls back safely when offline, and refreshes the active UI immediately.
 - Separated the two startup settings: **Start Minimized** no longer rewrites Task Scheduler, and the startup task is updated only when **Run on Windows Startup** actually changes.
 - Added 97 curated popular-game executable presets spanning major Steam, Epic, Riot, Battle.net, and online titles.
 - Popular presets are stored separately from custom targets, keeping the Optimizer UI compact while user-defined policies continue to override presets.

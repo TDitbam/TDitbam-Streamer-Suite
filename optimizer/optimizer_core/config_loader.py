@@ -1,7 +1,9 @@
 import configparser
+import logging
 import os
 import tempfile
 import threading
+from urllib.request import Request, urlopen
 
 from .game_presets import POPULAR_GAME_PRESETS, POPULAR_GAME_PRESET_VERSION
 
@@ -17,12 +19,29 @@ DEFAULT_SETTINGS = {
     "shutdown_time": "23:59",
 }
 
+OPTIMIZER_CONFIG_URL = (
+    "https://raw.githubusercontent.com/TDitbam/"
+    "TDitbam-Streamer-Suite/main/optimizer-config.ini"
+)
+CONFIG_DOWNLOAD_TIMEOUT = 8
+CONFIG_DOWNLOAD_MAX_BYTES = 1024 * 1024
+_REQUIRED_REMOTE_SECTIONS = {"Settings", "Targets", "PopularGames", "Paths"}
+
 _CONFIG_LOCK = threading.RLock()
+_LOGGER = logging.getLogger(__name__)
+
+
+class RemoteConfigError(RuntimeError):
+    """Raised when the shared Optimizer profile cannot be downloaded safely."""
+
+
+def _new_config_parser():
+    return configparser.ConfigParser(delimiters=('=',), interpolation=None)
 
 
 def _create_ready_default_config():
     """Build a complete first-run profile that users can fine-tune later."""
-    config = configparser.ConfigParser(delimiters=('=',))
+    config = _new_config_parser()
     config["Settings"] = dict(DEFAULT_SETTINGS)
     config["Targets"] = {}
     config["PopularGames"] = dict(POPULAR_GAME_PRESETS)
@@ -30,6 +49,53 @@ def _create_ready_default_config():
     config["Presets"] = {
         "popular_games_version": str(POPULAR_GAME_PRESET_VERSION),
     }
+    return config
+
+
+def _download_ready_config():
+    """Download and validate the shared Optimizer profile from GitHub."""
+    request = Request(
+        OPTIMIZER_CONFIG_URL,
+        headers={
+            "Accept": "text/plain",
+            "User-Agent": "TDitbam-Streamer-Suite/3.6.4",
+        },
+    )
+    try:
+        with urlopen(request, timeout=CONFIG_DOWNLOAD_TIMEOUT) as response:
+            payload = response.read(CONFIG_DOWNLOAD_MAX_BYTES + 1)
+    except Exception as error:
+        raise RemoteConfigError(f"download failed: {error}") from error
+
+    if not payload or len(payload) > CONFIG_DOWNLOAD_MAX_BYTES:
+        raise RemoteConfigError("downloaded config is empty or too large")
+
+    try:
+        config_text = payload.decode("utf-8-sig")
+        config = _new_config_parser()
+        config.read_string(config_text)
+    except (UnicodeDecodeError, configparser.Error) as error:
+        raise RemoteConfigError(f"downloaded config is invalid: {error}") from error
+
+    missing_sections = _REQUIRED_REMOTE_SECTIONS.difference(config.sections())
+    if missing_sections:
+        missing = ", ".join(sorted(missing_sections))
+        raise RemoteConfigError(f"downloaded config is missing sections: {missing}")
+    if not config["PopularGames"]:
+        raise RemoteConfigError("downloaded config contains no game presets")
+
+    changed = False
+    for name, value in DEFAULT_SETTINGS.items():
+        if name not in config["Settings"]:
+            config["Settings"][name] = value
+            changed = True
+    if "Presets" not in config:
+        config["Presets"] = {}
+        changed = True
+    if _apply_popular_game_migration(config):
+        changed = True
+    if changed:
+        _LOGGER.info("Completed missing values in downloaded Optimizer config.")
     return config
 
 
@@ -88,13 +154,21 @@ def _apply_popular_game_migration(config):
 def _load_config_unlocked():
     config_path = get_opt_config_path()
     if not os.path.exists(config_path):
-        # First run should be useful immediately. Persist one complete,
-        # conservative profile now; every value remains editable later.
-        config = _create_ready_default_config()
+        try:
+            config = _download_ready_config()
+            _LOGGER.info("Downloaded Optimizer config from GitHub.")
+        except RemoteConfigError as error:
+            # First launch must remain usable when GitHub or the network is
+            # unavailable. The embedded profile mirrors the published file.
+            _LOGGER.warning(
+                "Unable to download Optimizer config; using embedded defaults: %s",
+                error,
+            )
+            config = _create_ready_default_config()
         _write_config(config, config_path)
         return config
 
-    config = configparser.ConfigParser(delimiters=('=',))
+    config = _new_config_parser()
     config.read(config_path, encoding="utf-8")
 
     changed = False
@@ -131,9 +205,18 @@ def save_config(config):
 
 
 def reset_config():
-    """Replace the persisted Optimizer profile with ready-to-use defaults."""
+    """Replace the profile with GitHub config, or embedded defaults offline."""
     with _CONFIG_LOCK:
-        config = _create_ready_default_config()
+        try:
+            config = _download_ready_config()
+            _LOGGER.info("Downloaded Optimizer config from GitHub for reset.")
+        except RemoteConfigError as error:
+            _LOGGER.warning(
+                "Unable to download Optimizer config for reset; using embedded "
+                "defaults: %s",
+                error,
+            )
+            config = _create_ready_default_config()
         _write_config(config, get_opt_config_path())
         return config
 

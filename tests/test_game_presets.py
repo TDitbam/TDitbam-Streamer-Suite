@@ -9,6 +9,35 @@ from optimizer.optimizer_core.game_presets import POPULAR_GAME_PRESETS
 
 
 class PopularGamePresetTests(unittest.TestCase):
+    def setUp(self):
+        # Unit tests must be deterministic and never depend on GitHub access.
+        downloader = patch.object(
+            config_loader,
+            "urlopen",
+            side_effect=OSError("offline in test"),
+        )
+        downloader.start()
+        self.addCleanup(downloader.stop)
+
+    def test_new_config_downloads_shared_github_profile(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = os.path.join(directory, "optimizer_config.ini")
+            shared = config_loader._create_ready_default_config()
+            shared["Settings"]["interval"] = "9"
+            with (
+                patch.object(config_loader, "get_opt_config_path", return_value=path),
+                patch.object(
+                    config_loader,
+                    "_download_ready_config",
+                    return_value=shared,
+                ) as download,
+            ):
+                config = config_loader.load_config()
+
+            download.assert_called_once_with()
+            self.assertEqual("9", config["Settings"]["interval"])
+            self.assertTrue(os.path.isfile(path))
+
     def test_new_config_contains_curated_game_presets(self):
         with tempfile.TemporaryDirectory() as directory:
             path = os.path.join(directory, "optimizer_config.ini")
@@ -75,6 +104,30 @@ class PopularGamePresetTests(unittest.TestCase):
                 dict(reset.items("Settings")),
                 dict(reloaded.items("Settings")),
             )
+
+    def test_reset_config_downloads_shared_github_profile(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = os.path.join(directory, "optimizer_config.ini")
+            shared = config_loader._create_ready_default_config()
+            shared["Settings"]["interval"] = "11"
+            with (
+                patch.object(config_loader, "get_opt_config_path", return_value=path),
+                patch.object(
+                    config_loader,
+                    "_download_ready_config",
+                    return_value=shared,
+                ) as download,
+            ):
+                reset = config_loader.reset_config()
+
+            download.assert_called_once_with()
+            self.assertEqual("11", reset["Settings"]["interval"])
+
+    def test_blank_github_config_is_rejected(self):
+        with patch.object(config_loader, "urlopen") as open_url:
+            open_url.return_value.__enter__.return_value.read.return_value = b"\n"
+            with self.assertRaises(config_loader.RemoteConfigError):
+                config_loader._download_ready_config()
 
     def test_migration_preserves_existing_user_policy(self):
         with tempfile.TemporaryDirectory() as directory:
