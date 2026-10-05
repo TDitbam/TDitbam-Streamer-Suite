@@ -3,7 +3,6 @@
 block_cipher = None
 
 added_files = [
-    ('config.ini', '.'),
     ('icon.ico', '.'),
     ('resources', 'resources'),
 ]
@@ -55,6 +54,7 @@ exe = EXE(
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
+    version='version_info.txt',
     codesign_identity=None,
     entitlements_file=None,
     uac_admin=True,

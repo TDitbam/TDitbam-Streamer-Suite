@@ -2,10 +2,10 @@ import customtkinter as ctk
 import configparser
 import threading
 import os
-import sys
 import logging
 import queue
 import pystray
+from tkinter import TclError
 from pystray import MenuItem as item
 from PIL import Image
 from core.tts_engine import ChatTTSEngine
@@ -21,6 +21,7 @@ from .windows_tools_frame import WindowsToolsFrame
 from .settings_frame import SettingsFrame
 from .logic import AppLogic
 from .i18n import THAI, LANGUAGE_NAMES
+from .ui_theme import COLORS
 
 class GuiLogHandler(logging.Handler):
     def __init__(self, text_widgets):
@@ -28,20 +29,27 @@ class GuiLogHandler(logging.Handler):
         self.text_widgets = text_widgets
         self.text_widget = text_widgets["all"]
         self.pending = queue.SimpleQueue()
-        self.flush_scheduled = False
-        self.schedule_lock = threading.Lock()
+        self._after_id = None
+        self._stopped = False
 
     def emit(self, record):
         self.pending.put((self._category_for(record), self.format(record)))
-        with self.schedule_lock:
-            if self.flush_scheduled:
-                return
-            self.flush_scheduled = True
+
+    def start(self):
+        """Start the Tk-owned log pump from the main UI thread."""
+        if self._stopped or self._after_id is not None:
+            return
+        self._after_id = self.text_widget.after(100, self._flush)
+
+    def stop(self):
+        self._stopped = True
+        if self._after_id is None:
+            return
         try:
-            self.text_widget.after(100, self._flush)
-        except Exception:
-            with self.schedule_lock:
-                self.flush_scheduled = False
+            self.text_widget.after_cancel(self._after_id)
+        except (RuntimeError, TclError):
+            pass
+        self._after_id = None
 
     @staticmethod
     def _category_for(record):
@@ -71,6 +79,9 @@ class GuiLogHandler(logging.Handler):
         text_widget.configure(state="disabled")
 
     def _flush(self):
+        self._after_id = None
+        if self._stopped:
+            return
         messages = []
         while len(messages) < 200:
             try:
@@ -89,22 +100,40 @@ class GuiLogHandler(logging.Handler):
         except Exception:
             pass
         finally:
-            with self.schedule_lock:
-                self.flush_scheduled = False
-            if not self.pending.empty():
-                with self.schedule_lock:
-                    self.flush_scheduled = True
+            if not self._stopped:
+                delay = 0 if not self.pending.empty() else 100
                 try:
-                    self.text_widget.after(100, self._flush)
-                except Exception:
-                    with self.schedule_lock:
-                        self.flush_scheduled = False
+                    self._after_id = self.text_widget.after(delay, self._flush)
+                except (RuntimeError, TclError):
+                    self._after_id = None
 
 class App(ctk.CTk):
     def __init__(self, engine, instance_guard=None):
         super().__init__()
+        self.shutdown_event = threading.Event()
+        self._ui_callbacks = queue.SimpleQueue()
+        self._ui_pump_after_id = None
+        # Keep the native window hidden and transparent until the first dark
+        # frame is fully laid out. This prevents Windows/Tk from exposing its
+        # default white client area during startup.
+        self.withdraw()
+        try:
+            self.attributes("-alpha", 0.0)
+        except Exception:
+            pass
         self.title("Streamer Suite")
-        self.geometry("1100x800")
+        self.geometry("1180x820")
+        self.minsize(1000, 700)
+        self.configure(fg_color=COLORS["app_bg"])
+        try:
+            self.tk_setPalette(
+                background=COLORS["app_bg"],
+                foreground=COLORS["text"],
+                activeBackground=COLORS["surface_hover"],
+                activeForeground=COLORS["text"],
+            )
+        except Exception:
+            pass
         self.instance_guard = instance_guard
 
         self.icon_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "icon.ico"))
@@ -129,19 +158,39 @@ class App(ctk.CTk):
         self.opt_running = False
         self.opt_stop_event = threading.Event()
         self.cpu_monitor_stop_event = threading.Event()
+        self.dashboard_metrics_active = threading.Event()
+        self._window_visible = False
+        self._window_has_been_revealed = False
+        self._restore_pending = False
         
         # Variables for Optimizer / System
         self.opt_auto_shutdown = ctk.BooleanVar(value=self.opt_config["Settings"].getboolean("auto_shutdown", fallback=False))
         self.opt_shutdown_time = ctk.StringVar(value=self.opt_config["Settings"].get("shutdown_time", fallback="23:59"))
+        self._saved_opt_auto_shutdown = self.opt_auto_shutdown.get()
+        self._saved_opt_shutdown_time = self.opt_shutdown_time.get().strip()
+        self.opt_exclude_c0 = ctk.BooleanVar(
+            value=self.opt_config["Settings"].getboolean("exclude_core_0", fallback=True)
+        )
+        self.opt_disable_smt = ctk.BooleanVar(
+            value=self.opt_config["Settings"].getboolean("disable_smt", fallback=False)
+        )
+        self.opt_auto_clean = ctk.BooleanVar(
+            value=self.opt_config["Settings"].getboolean("auto_cleanup", fallback=False)
+        )
+        self.opt_clean_interval = ctk.StringVar(
+            value=self.opt_config["Settings"].get("cleanup_interval", "1440")
+        )
         
         # System Tray Setup
         self.protocol('WM_DELETE_WINDOW', self.withdraw_to_tray)
         self.create_tray_icon()
         
         # Fonts
-        self.title_font = ctk.CTkFont(size=24, weight="bold")
-        self.bold_font = ctk.CTkFont(size=14, weight="bold")
-        self.default_font = ctk.CTkFont(size=13)
+        self.title_font = ctk.CTkFont(family="Segoe UI", size=24, weight="bold")
+        self.section_font = ctk.CTkFont(family="Segoe UI", size=16, weight="bold")
+        self.bold_font = ctk.CTkFont(family="Segoe UI", size=14, weight="bold")
+        self.default_font = ctk.CTkFont(family="Segoe UI", size=13)
+        self.small_font = ctk.CTkFont(family="Segoe UI", size=12)
         
         # Variables for Bot Live Chat
         s = "settings"
@@ -170,13 +219,16 @@ class App(ctk.CTk):
         # General App Settings
         self.start_minimized = ctk.BooleanVar(value=self.config.getboolean(s, "start_minimized", fallback=False))
         self.run_on_startup = ctk.BooleanVar(value=self.config.getboolean(s, "run_on_startup", fallback=False))
+        self._saved_run_on_startup = self.run_on_startup.get()
         self.auto_start_optimizer = ctk.BooleanVar(value=self.config.getboolean(s, "auto_start_optimizer", fallback=False))
         self.windows_notifications = ctk.BooleanVar(value=self.config.getboolean(s, "windows_notifications", fallback=True))
+        self.auto_check_updates = ctk.BooleanVar(value=self.config.getboolean(s, "auto_check_updates", fallback=True))
+        self.latest_update_tag = None
+        self.update_download_url = None
+        self.update_status_key = "Updates have not been checked yet"
         
         # Initialize Logic
         self.logic = AppLogic(self, self.engine)
-        self.logic.sync_shutdown_task()
-        self.logic.sync_startup_task()
         
         # UI Setup
         self.grid_columnconfigure(1, weight=1)
@@ -185,41 +237,55 @@ class App(ctk.CTk):
         self.sidebar = SidebarFrame(self, self.show_frame)
         self.sidebar.grid(row=0, column=0, sticky="nsew")
         
-        self.container = ctk.CTkFrame(self, fg_color="transparent")
+        self.container = ctk.CTkFrame(self, fg_color=COLORS["app_bg"], corner_radius=0)
         self.container.grid(row=0, column=1, sticky="nsew")
         self.container.grid_columnconfigure(0, weight=1)
         self.container.grid_rowconfigure(0, weight=1)
         
+        # Dashboard is the only frame required for startup services. Remaining
+        # pages are created on first visit, cutting first paint work by more
+        # than half while the current page stays visible during construction.
+        self._frame_classes = {
+            "dashboard": DashboardFrame,
+            "chat": ChatFrame,
+            "optimizer": OptimizerFrame,
+            "cleanup": CleanupFrame,
+            "windowstools": WindowsToolsFrame,
+            "settings": SettingsFrame,
+        }
         self.frames = {}
-        for F in (DashboardFrame, ChatFrame, OptimizerFrame, CleanupFrame, WindowsToolsFrame, SettingsFrame):
-            page_name = F.__name__.replace("Frame", "").lower()
-            frame = F(self.container, self)
-            self.frames[page_name] = frame
-            frame.grid(row=0, column=0, sticky="nsew")
+        self._current_page = None
+        self._ensure_frame("dashboard")
             
         # Setup Logger Redirect
         self.log_handler = GuiLogHandler(self.frames["dashboard"].log_boxes)
         self.log_handler.setFormatter(logging.Formatter('%(asctime)s: %(message)s', datefmt='%H:%M:%S'))
         base_logger.addHandler(self.log_handler)
+        self.log_handler.start()
+        self._start_ui_pump()
         
-        # CPU monitoring runs outside Tk's UI thread.
+        # All performance monitoring runs outside Tk's UI thread.
         self.logic.start_cpu_monitor()
+        self.logic.start_system_metrics_monitor()
         
         self._setup_listeners()
         self._setup_shortcut_handler()
         self.show_frame("dashboard")
-        self.apply_language()
+        if self.language_code == "th":
+            self.apply_language()
 
-        # Start only after every frame and control has been initialized.
+        # Start only after the required startup controls have been initialized.
         if self.auto_start_optimizer.get():
             self.after(800, self.logic.start_optimizer_automatically)
         if self.instance_guard:
             self.after(250, self._poll_activation_request)
         self.after(1500, lambda: self.notify_windows("Streamer Suite", self.tr("Application is ready")))
+        if self.auto_check_updates.get():
+            self.after(2200, lambda: self.logic.check_for_updates(automatic=True))
         
-        # Auto-minimize to system tray if configured
-        if self.start_minimized.get():
-            self.after(200, self.withdraw_to_tray)
+        # Reveal only after Tk has rendered a complete dark first frame.
+        if not self.start_minimized.get():
+            self.after_idle(self._reveal_ready_window)
 
     def _setup_listeners(self):
         """Setup listeners for real-time config updates."""
@@ -289,19 +355,61 @@ class App(ctk.CTk):
         self.bind_all("<Key>", handle_shortcuts, "+")
 
     def show_frame(self, page_name):
-        frame = self.frames[page_name]
+        if page_name == self._current_page and page_name in self.frames:
+            return
+        is_new_page = page_name not in self.frames
+        if is_new_page and hasattr(self, "sidebar"):
+            # Give immediate dark-theme feedback while the first copy of a
+            # complex page is being constructed.
+            self.sidebar.set_active(page_name)
+            self.configure(cursor="watch")
+            self.update_idletasks()
+        try:
+            frame = self._ensure_frame(page_name)
+        finally:
+            if is_new_page:
+                self.configure(cursor="")
         frame.tkraise()
+        self._current_page = page_name
+        if self._window_visible and page_name == "dashboard":
+            self.dashboard_metrics_active.set()
+        else:
+            self.dashboard_metrics_active.clear()
+        if hasattr(self, "sidebar"):
+            self.sidebar.set_active(page_name)
+
+    def _ensure_frame(self, page_name):
+        frame = self.frames.get(page_name)
+        if frame is not None:
+            return frame
+        frame_class = self._frame_classes[page_name]
+        frame = frame_class(self.container, self)
+        self.frames[page_name] = frame
+        frame.grid(row=0, column=0, sticky="nsew")
+        if self.language_code == "th":
+            self._translate_widget_tree(frame)
+            apply_frame_language = getattr(frame, "apply_language", None)
+            if callable(apply_frame_language):
+                apply_frame_language()
+        return frame
 
     def tr(self, text):
         """Translate a UI string while preserving an optional emoji prefix."""
         if self.language_code == "th":
+            exact = THAI.get(text)
+            if exact is not None:
+                return exact
             for english, thai in THAI.items():
-                if text == english or text.endswith(english):
+                if text.endswith(english):
                     return text[:-len(english)] + thai
             return text
 
+        reverse = {thai: english for english, thai in THAI.items()}
+        exact = reverse.get(text)
+        if exact is not None:
+            return exact
         for english, thai in THAI.items():
-            if text == thai or text.endswith(thai):
+            if text.endswith(thai):
                 return text[:-len(thai)] + english
         return text
 
@@ -320,23 +428,39 @@ class App(ctk.CTk):
 
     def apply_language(self):
         """Update existing widgets in-place; no application restart required."""
-        def update_tree(widget):
-            for option in ("text", "placeholder_text"):
-                try:
-                    current = widget.cget(option)
-                    if isinstance(current, str) and current:
-                        translated = self.tr(current)
-                        if translated != current:
-                            widget.configure(**{option: translated})
-                except Exception:
-                    pass
-            for child in widget.winfo_children():
-                update_tree(child)
+        self._translate_widget_tree(self)
+        for frame in self.frames.values():
+            apply_frame_language = getattr(frame, "apply_language", None)
+            if callable(apply_frame_language):
+                apply_frame_language()
 
-        update_tree(self)
-        dashboard = self.frames.get("dashboard")
-        if dashboard is not None:
-            dashboard.apply_language()
+    def _translate_widget_tree(self, widget):
+        for option in ("text", "placeholder_text"):
+            try:
+                current = widget.cget(option)
+                if isinstance(current, str) and current:
+                    translated = self.tr(current)
+                    if translated != current:
+                        widget.configure(**{option: translated})
+            except Exception:
+                pass
+        for child in widget.winfo_children():
+            self._translate_widget_tree(child)
+
+    def _reveal_ready_window(self):
+        """Display the already-rendered first frame without a white flash."""
+        if self.shutdown_event.is_set() or self._window_has_been_revealed:
+            return
+        self.update_idletasks()
+        try:
+            self.attributes("-alpha", 1.0)
+        except Exception:
+            pass
+        self.deiconify()
+        self._window_has_been_revealed = True
+        self._window_visible = True
+        if self._current_page == "dashboard":
+            self.dashboard_metrics_active.set()
 
     # --- System Tray Methods ---
     def create_tray_icon(self):
@@ -353,9 +477,51 @@ class App(ctk.CTk):
 
     def _poll_activation_request(self):
         """Restore the existing window when the user launches the app again."""
+        if self.shutdown_event.is_set():
+            return
         if self.instance_guard and self.instance_guard.activation_requested():
             self.show_from_tray()
-        self.after(250, self._poll_activation_request)
+        try:
+            self.after(250, self._poll_activation_request)
+        except (RuntimeError, TclError):
+            pass
+
+    def call_in_ui(self, callback):
+        """Queue a UI callback only while the Tk application is alive."""
+        if self.shutdown_event.is_set():
+            return False
+        self._ui_callbacks.put(callback)
+        return True
+
+    def _start_ui_pump(self):
+        """Schedule one main-thread pump for callbacks from all workers."""
+        if self._ui_pump_after_id is None and not self.shutdown_event.is_set():
+            self._ui_pump_after_id = self.after(25, self._drain_ui_callbacks)
+
+    def _drain_ui_callbacks(self):
+        self._ui_pump_after_id = None
+        if self.shutdown_event.is_set():
+            return
+        processed = 0
+        while processed < 100:
+            try:
+                callback = self._ui_callbacks.get_nowait()
+            except queue.Empty:
+                break
+            try:
+                callback()
+            except (RuntimeError, TclError):
+                pass
+            except Exception as error:
+                self.logger.error(f"UI callback failed: {error}")
+            processed += 1
+            if self.shutdown_event.is_set():
+                return
+        delay = 0 if not self._ui_callbacks.empty() else 25
+        try:
+            self._ui_pump_after_id = self.after(delay, self._drain_ui_callbacks)
+        except (RuntimeError, TclError):
+            self._ui_pump_after_id = None
 
     def notify_windows(self, title, message):
         """Show a native tray notification using the application's icon."""
@@ -367,38 +533,128 @@ class App(ctk.CTk):
             self.logger.debug(f"Windows notification unavailable: {error}")
 
     def withdraw_to_tray(self):
-        self.withdraw()
+        if not self.shutdown_event.is_set():
+            self._window_visible = False
+            self.dashboard_metrics_active.clear()
+            self.withdraw()
 
     def show_from_tray(self, icon=None, item=None):
-        def restore_window():
-            self.deiconify()
-            self.state("normal")
+        """Queue one non-destructive restore of the existing widget tree."""
+        if self.shutdown_event.is_set() or self._restore_pending:
+            return False
+        self._restore_pending = True
+        if not self.call_in_ui(self._restore_window):
+            self._restore_pending = False
+            return False
+        return True
+
+    def _restore_window(self):
+        """Restore/focus the window without blanking and repainting the UI."""
+        try:
+            if self.shutdown_event.is_set():
+                return
+
+            first_reveal = not self._window_has_been_revealed
+            try:
+                window_state = str(self.state())
+            except (RuntimeError, TclError):
+                window_state = ""
+
+            if window_state in {"withdrawn", "iconic"} or not self._window_visible:
+                self.deiconify()
+            self._window_visible = True
+            if self._current_page == "dashboard":
+                self.dashboard_metrics_active.set()
+
+            # The alpha/update sequence is only needed for the first paint
+            # (including Start Minimized). Reusing it on every tray/taskbar
+            # restore blanks the native window and visibly refreshes all UI.
+            if first_reveal:
+                try:
+                    self.update_idletasks()
+                except (RuntimeError, TclError):
+                    pass
+                try:
+                    self.attributes("-alpha", 1.0)
+                except Exception:
+                    pass
+                self._window_has_been_revealed = True
+
             self.lift()
             # A short topmost pulse reliably brings the existing window to
             # the foreground after a duplicate launch, then restores normal
             # window behavior.
-            self.attributes("-topmost", True)
-            self.after(150, lambda: self.attributes("-topmost", False))
-            self.focus_force()
+            try:
+                self.attributes("-topmost", True)
+                self.after(150, self._release_restore_topmost)
+            except (RuntimeError, TclError):
+                pass
+            try:
+                self.focus_force()
+            except (RuntimeError, TclError):
+                pass
+        finally:
+            self._restore_pending = False
 
-        self.after(0, restore_window)
+    def _release_restore_topmost(self):
+        if self.shutdown_event.is_set():
+            return
+        try:
+            self.attributes("-topmost", False)
+        except (RuntimeError, TclError):
+            pass
 
     def exit_app(self, icon=None, item=None):
+        """Request a clean shutdown from either Tk or the tray thread."""
+        if self.shutdown_event.is_set():
+            return
+        if threading.current_thread() is threading.main_thread():
+            self._shutdown_ui()
+        else:
+            self.call_in_ui(self._shutdown_ui)
+
+    def _shutdown_ui(self):
+        if self.shutdown_event.is_set():
+            return
+        self.shutdown_event.set()
         self.logger.info("Exiting application...")
-        if hasattr(self, 'tray_icon'):
-            self.tray_icon.stop()
-        self.engine.stop()
         self.opt_stop_event.set()
         self.cpu_monitor_stop_event.set()
-        self.quit()
-        sys.exit(0)
+        self.logic.shutdown()
+        for frame in tuple(self.frames.values()):
+            shutdown = getattr(frame, "shutdown", None)
+            if callable(shutdown):
+                shutdown()
+        self.engine.stop()
+        if hasattr(self, "tray_icon"):
+            try:
+                self.tray_icon.stop()
+            except Exception:
+                pass
+        if hasattr(self, "log_handler"):
+            self.log_handler.stop()
+            base_logger.removeHandler(self.log_handler)
+        if self._ui_pump_after_id is not None:
+            try:
+                self.after_cancel(self._ui_pump_after_id)
+            except (RuntimeError, TclError):
+                pass
+            self._ui_pump_after_id = None
+        try:
+            self.quit()
+            self.destroy()
+        except (RuntimeError, TclError):
+            pass
 
     # Delegate logic methods for easier access from frames
     def toggle_tts(self): self.logic.toggle_tts()
     def toggle_optimizer(self): self.logic.toggle_optimizer()
     def save_chat_settings(self): self.logic.save_chat_settings()
     def save_opt_settings(self): self.logic.save_opt_settings()
+    def reset_opt_config(self): return self.logic.reset_opt_config()
     def save_app_settings(self): self.logic.save_app_settings()
+    def check_for_updates(self): self.logic.check_for_updates()
+    def open_update_page(self): self.logic.open_update_page()
     def refresh_opt_list(self): self.logic.refresh_opt_list()
     def refresh_path_list(self): self.logic.refresh_path_list()
     def add_opt_target(self): self.logic.add_opt_target()

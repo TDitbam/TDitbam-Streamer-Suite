@@ -1,15 +1,16 @@
-from typing import List
+from typing import Hashable, List
 
 class ProcessStateCache:
     def __init__(self):
-        self._cache = {} # PID -> {affinity: [], priority: int}
+        # PID alone is unsafe because Windows can reuse it for a new process.
+        self._cache = {}  # Process identity -> {affinity: [], priority: int}
 
-    def needs_update(self, pid: int, affinity: List[int], priority: int) -> bool:
-        if pid not in self._cache:
-            self._cache[pid] = {"affinity": affinity, "priority": priority}
+    def needs_update(self, process_key: Hashable, affinity: List[int], priority: int) -> bool:
+        if process_key not in self._cache:
+            self._cache[process_key] = {"affinity": affinity, "priority": priority}
             return True
         
-        state = self._cache[pid]
+        state = self._cache[process_key]
         if sorted(state["affinity"]) != sorted(affinity) or state["priority"] != priority:
             state["affinity"] = affinity
             state["priority"] = priority
@@ -17,6 +18,5 @@ class ProcessStateCache:
             
         return False
 
-    def remove_pid(self, pid: int):
-        if pid in self._cache:
-            del self._cache[pid]
+    def remove(self, process_key: Hashable):
+        self._cache.pop(process_key, None)

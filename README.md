@@ -1,17 +1,40 @@
-# 🎙️ TDitbam Streamer Suite (v3.6.0)
+# 🎙️ TDitbam Streamer Suite (v3.6.4)
 
-## อัปเดตล่าสุด — 7 สิงหาคม 2026
+## อัปเดตล่าสุด — 30 กันยายน 2026
 
+- Bot Live Chat อ่านชื่อผู้ใช้เฉพาะเมื่อผู้พูดเปลี่ยน คนเดิมที่ส่งข้อความต่อเนื่องจะไม่ถูกอ่านชื่อซ้ำ
+- เพิ่มค่าหน่วงเมื่อเปลี่ยนผู้พูด ปรับได้แบบเรียลไทม์ตั้งแต่ 0–10 วินาที (ค่าเริ่มต้น 0.75 วินาที)
+- ข้าม shortcode อิโมจิรูปแบบ `:อิโมจิ:` ก่อนส่งข้อความเข้า TTS และไม่สร้างเสียงหากไม่มีข้อความเหลือ
+
+- ปรับ GUI ทั้งโปรแกรมด้วย design system กลาง: สี ระยะห่าง card ปุ่ม input และ typography เป็นชุดเดียวกัน
+- ปรับ Sidebar ใหม่พร้อมสถานะหน้าที่เลือก และจัดทุกหน้าให้ responsive ตั้งแต่ขนาดหน้าต่าง 1000×700
+- จัด workflow ของ Bot Live Chat, Optimizer, Cleanup, Windows Tools และ Settings ใหม่ให้ลำดับใช้งานชัดและลดความรก
+- แก้ white flash ตอนเปิด/restore: ซ่อน native window จน dark first frame วาดเสร็จ และสร้างหน้ารองเมื่อเปิดใช้งานครั้งแรก
+- เปิดหน้าต่างกลับจาก taskbar/System Tray โดยใช้ UI เดิม ไม่ซ่อนและบังคับวาด widget ทั้งหมดใหม่ทุกครั้ง
+- ลด startup GUI จากประมาณ 893ms เหลือ 188–245ms ใน regression test พร้อม atomic Dashboard refresh ที่ไม่ลบกล่องจนว่าง
+- Quick Add ไม่ redraw หรือ reset โปรแกรมที่เลือกเมื่อรายการโปรเซสจากรอบ refresh ไม่มีการเปลี่ยนแปลง
 - เพิ่มระบบ **Single Instance** ป้องกันการเปิดโปรแกรมซ้ำ โดยตรวจสอบก่อนโหลด GUI, ระบบเสียง และ log handlers
 - เพิ่ม **Auto Start Optimizer** ใน App Settings ให้ Optimizer เริ่มทำงานเองหลังเปิดโปรแกรม
+- Optimizer ปรับ affinity/priority เฉพาะรายการที่ผู้ใช้กำหนด และไม่แตะ Explorer, DWM หรือโปรเซส Windows อื่นโดยอัตโนมัติ
+- หากยังไม่มี optimizer_config.ini โปรแกรมจะสร้างโปรไฟล์พร้อมใช้ให้อัตโนมัติ แล้วผู้ใช้ค่อยปรับค่าได้ภายหลังโดยไม่ถูกเขียนทับ
+- เมื่อไม่พบ `optimizer_config.ini` ระบบจะดาวน์โหลดโปรไฟล์พร้อมใช้จาก `optimizer-config.ini` บน GitHub โดยตรวจรูปแบบก่อนบันทึก และใช้ค่าในโปรแกรมสำรองเมื่อออฟไลน์
+- หน้า Optimizer มีปุ่ม Reset Config พร้อมการยืนยัน เพื่อโหลด Settings, preset เกม, custom programs และ managed directories ใหม่จากโปรไฟล์เดียวกันบน GitHub
+- แยก **Start Minimized** และ **Run on Windows Startup** ออกจากกัน โดยแก้ Task Scheduler เฉพาะเมื่อค่า Startup เปลี่ยน
+- เพิ่ม preset โปรเซสเกมยอดนิยม 97 รายการ ครอบคลุม Steam, Epic, Riot, Battle.net และเกมออนไลน์หลัก โดยผู้ใช้ยังเพิ่มหรือกำหนด policy เองได้
+- แยก preset เกมออกจากรายการ Custom Programs เพื่อให้หน้า Optimizer โหลดเร็วและไม่รก พร้อม migration ครั้งเดียวที่ไม่เขียนทับค่าของผู้ใช้
+- บันทึก `optimizer_config.ini` แบบ atomic ลดโอกาสไฟล์ config เสียหายเมื่อ UI และ Optimizer ทำงานพร้อมกัน
+- เพิ่ม Auto Update Check ผ่าน GitHub Tags API แบบ background พร้อมแสดง Current Version, Latest Tag และสถานะในหน้า Settings
+- ผู้ใช้กดตรวจสอบซ้ำหรือเปิดหน้า GitHub Release ได้เอง ระบบจะไม่ดาวน์โหลดหรือติดตั้งอัปเดตอัตโนมัติ
 - เปิดโปรแกรมซ้ำจะเรียกหน้าต่างเดิมขึ้นมาจาก System Tray แทนการเปิด instance ใหม่
 - เพิ่มการแจ้งเตือน Windows โดยใช้ไอคอนหลัก `icon.ico` และสามารถปิดได้จาก App Settings
-- Dashboard แสดง CPU usage ของ P-Core และ E-Core แยกกัน พร้อมจำนวนคอร์ที่ Optimizer ใช้เทียบกับจำนวน logical cores ทั้งหมด
-- Console บน Dashboard แยกแท็บ All Logs, Bot Live Chat และ Optimizer เพื่ออ่านสถานะของแต่ละระบบได้ง่าย
-- Build v3.6.0 ใช้โหมดโฟลเดอร์แยก: `dist/StreamerSuite/StreamerSuite.exe` และไฟล์ประกอบอยู่ใน `parts/` เพื่ออัปเดตเป็นส่วนได้ง่าย
-- Installer แยก payload ทุก 50 MB เป็น `Setup-1.bin`, `Setup-2.bin`, ... โดยต้องวาง Setup `.exe` และทุก Part ไว้ในโฟลเดอร์เดียวกัน
+- Dashboard แยกแท็บ **Performance** และ **Logs** ชัดเจน โดย Log ไม่เบียดข้อมูลสำคัญบนหน้าหลัก
+- Performance แสดง P-Core/E-Core, RAM, GPU และตารางโปรแกรมที่ใช้ CPU/RAM/GPU สูงสุดแบบเรียลไทม์
+- Logs ยังอยู่ใน Dashboard และแยกย่อยเป็น All Logs, Bot Live Chat และ Optimizer
+- ปรับ WinGet Manager เป็น UI แบบกระชับ มีสถานะคำสั่ง ค้นหา/ติดตั้งด้วย Enter และป้องกันคำสั่งทำงานซ้อนกัน
+- Build v3.6.4 ใช้โหมดโฟลเดอร์แยก: `dist/StreamerSuite/StreamerSuite.exe` และไฟล์ประกอบอยู่ใน `parts/` เพื่ออัปเดตเป็นส่วนได้ง่าย
+- Installer v3.6.4 เป็น Setup `.exe` ไฟล์เดียว พร้อมไฟล์ SHA-256 สำหรับตรวจสอบความสมบูรณ์
 - หน้า Optimizer เพิ่มโปรแกรมได้จากรายชื่อโปรเซสที่กำลังรัน พร้อมแยกโหมด Quick Add และ Manual Entry
-- ปรับประสิทธิภาพ UI: ย้าย CPU monitoring/process scan ไป background, cache topology และรวม log updates เป็นชุด
+- ปรับประสิทธิภาพ UI: ย้าย CPU/RAM/GPU monitoring และ process scan ไป background, cache topology และรวมการอัปเดต UI/log เป็นชุด
 - Quick Add ค้นหาโปรเซสได้ทันทีขณะพิมพ์ และรีเฟรชรายการอัตโนมัติทุก 5 วินาที
 - เปลี่ยนชื่อระบบอ่านแชทเป็น **Bot Live Chat**
 - รองรับ YouTube Live, Twitch และ TikTok Live
@@ -65,9 +88,8 @@
 
 ### สำหรับผู้ใช้งานทั่วไป (Standard Users)
 1. ไปที่โฟลเดอร์ `installer/`
-2. วาง `TDitbam-Streamer-Suite-Setup-v3.6.0.exe` และไฟล์ `TDitbam-Streamer-Suite-Setup-v3.6.0-*.bin` ทุก Part ไว้ในโฟลเดอร์เดียวกัน
-3. รันไฟล์ `TDitbam-Streamer-Suite-Setup-v3.6.0.exe`
-4. ทำตามขั้นตอนการติดตั้งบนหน้าจอ
+2. รันไฟล์ `TDitbam-Streamer-Suite-Setup-v3.6.4.exe`
+3. ทำตามขั้นตอนการติดตั้งบนหน้าจอ
 
 ### สำหรับนักพัฒนา (Developers)
 หากต้องการรันจาก Source Code:
@@ -86,9 +108,11 @@ python -m venv .venv
 powershell -ExecutionPolicy Bypass -File .\build_release.ps1
 ```
 
+หาก PowerShell ปัจจุบันไม่ได้รันเป็น Administrator สคริปต์จะเปิดหน้าต่าง UAC และเริ่ม build ใหม่ด้วยสิทธิ์ผู้ดูแลระบบอัตโนมัติ
+
 - App แบบแยกไฟล์: `dist\StreamerSuite\StreamerSuite.exe` + `dist\StreamerSuite\parts\`
-- Installer แบบแยก Part: `installer\TDitbam-Streamer-Suite-Setup-v3.6.0.exe` + ไฟล์ `.bin` ทุก Part
-- ห้ามเปลี่ยนชื่อหรือแยกตำแหน่งไฟล์ `.bin` ออกจาก Setup `.exe`
+- Installer ไฟล์เดียว: `installer\TDitbam-Streamer-Suite-Setup-v3.6.4.exe`
+- Checksum: `installer\TDitbam-Streamer-Suite-Setup-v3.6.4-SHA256.txt`
 
 ---
 
@@ -106,7 +130,7 @@ powershell -ExecutionPolicy Bypass -File .\build_release.ps1
 - `gui/`: หน้าต่างการใช้งานและเมนูต่างๆ
 - `optimizer/`: ระบบจัดการ CPU และการล้างไฟล์ขยะ
 - `config.ini`: ไฟล์เก็บค่าตั้งค่าหลักของโปรแกรม
-- `build_release.ps1`: สร้าง App EXE, โฟลเดอร์ `parts`, Installer Parts และไฟล์ SHA-256 manifest อัตโนมัติ
+- `build_release.ps1`: ขอสิทธิ์ Administrator อัตโนมัติ แล้วสร้าง App EXE, โฟลเดอร์ `parts`, Setup EXE ไฟล์เดียว และไฟล์ SHA-256
 
 ---
 
@@ -116,8 +140,6 @@ powershell -ExecutionPolicy Bypass -File .\build_release.ps1
 ---
 
 ## 🤝 เครดิต (Credits)
-<<<<<<< HEAD
-
 - **Developer & Release Owner:** Tditbam
 - **AI Development Assistance:** Gemini CLI และ OpenAI Codex
 - **Runtime:** CustomTkinter, TikTokLive, edge-tts, deep-translator, pygame-ce, psutil, pystray, Pillow, gTTS และ pytchat
@@ -125,11 +147,6 @@ powershell -ExecutionPolicy Bypass -File .\build_release.ps1
 - **Build & Distribution:** Python, PyInstaller, Inno Setup, Git และ GitHub
 
 ดูรายชื่อผู้พัฒนา เครื่องมือ บริการ ไลบรารี และหมายเหตุเครื่องหมายการค้าแบบเต็มได้ที่ [CREDITS.md](./CREDITS.md)
-=======
-- **Developer:** Tditbam
-- **AI Assistant:** Gemini CLI , Openai codex
-- **Libraries:** CustomTkinter, Edge-TTS, TikTokLive, psutil
->>>>>>> b5540d0ea2e7b7a3edb37225ee664bbc181cef1b
 
 ---
 *Released under MIT License - 2026 TDitbam*

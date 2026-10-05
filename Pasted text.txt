@@ -1,0 +1,5612 @@
+{
+  "schemaVersion": 4,
+  "nodeType": "RootNode",
+  "sources": {
+    "schemaVersion": 5,
+    "nodeType": "SourcesNode",
+    "items": [
+      {
+        "hotkeys": {
+          "schemaVersion": 2,
+          "nodeType": "HotkeysNode",
+          "items": []
+        },
+        "id": "browser_source_23d5ffea-9d94-49b0-bb48-a40938683289",
+        "name": "โดเนิท",
+        "type": "browser_source",
+        "settings": {
+          "url": "https://widgets.easydonate.app?w=alert&u=d6h2yp8euwy6mwcydjf2vz85&t=35c6efb3ddef3cff76ea3b74793f3d4d&ts=1781179739864",
+          "shutdown": true
+        },
+        "volume": 1,
+        "muted": false,
+        "deinterlaceMode": 0,
+        "deinterlaceFieldOrder": 0,
+        "filters": {
+          "items": []
+        },
+        "propertiesManager": "default",
+        "propertiesManagerSettings": {
+          "mediaBackup": {}
+        },
+        "forceMono": false,
+        "syncOffset": {
+          "sec": 0,
+          "nsec": 0
+        },
+        "audioMixers": 1,
+        "monitoringType": 2,
+        "mixerHidden": false
+      },
+      {
+        "hotkeys": {
+          "schemaVersion": 2,
+          "nodeType": "HotkeysNode",
+          "items": []
+        },
+        "id": "color_source_13e876d6-ad93-4df0-b5e5-e13a6f782134",
+        "name": "Color",
+        "type": "color_source",
+        "settings": {
+          "color": 4278190080,
+          "height": 400
+        },
+        "volume": 1,
+        "muted": false,
+        "deinterlaceMode": 0,
+        "deinterlaceFieldOrder": 0,
+        "filters": {
+          "items": []
+        },
+        "propertiesManager": "default",
+        "propertiesManagerSettings": {
+          "mediaBackup": {}
+        }
+      },
+      {
+        "hotkeys": {
+          "schemaVersion": 2,
+          "nodeType": "HotkeysNode",
+          "items": []
+        },
+        "id": "wasapi_process_output_capture_61362cde-815f-4325-88ac-e31e762bf26c",
+        "name": "Discord",
+        "type": "wasapi_process_output_capture",
+        "settings": {
+          "window": "#22sɪɴɴ-ᴛᴀʟᴋ | ✨TANTAWAN✨ - Discord:Chrome_WidgetWin_1:Discord.exe"
+        },
+        "volume": 1,
+        "muted": true,
+        "deinterlaceMode": 0,
+        "deinterlaceFieldOrder": 0,
+        "filters": {
+          "items": [
+            {
+              "name": "Gain",
+              "type": "gain_filter",
+              "settings": {
+                "db": -7.1
+              },
+              "enabled": true,
+              "visible": true,
+              "displayType": "normal"
+            },
+            {
+              "name": "Limiter",
+              "type": "limiter_filter",
+              "settings": {
+                "threshold": -10.9,
+                "release_time": 60
+              },
+              "enabled": true,
+              "visible": true,
+              "displayType": "normal"
+            },
+            {
+              "name": "Compressor",
+              "type": "compressor_filter",
+              "settings": {
+                "ratio": 32,
+                "threshold": -21.7,
+                "attack_time": 6,
+                "release_time": 60,
+                "output_gain": 0,
+                "sidechain_source": "wasapi_input_capture_caffb919-d588-4c53-a760-b0e977235c12"
+              },
+              "enabled": true,
+              "visible": true,
+              "displayType": "normal"
+            }
+          ]
+        },
+        "propertiesManager": "default",
+        "propertiesManagerSettings": {
+          "mediaBackup": {}
+        },
+        "forceMono": false,
+        "syncOffset": {
+          "sec": 0,
+          "nsec": 0
+        },
+        "audioMixers": 1,
+        "monitoringType": 0,
+        "mixerHidden": false
+      },
+      {
+        "hotkeys": {
+          "schemaVersion": 2,
+          "nodeType": "HotkeysNode",
+          "items": []
+        },
+        "id": "wasapi_process_output_capture_1881450c-ebac-4935-8ffd-45b086ca3d95",
+        "name": "Game",
+        "type": "wasapi_process_output_capture",
+        "settings": {
+          "undo_uuid": "8a6f1b2f-77a4-416a-bf2f-f0a10f7b4d4f",
+          "priority": 0,
+          "window": "Black Desert - 529634:BlackDesertWindowClass:BlackDesert64.exe"
+        },
+        "volume": 0.10000000149011612,
+        "muted": false,
+        "deinterlaceMode": 0,
+        "deinterlaceFieldOrder": 0,
+        "filters": {
+          "items": [
+            {
+              "name": "Gain",
+              "type": "gain_filter",
+              "settings": {
+                "db": 7.4
+              },
+              "enabled": false,
+              "visible": false,
+              "displayType": "normal"
+            },
+            {
+              "name": "Limiter",
+              "type": "limiter_filter",
+              "settings": {
+                "threshold": 0,
+                "release_time": 60
+              },
+              "enabled": true,
+              "visible": true,
+              "displayType": "normal"
+            },
+            {
+              "name": "Compressor",
+              "type": "compressor_filter",
+              "settings": {
+                "ratio": 32,
+                "threshold": -21.7,
+                "attack_time": 6,
+                "release_time": 60,
+                "output_gain": 0,
+                "sidechain_source": "wasapi_input_capture_caffb919-d588-4c53-a760-b0e977235c12"
+              },
+              "enabled": false,
+              "visible": false,
+              "displayType": "normal"
+            }
+          ]
+        },
+        "propertiesManager": "default",
+        "propertiesManagerSettings": {
+          "mediaBackup": {}
+        },
+        "forceMono": false,
+        "syncOffset": {
+          "sec": 0,
+          "nsec": 0
+        },
+        "audioMixers": 1,
+        "monitoringType": 2,
+        "mixerHidden": false
+      },
+      {
+        "hotkeys": {
+          "schemaVersion": 2,
+          "nodeType": "HotkeysNode",
+          "items": []
+        },
+        "id": "wasapi_process_output_capture_3c926046-a9f0-45fe-800f-4c9ea54cfaed",
+        "name": "TTS",
+        "type": "wasapi_process_output_capture",
+        "settings": {
+          "window": "Streamer Suite:TkTopLevel:StreamerSuite.exe"
+        },
+        "volume": 1,
+        "muted": false,
+        "deinterlaceMode": 0,
+        "deinterlaceFieldOrder": 0,
+        "filters": {
+          "items": [
+            {
+              "name": "Gain",
+              "type": "gain_filter",
+              "settings": {
+                "db": -10.9
+              },
+              "enabled": true,
+              "visible": true,
+              "displayType": "normal"
+            },
+            {
+              "name": "Limiter",
+              "type": "limiter_filter",
+              "settings": {
+                "threshold": -4.5,
+                "release_time": 60
+              },
+              "enabled": true,
+              "visible": true,
+              "displayType": "normal"
+            },
+            {
+              "name": "Compressor",
+              "type": "compressor_filter",
+              "settings": {
+                "ratio": 32,
+                "threshold": -21.7,
+                "attack_time": 6,
+                "release_time": 60,
+                "output_gain": 0,
+                "sidechain_source": "none"
+              },
+              "enabled": true,
+              "visible": true,
+              "displayType": "normal"
+            },
+            {
+              "name": "Gain 2",
+              "type": "gain_filter",
+              "settings": {
+                "db": 9.8
+              },
+              "enabled": true,
+              "visible": true,
+              "displayType": "normal"
+            }
+          ]
+        },
+        "propertiesManager": "default",
+        "propertiesManagerSettings": {
+          "mediaBackup": {}
+        },
+        "forceMono": false,
+        "syncOffset": {
+          "sec": 0,
+          "nsec": 0
+        },
+        "audioMixers": 1,
+        "monitoringType": 0,
+        "mixerHidden": false
+      },
+      {
+        "hotkeys": {
+          "schemaVersion": 2,
+          "nodeType": "HotkeysNode",
+          "items": []
+        },
+        "id": "image_source_829b284f-edf3-40fc-94fc-2af9826a8e5b",
+        "name": "Image 4",
+        "type": "image_source",
+        "settings": {
+          "file": "D:\\live\\ไปเข้าห้องน้ำแปป.png",
+          "unload": true,
+          "linear_alpha": false
+        },
+        "volume": 1,
+        "muted": false,
+        "deinterlaceMode": 0,
+        "deinterlaceFieldOrder": 0,
+        "filters": {
+          "items": []
+        },
+        "propertiesManager": "default",
+        "propertiesManagerSettings": {
+          "mediaBackup": {
+            "localId": "3b42a961-45a1-41df-be03-7140511685c6",
+            "serverId": null,
+            "originalPath": null
+          }
+        }
+      },
+      {
+        "hotkeys": {
+          "schemaVersion": 2,
+          "nodeType": "HotkeysNode",
+          "items": []
+        },
+        "id": "image_source_760d9ece-fb97-4f21-aec6-dd8d852acc8f",
+        "name": "Image 5",
+        "type": "image_source",
+        "settings": {
+          "file": "D:\\live\\ใสรหัสเข้าเกมส์แปป.png"
+        },
+        "volume": 1,
+        "muted": false,
+        "deinterlaceMode": 0,
+        "deinterlaceFieldOrder": 0,
+        "filters": {
+          "items": []
+        },
+        "propertiesManager": "default",
+        "propertiesManagerSettings": {
+          "mediaBackup": {
+            "localId": "f91ef2dc-01c2-4197-924a-d21b60558139",
+            "serverId": null,
+            "originalPath": null
+          }
+        }
+      },
+      {
+        "hotkeys": {
+          "schemaVersion": 2,
+          "nodeType": "HotkeysNode",
+          "items": []
+        },
+        "id": "image_source_2f174681-9903-4f89-8524-f1c7fd2e08fb",
+        "name": "Image 6",
+        "type": "image_source",
+        "settings": {
+          "file": "D:\\live\\ending.png"
+        },
+        "volume": 1,
+        "muted": false,
+        "deinterlaceMode": 0,
+        "deinterlaceFieldOrder": 0,
+        "filters": {
+          "items": [
+            {
+              "name": "Scaling/Aspect Ratio",
+              "type": "scale_filter",
+              "settings": {
+                "sampling": "lanczos",
+                "resolution": "Base (Canvas) Resolution",
+                "undistort": false
+              },
+              "enabled": false,
+              "visible": false,
+              "displayType": "normal"
+            }
+          ]
+        },
+        "propertiesManager": "default",
+        "propertiesManagerSettings": {
+          "mediaBackup": {
+            "localId": "1acade5a-1912-4d5b-8c00-7224aeb418af",
+            "serverId": null,
+            "originalPath": null
+          }
+        }
+      },
+      {
+        "hotkeys": {
+          "schemaVersion": 2,
+          "nodeType": "HotkeysNode",
+          "items": []
+        },
+        "id": "wasapi_input_capture_caffb919-d588-4c53-a760-b0e977235c12",
+        "name": "Mic",
+        "type": "wasapi_input_capture",
+        "settings": {
+          "device_id": "default",
+          "use_device_timing": false
+        },
+        "volume": 1,
+        "muted": false,
+        "deinterlaceMode": 0,
+        "deinterlaceFieldOrder": 0,
+        "filters": {
+          "items": [
+            {
+              "name": "Gain",
+              "type": "gain_filter",
+              "settings": {
+                "db": 15.7
+              },
+              "enabled": true,
+              "visible": true,
+              "displayType": "normal"
+            },
+            {
+              "name": "Limiter",
+              "type": "limiter_filter",
+              "settings": {
+                "threshold": 0,
+                "release_time": 60
+              },
+              "enabled": true,
+              "visible": true,
+              "displayType": "normal"
+            },
+            {
+              "name": "Noise Suppression",
+              "type": "noise_suppress_filter_v2",
+              "settings": {
+                "suppress_level": -34,
+                "method": "rnnoise"
+              },
+              "enabled": true,
+              "visible": true,
+              "displayType": "normal"
+            },
+            {
+              "name": "Noise Gate",
+              "type": "noise_gate_filter",
+              "settings": {},
+              "enabled": false,
+              "visible": false,
+              "displayType": "normal"
+            }
+          ]
+        },
+        "propertiesManager": "default",
+        "propertiesManagerSettings": {
+          "mediaBackup": {}
+        },
+        "forceMono": false,
+        "syncOffset": {
+          "sec": 0,
+          "nsec": 0
+        },
+        "audioMixers": 1,
+        "monitoringType": 2,
+        "mixerHidden": false
+      },
+      {
+        "hotkeys": {
+          "schemaVersion": 2,
+          "nodeType": "HotkeysNode",
+          "items": []
+        },
+        "id": "dshow_input_5b190305-6338-4170-b816-3f1185c42d7d",
+        "name": "Video Capture Device",
+        "type": "dshow_input",
+        "settings": {
+          "deactivate_when_not_showing": true,
+          "last_resolution": "1920x1080",
+          "last_video_device_id": "Camera (NVIDIA Broadcast):",
+          "resolution": "1920x1080",
+          "video_device_id": "HP True Vision FHD Camera:\\\\?\\usb#22vid_05c8&pid_0445&mi_00#226&100e9894&0&0000#22{65e8773d-8f56-11d0-a3b9-00a0c9223196}\\global",
+          "buffering": 0,
+          "flip_vertically": false,
+          "use_custom_audio_device": false,
+          "audio_device_id": "Microphone Array (Intel® Smart Sound Technology for Digital Microphones):",
+          "frame_interval": 0,
+          "res_type": 1,
+          "video_format": 0,
+          "color_space": "default",
+          "color_range": "default",
+          "audio_output_mode": 0,
+          "autorotation": true,
+          "hw_decode": true
+        },
+        "volume": 1,
+        "muted": false,
+        "deinterlaceMode": 0,
+        "deinterlaceFieldOrder": 0,
+        "filters": {
+          "items": []
+        },
+        "propertiesManager": "default",
+        "propertiesManagerSettings": {
+          "mediaBackup": {}
+        },
+        "forceMono": false,
+        "syncOffset": {
+          "sec": 0,
+          "nsec": 0
+        },
+        "audioMixers": 1,
+        "monitoringType": 0,
+        "mixerHidden": false
+      },
+      {
+        "hotkeys": {
+          "schemaVersion": 2,
+          "nodeType": "HotkeysNode",
+          "items": []
+        },
+        "id": "vlc_source_419e5153-3b56-4baf-8b68-19052476a4ca",
+        "name": "VLC Video",
+        "type": "vlc_source",
+        "settings": {
+          "playlist": [
+            {
+              "hidden": false,
+              "selected": false,
+              "uuid": "2c36332d-65f0-4087-aee5-1b3d6f58bd34",
+              "value": "D:/song"
+            }
+          ],
+          "shuffle": false
+        },
+        "volume": 0.017113279551267624,
+        "muted": false,
+        "deinterlaceMode": 0,
+        "deinterlaceFieldOrder": 0,
+        "filters": {
+          "items": [
+            {
+              "name": "Gain",
+              "type": "gain_filter",
+              "settings": {
+                "db": 0
+              },
+              "enabled": true,
+              "visible": true,
+              "displayType": "normal"
+            },
+            {
+              "name": "Limiter",
+              "type": "limiter_filter",
+              "settings": {
+                "threshold": -12.6,
+                "release_time": 60
+              },
+              "enabled": true,
+              "visible": true,
+              "displayType": "normal"
+            },
+            {
+              "name": "Compressor",
+              "type": "compressor_filter",
+              "settings": {
+                "ratio": 10,
+                "threshold": -48.6,
+                "attack_time": 6,
+                "release_time": 554,
+                "output_gain": 0,
+                "sidechain_source": "wasapi_input_capture_caffb919-d588-4c53-a760-b0e977235c12"
+              },
+              "enabled": false,
+              "visible": false,
+              "displayType": "normal"
+            }
+          ]
+        },
+        "propertiesManager": "default",
+        "propertiesManagerSettings": {
+          "mediaBackup": {}
+        },
+        "forceMono": false,
+        "syncOffset": {
+          "sec": 0,
+          "nsec": 0
+        },
+        "audioMixers": 255,
+        "monitoringType": 2,
+        "mixerHidden": false
+      },
+      {
+        "hotkeys": {
+          "schemaVersion": 2,
+          "nodeType": "HotkeysNode",
+          "items": []
+        },
+        "id": "browser_source_c02db909-e1a2-49d3-b564-f898a33cc8e5",
+        "name": "Alert Box",
+        "type": "browser_source",
+        "settings": {
+          "url": "https://streamlabs.com/alert-box/v3/FF8A49F7C3C7568B3E78D24C2A36769713670D3F0448043922A7E495C1D684600FCEDA078C1CBC93BBDC4FA852BEB2B313FA8B6D67578B6FD7B91E51B1010C3604751651754092973657327EB99E9D1FE4CB1493E0141DCF3F3D74C92A84F30750FF386ED755A70BEE650191DC61C7024BE92F77BAAB8406D319999DCA",
+          "shutdown": true
+        },
+        "volume": 1,
+        "muted": false,
+        "deinterlaceMode": 0,
+        "deinterlaceFieldOrder": 0,
+        "filters": {
+          "items": []
+        },
+        "propertiesManager": "widget",
+        "propertiesManagerSettings": {
+          "widgetType": 0
+        },
+        "forceMono": false,
+        "syncOffset": {
+          "sec": 0,
+          "nsec": 0
+        },
+        "audioMixers": 1,
+        "monitoringType": 2,
+        "mixerHidden": false
+      },
+      {
+        "hotkeys": {
+          "schemaVersion": 2,
+          "nodeType": "HotkeysNode",
+          "items": []
+        },
+        "id": "image_source_6770d3a8-de4c-4a91-85ba-6d6f2a5e63df",
+        "name": "Image (1)",
+        "type": "image_source",
+        "settings": {
+          "file": "D:\\live\\starting.png"
+        },
+        "volume": 1,
+        "muted": false,
+        "deinterlaceMode": 0,
+        "deinterlaceFieldOrder": 0,
+        "filters": {
+          "items": []
+        },
+        "propertiesManager": "default",
+        "propertiesManagerSettings": {
+          "mediaBackup": {
+            "localId": "c1bf38dd-b9a7-4b18-bda8-bad229af3fdc",
+            "serverId": null,
+            "originalPath": null
+          }
+        }
+      },
+      {
+        "hotkeys": {
+          "schemaVersion": 2,
+          "nodeType": "HotkeysNode",
+          "items": []
+        },
+        "id": "color_source_6ab342ea-89fa-4c24-8a75-687e689ca1f2",
+        "name": "Color Block",
+        "type": "color_source",
+        "settings": {
+          "color": -16777216
+        },
+        "volume": 1,
+        "muted": false,
+        "deinterlaceMode": 0,
+        "deinterlaceFieldOrder": 0,
+        "filters": {
+          "items": []
+        },
+        "propertiesManager": "default",
+        "propertiesManagerSettings": {
+          "mediaBackup": {}
+        }
+      },
+      {
+        "hotkeys": {
+          "schemaVersion": 2,
+          "nodeType": "HotkeysNode",
+          "items": []
+        },
+        "id": "text_gdiplus_01d241b6-6841-4a71-b8aa-77f075d4f7a2",
+        "name": "Text (GDI+)",
+        "type": "text_gdiplus",
+        "settings": {
+          "version": 3,
+          "custom_font": "C:\\Users\\Temptos\\AppData\\Roaming\\slobs-client\\Fonts\\Abel-Regular.ttf",
+          "gradient": true,
+          "outline": true,
+          "text": "กินข้าวแปป",
+          "font": {
+            "face": "Abel",
+            "flags": 0,
+            "size": 256
+          },
+          "gradient_opacity": 100,
+          "gradient_dir": 13.7,
+          "outline_size": 20,
+          "outline_color": 0,
+          "transform": 1
+        },
+        "volume": 1,
+        "muted": false,
+        "deinterlaceMode": 0,
+        "deinterlaceFieldOrder": 0,
+        "filters": {
+          "items": []
+        },
+        "propertiesManager": "default",
+        "propertiesManagerSettings": {
+          "mediaBackup": {}
+        }
+      },
+      {
+        "hotkeys": {
+          "schemaVersion": 2,
+          "nodeType": "HotkeysNode",
+          "items": []
+        },
+        "id": "browser_source_46bdb1d9-e4ce-4a8e-8d75-6891d657b10a",
+        "name": "Chat Box",
+        "type": "browser_source",
+        "settings": {
+          "url": "https://streamlabs.com/widgets/chat-box/v1/FF8A49F7C3C7568B3E78D24C2A36769713670D3F0448043922A7E495C1D684600FCEDA078C1CBC93BBDC4FA852BEB2B313FA8B6D67578B6FD7B91E51B1010C3604751651754092973657327EB99E9D1FE4CB1493E0141DCF3F3D74C92A84F30750FF386ED755A70BEE650191DC61C7024BE92F77BAAB8406D319999DCA",
+          "width": 480,
+          "height": 250,
+          "fps": 24,
+          "fps_custom": true,
+          "shutdown": true,
+          "restart_when_active": false,
+          "css": "",
+          "reroute_audio": false
+        },
+        "volume": 1,
+        "muted": false,
+        "deinterlaceMode": 0,
+        "deinterlaceFieldOrder": 0,
+        "filters": {
+          "items": []
+        },
+        "propertiesManager": "widget",
+        "propertiesManagerSettings": {
+          "widgetType": 6
+        },
+        "forceMono": false,
+        "syncOffset": {
+          "sec": 0,
+          "nsec": 0
+        },
+        "audioMixers": 255,
+        "monitoringType": 1,
+        "mixerHidden": false
+      },
+      {
+        "hotkeys": {
+          "schemaVersion": 2,
+          "nodeType": "HotkeysNode",
+          "items": []
+        },
+        "id": "ffmpeg_source_74f1657f-05e6-4e11-bdf2-5805ad44f6cb",
+        "name": "Media File",
+        "type": "ffmpeg_source",
+        "settings": {
+          "local_file": "D:\\live\\0902.mp4",
+          "close_when_inactive": true,
+          "hw_decode": true,
+          "looping": false
+        },
+        "volume": 1,
+        "muted": false,
+        "deinterlaceMode": 0,
+        "deinterlaceFieldOrder": 0,
+        "filters": {
+          "items": [
+            {
+              "name": "Scaling/Aspect Ratio",
+              "type": "scale_filter",
+              "settings": {
+                "sampling": "lanczos",
+                "resolution": "Base (Canvas) Resolution",
+                "undistort": false
+              },
+              "enabled": false,
+              "visible": false,
+              "displayType": "normal"
+            }
+          ]
+        },
+        "propertiesManager": "default",
+        "propertiesManagerSettings": {
+          "mediaBackup": {
+            "localId": "114bddcc-cc8e-43ea-9aca-e4e06f897a8e",
+            "serverId": 1120331981,
+            "originalPath": "D:\\live\\0902.mp4"
+          }
+        },
+        "forceMono": false,
+        "syncOffset": {
+          "sec": 0,
+          "nsec": 0
+        },
+        "audioMixers": 255,
+        "monitoringType": 0,
+        "mixerHidden": false
+      },
+      {
+        "hotkeys": {
+          "schemaVersion": 2,
+          "nodeType": "HotkeysNode",
+          "items": []
+        },
+        "id": "browser_source_3cdd49a2-6c8e-4d51-911b-f2f9acdf6332",
+        "name": "Viewer Count",
+        "type": "browser_source",
+        "settings": {
+          "url": "https://streamlabs.com/widgets/viewer-count?token=FF8A49F7C3C7568B3E78D24C2A36769713670D3F0448043922A7E495C1D684600FCEDA078C1CBC93BBDC4FA852BEB2B313FA8B6D67578B6FD7B91E51B1010C3604751651754092973657327EB99E9D1FE4CB1493E0141DCF3F3D74C92A84F30750FF386ED755A70BEE650191DC61C7024BE92F77BAAB8406D319999DCA",
+          "width": 600,
+          "height": 200,
+          "fps": 30,
+          "fps_custom": false,
+          "shutdown": true,
+          "restart_when_active": true,
+          "css": "body { background-color: rgba(0, 0, 0, 0); margin: 0px auto; overflow: hidden; }",
+          "reroute_audio": false
+        },
+        "volume": 1,
+        "muted": false,
+        "deinterlaceMode": 0,
+        "deinterlaceFieldOrder": 0,
+        "filters": {
+          "items": []
+        },
+        "propertiesManager": "widget",
+        "propertiesManagerSettings": {
+          "widgetType": 9
+        },
+        "forceMono": false,
+        "syncOffset": {
+          "sec": 0,
+          "nsec": 0
+        },
+        "audioMixers": 255,
+        "monitoringType": 1,
+        "mixerHidden": false
+      },
+      {
+        "hotkeys": {
+          "schemaVersion": 2,
+          "nodeType": "HotkeysNode",
+          "items": []
+        },
+        "id": "image_source_4199260a-ff1b-42e5-b6f0-05072397e16b",
+        "name": "Image",
+        "type": "image_source",
+        "settings": {
+          "file": "D:\\live\\กำลังย้าย server รอแปป.png"
+        },
+        "volume": 1,
+        "muted": false,
+        "deinterlaceMode": 0,
+        "deinterlaceFieldOrder": 0,
+        "filters": {
+          "items": [
+            {
+              "name": "Scaling/Aspect Ratio",
+              "type": "scale_filter",
+              "settings": {
+                "sampling": "lanczos",
+                "resolution": "Base (Canvas) Resolution",
+                "undistort": false
+              },
+              "enabled": false,
+              "visible": false,
+              "displayType": "normal"
+            }
+          ]
+        },
+        "propertiesManager": "default",
+        "propertiesManagerSettings": {
+          "mediaBackup": {
+            "localId": "454eebb1-a323-458a-818a-7c5183775457",
+            "serverId": null,
+            "originalPath": null
+          }
+        }
+      },
+      {
+        "hotkeys": {
+          "schemaVersion": 2,
+          "nodeType": "HotkeysNode",
+          "items": []
+        },
+        "id": "game_capture_fbf87893-7abb-4fcb-a6d6-2e5238778efc",
+        "name": "Game Capture",
+        "type": "game_capture",
+        "settings": {
+          "window": "Black Desert - 530171:BlackDesertWindowClass:BlackDesert64.exe",
+          "capture_mode": "window",
+          "capture_overlays": true,
+          "auto_capture_rules_path": "C:\\Users\\Temptos\\AppData\\Roaming\\slobs-client\\game_capture_list.json",
+          "auto_placeholder_image": "C:\\Program Files\\Streamlabs OBS\\shared-resources\\capture-placeholder.png",
+          "window_placeholder_image": "C:\\Program Files\\Streamlabs OBS\\shared-resources\\capture-placeholder.png",
+          "window_placeholder_waiting_message": "Looking for a game to capture",
+          "window_placeholder_missing_message": "Specified window is not a game",
+          "auto_placeholder_message": "Looking for a game to capture",
+          "compat_info_visible": false,
+          "capture_audio": false
+        },
+        "volume": 1,
+        "muted": false,
+        "deinterlaceMode": 0,
+        "deinterlaceFieldOrder": 0,
+        "filters": {
+          "items": []
+        },
+        "propertiesManager": "default",
+        "propertiesManagerSettings": {
+          "mediaBackup": {
+            "localId": "b9743896-5a04-434a-8efb-ef047d374573"
+          }
+        }
+      },
+      {
+        "hotkeys": {
+          "schemaVersion": 2,
+          "nodeType": "HotkeysNode",
+          "items": []
+        },
+        "id": "monitor_capture_b8b20df5-e0c1-4257-973b-3f8f1c404a92",
+        "name": "Display Capture",
+        "type": "monitor_capture",
+        "settings": {
+          "method": 0,
+          "monitor_id": "\\\\?\\DISPLAY#MSI3BC0#5&3a4aaa77&0&UID4354#{e6f07b5f-ee97-4a90-b076-33f57bf4eaa7}"
+        },
+        "volume": 1,
+        "muted": false,
+        "deinterlaceMode": 0,
+        "deinterlaceFieldOrder": 0,
+        "filters": {
+          "items": []
+        },
+        "propertiesManager": "default",
+        "propertiesManagerSettings": {
+          "mediaBackup": {}
+        }
+      },
+      {
+        "hotkeys": {
+          "schemaVersion": 2,
+          "nodeType": "HotkeysNode",
+          "items": []
+        },
+        "id": "image_source_2e39487b-d9ac-4871-858e-02873997b6e1",
+        "name": "T ditbam",
+        "type": "image_source",
+        "settings": {
+          "file": "D:\\live\\1bf9144c-a4cd-4dba-97d8-aede9516d58a.png"
+        },
+        "volume": 1,
+        "muted": false,
+        "deinterlaceMode": 0,
+        "deinterlaceFieldOrder": 0,
+        "filters": {
+          "items": []
+        },
+        "propertiesManager": "default",
+        "propertiesManagerSettings": {
+          "mediaBackup": {
+            "localId": "8a046416-cd4c-454b-8955-155a88d0d5be",
+            "serverId": null,
+            "originalPath": null
+          }
+        }
+      }
+    ]
+  },
+  "scenes": {
+    "schemaVersion": 1,
+    "nodeType": "ScenesNode",
+    "items": [
+      {
+        "hotkeys": {
+          "schemaVersion": 2,
+          "nodeType": "HotkeysNode",
+          "items": []
+        },
+        "filters": {
+          "schemaVersion": 1,
+          "nodeType": "SceneFiltersNode",
+          "items": []
+        },
+        "sceneItems": {
+          "schemaVersion": 1,
+          "nodeType": "SceneItemsNode",
+          "items": [
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "72f6ad73-5982-42cd-afc9-569b888e240e",
+              "sourceId": "monitor_capture_b8b20df5-e0c1-4257-973b-3f8f1c404a92",
+              "x": -288.8373487175295,
+              "y": 399.386189258312,
+              "scaleX": 0.678980771052382,
+              "scaleY": 0.678980771052382,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "4f01abfd-504f-44fb-a4ce-7157d1a26509",
+              "sourceId": "game_capture_fbf87893-7abb-4fcb-a6d6-2e5238778efc",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": false,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "36d56ef6-2479-493c-8562-697141d3f272",
+              "sourceId": "color_source_6ab342ea-89fa-4c24-8a75-687e689ca1f2",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": false,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "8127b5e9-482e-428c-ab75-1dca633e32f6",
+              "sourceId": "image_source_2e39487b-d9ac-4871-858e-02873997b6e1",
+              "x": 0,
+              "y": 867.5191815856778,
+              "scaleX": 0.438343058888759,
+              "scaleY": 0.438343058888759,
+              "visible": false,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "d463b727-0127-4ef5-8820-278a1304ce80",
+              "sourceId": "dshow_input_5b190305-6338-4170-b816-3f1185c42d7d",
+              "x": 0,
+              "y": 0,
+              "scaleX": 0.36980202709102966,
+              "scaleY": 0.36980202709102966,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "808d2e30-916b-42e0-8330-2f800ef6590b",
+              "sourceId": "text_gdiplus_01d241b6-6841-4a71-b8aa-77f075d4f7a2",
+              "x": 0,
+              "y": 0,
+              "scaleX": 0.5619501947568821,
+              "scaleY": 0.5619501947568821,
+              "visible": false,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "7e93bb96-64bf-4e3b-b5d4-1365c7a0470b",
+              "sourceId": "browser_source_3cdd49a2-6c8e-4d51-911b-f2f9acdf6332",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "4ccb8423-e7d5-424d-b83e-ac8ab57ce57a",
+              "sourceId": "browser_source_23d5ffea-9d94-49b0-bb48-a40938683289",
+              "x": 92.0547945205476,
+              "y": 441.9437340153453,
+              "scaleX": 0.6874680306905371,
+              "scaleY": 0.6874680306905371,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            },
+            {
+              "id": "d54b54e5-55ae-4df2-b2f7-6be43e02c8ce",
+              "name": "Live Live",
+              "sceneNodeType": "folder",
+              "sceneId": "scene_315dcdb1-bdf0-4ecc-a6c6-16794df8164f",
+              "parentId": "",
+              "display": "vertical",
+              "childrenIds": [
+                "4ccb8423-e7d5-424d-b83e-ac8ab57ce57a",
+                "7e93bb96-64bf-4e3b-b5d4-1365c7a0470b",
+                "808d2e30-916b-42e0-8330-2f800ef6590b",
+                "d463b727-0127-4ef5-8820-278a1304ce80",
+                "8127b5e9-482e-428c-ab75-1dca633e32f6",
+                "36d56ef6-2479-493c-8562-697141d3f272"
+              ]
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "a501e8f5-2d9b-4857-9197-57d6bd8e09fb",
+              "sourceId": "monitor_capture_b8b20df5-e0c1-4257-973b-3f8f1c404a92",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "9b1f428b-511d-4340-9262-4fa174f0eea8",
+              "sourceId": "game_capture_fbf87893-7abb-4fcb-a6d6-2e5238778efc",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": false,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "2e4018e7-b449-470b-8da5-ef18784c919b",
+              "sourceId": "browser_source_46bdb1d9-e4ce-4a8e-8d75-6891d657b10a",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1.4927877237851663,
+              "scaleY": 1.4927877237851663,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "298b481c-48e6-41b4-8c2d-120d05cfc0b8",
+              "sourceId": "browser_source_c02db909-e1a2-49d3-b564-f898a33cc8e5",
+              "x": 73.99829497016185,
+              "y": 350.2813299232736,
+              "scaleX": 0.8075021312872976,
+              "scaleY": 0.8075021312872976,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "abf76ff5-1e90-4f43-912f-c0472f585365",
+              "sourceId": "browser_source_46bdb1d9-e4ce-4a8e-8d75-6891d657b10a",
+              "x": 0,
+              "y": 604.7342222732559,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "94473b98-c595-436b-bb7d-08fc9e83da11",
+              "sourceId": "browser_source_c02db909-e1a2-49d3-b564-f898a33cc8e5",
+              "x": 479.00001525878906,
+              "y": 275.15923566878973,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "6dc71434-0f8a-4ea5-a375-2c9e1c83fd12",
+              "sourceId": "color_source_6ab342ea-89fa-4c24-8a75-687e689ca1f2",
+              "x": 1607.2052980132453,
+              "y": -33.45974221745777,
+              "scaleX": 0.7819867549668867,
+              "scaleY": 0.3571307580888048,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 231,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "867ec383-a003-47e4-94ee-747d49ea4263",
+              "sourceId": "image_source_2e39487b-d9ac-4871-858e-02873997b6e1",
+              "x": 14.34977578475332,
+              "y": 821.4285714285714,
+              "scaleX": 0.25580689236374654,
+              "scaleY": 0.25580689236374654,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "b5f72226-73d3-430b-93cf-e903600cabc0",
+              "sourceId": "dshow_input_5b190305-6338-4170-b816-3f1185c42d7d",
+              "x": 0,
+              "y": 842.5430463576162,
+              "scaleX": 0.21986754966887398,
+              "scaleY": 0.21986754966887398,
+              "visible": false,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "d46644b8-09ea-4dcf-ab30-89b005494e9a",
+              "sourceId": "ffmpeg_source_74f1657f-05e6-4e11-bdf2-5805ad44f6cb",
+              "x": -267.9609322386882,
+              "y": 425.5754475703327,
+              "scaleX": 1.0230179028132993,
+              "scaleY": 1.0230179028132993,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": false,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "3f5c3370-c1ed-43d8-9923-13c0290c6187",
+              "sourceId": "text_gdiplus_01d241b6-6841-4a71-b8aa-77f075d4f7a2",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": false,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "d0ce6a25-9b60-4032-abaf-2f612f66c54d",
+              "sourceId": "browser_source_3cdd49a2-6c8e-4d51-911b-f2f9acdf6332",
+              "x": 0,
+              "y": 138.25888036808658,
+              "scaleX": 0.6947698814625187,
+              "scaleY": 0.6947698814625187,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "820ba3e8-ccae-4f2e-b095-0a873984bfb2",
+              "sourceId": "browser_source_23d5ffea-9d94-49b0-bb48-a40938683289",
+              "x": 558.9873417721519,
+              "y": 233.73134328358208,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            },
+            {
+              "id": "5ba017ac-7304-4db4-99d0-c3dbf94fcf04",
+              "name": "Live Live",
+              "sceneNodeType": "folder",
+              "sceneId": "scene_315dcdb1-bdf0-4ecc-a6c6-16794df8164f",
+              "parentId": "",
+              "display": "horizontal",
+              "childrenIds": [
+                "820ba3e8-ccae-4f2e-b095-0a873984bfb2",
+                "d0ce6a25-9b60-4032-abaf-2f612f66c54d",
+                "3f5c3370-c1ed-43d8-9923-13c0290c6187",
+                "d46644b8-09ea-4dcf-ab30-89b005494e9a",
+                "b5f72226-73d3-430b-93cf-e903600cabc0",
+                "867ec383-a003-47e4-94ee-747d49ea4263",
+                "6dc71434-0f8a-4ea5-a375-2c9e1c83fd12",
+                "94473b98-c595-436b-bb7d-08fc9e83da11",
+                "abf76ff5-1e90-4f43-912f-c0472f585365",
+                "298b481c-48e6-41b4-8c2d-120d05cfc0b8",
+                "2e4018e7-b449-470b-8da5-ef18784c919b"
+              ]
+            },
+            {
+              "id": "7971ef4c-e67c-4be0-9507-2afb94a5432c",
+              "name": "Sound",
+              "sceneNodeType": "folder",
+              "sceneId": "scene_315dcdb1-bdf0-4ecc-a6c6-16794df8164f",
+              "parentId": "",
+              "display": "vertical",
+              "childrenIds": []
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "d576ad3f-c82a-4fdf-a195-a63aef28425d",
+              "sourceId": "wasapi_process_output_capture_1881450c-ebac-4935-8ffd-45b086ca3d95",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "5c0f7ecc-350b-4340-bf29-ff0f409ff1d6",
+              "sourceId": "wasapi_process_output_capture_1881450c-ebac-4935-8ffd-45b086ca3d95",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "db068356-2fd4-4835-a2a3-adaab69218e8",
+              "sourceId": "wasapi_input_capture_caffb919-d588-4c53-a760-b0e977235c12",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "30d164cd-ef53-46ea-9bc5-b646bdaab068",
+              "sourceId": "wasapi_input_capture_caffb919-d588-4c53-a760-b0e977235c12",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "63409368-743a-427d-82c6-2702cd00c1e5",
+              "sourceId": "wasapi_process_output_capture_3c926046-a9f0-45fe-800f-4c9ea54cfaed",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "86a84190-0ce1-45ae-ac75-5b64a6019417",
+              "sourceId": "wasapi_process_output_capture_3c926046-a9f0-45fe-800f-4c9ea54cfaed",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "604363ed-a850-4fd3-81b0-0bc7d5fe0917",
+              "sourceId": "vlc_source_419e5153-3b56-4baf-8b68-19052476a4ca",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": false,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "2e79d658-989e-40ba-a74b-cca22beac8fb",
+              "sourceId": "vlc_source_419e5153-3b56-4baf-8b68-19052476a4ca",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": false,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            },
+            {
+              "id": "1f6ddacc-67c2-4d90-b206-026343f8cd54",
+              "name": "Sound",
+              "sceneNodeType": "folder",
+              "sceneId": "scene_315dcdb1-bdf0-4ecc-a6c6-16794df8164f",
+              "parentId": "",
+              "display": "horizontal",
+              "childrenIds": [
+                "2e79d658-989e-40ba-a74b-cca22beac8fb",
+                "604363ed-a850-4fd3-81b0-0bc7d5fe0917",
+                "86a84190-0ce1-45ae-ac75-5b64a6019417",
+                "63409368-743a-427d-82c6-2702cd00c1e5",
+                "30d164cd-ef53-46ea-9bc5-b646bdaab068",
+                "db068356-2fd4-4835-a2a3-adaab69218e8",
+                "5c0f7ecc-350b-4340-bf29-ff0f409ff1d6",
+                "d576ad3f-c82a-4fdf-a195-a63aef28425d"
+              ]
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "18af9d90-35c9-42bb-8ed2-6833f58bda55",
+              "sourceId": "vlc_source_419e5153-3b56-4baf-8b68-19052476a4ca",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": false,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "38adc940-13f7-4fcf-a243-94d6a616e6fc",
+              "sourceId": "vlc_source_419e5153-3b56-4baf-8b68-19052476a4ca",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "d253ab0f-8ea4-43df-9c83-3c559d37f09a",
+              "sourceId": "ffmpeg_source_74f1657f-05e6-4e11-bdf2-5805ad44f6cb",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1.5,
+              "scaleY": 1.5,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": false,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            }
+          ]
+        },
+        "id": "scene_315dcdb1-bdf0-4ecc-a6c6-16794df8164f",
+        "name": "Display",
+        "active": true
+      },
+      {
+        "hotkeys": {
+          "schemaVersion": 2,
+          "nodeType": "HotkeysNode",
+          "items": []
+        },
+        "filters": {
+          "schemaVersion": 1,
+          "nodeType": "SceneFiltersNode",
+          "items": []
+        },
+        "sceneItems": {
+          "schemaVersion": 1,
+          "nodeType": "SceneItemsNode",
+          "items": [
+            {
+              "id": "b7ca8aef-3bfe-4005-a62a-a59b2f347cb9",
+              "name": "Live Live",
+              "sceneNodeType": "folder",
+              "sceneId": "scene_2258ec8f-0578-47cf-9637-aad0cd932f52",
+              "parentId": "",
+              "display": "vertical",
+              "childrenIds": []
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "a555b4dd-d09e-4bca-81d0-b9e421558bd0",
+              "sourceId": "browser_source_23d5ffea-9d94-49b0-bb48-a40938683289",
+              "x": 14.754098360655917,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "778adb5f-6e53-4df1-93ce-60e84710a027",
+              "sourceId": "browser_source_23d5ffea-9d94-49b0-bb48-a40938683289",
+              "x": 0,
+              "y": 0,
+              "scaleX": null,
+              "scaleY": null,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "b1def777-293c-49e4-9099-9ce104c1af52",
+              "sourceId": "browser_source_c02db909-e1a2-49d3-b564-f898a33cc8e5",
+              "x": 14.754098360655917,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "f8917dc8-3566-4e8e-8830-84aafc351d8a",
+              "sourceId": "browser_source_c02db909-e1a2-49d3-b564-f898a33cc8e5",
+              "x": 479.00001525878906,
+              "y": 275.15923566878973,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "175872b0-3dce-4912-9e01-4f724d5c60c0",
+              "sourceId": "color_source_13e876d6-ad93-4df0-b5e5-e13a6f782134",
+              "x": 14.754098360655917,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": false,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "a8deaf65-3ab8-4b0b-8f2c-5a1c478aa60d",
+              "sourceId": "color_source_13e876d6-ad93-4df0-b5e5-e13a6f782134",
+              "x": 1692,
+              "y": 0,
+              "scaleX": 0.11874999850988388,
+              "scaleY": 0.11851851642131805,
+              "visible": false,
+              "crop": {
+                "top": 0,
+                "bottom": 743,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "5f716735-5db4-4d7d-9afe-83235d8dc365",
+              "sourceId": "color_source_13e876d6-ad93-4df0-b5e5-e13a6f782134",
+              "x": 14.754098360655917,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "d89c6b8e-58b8-4675-bc54-f0a5071b980a",
+              "sourceId": "color_source_13e876d6-ad93-4df0-b5e5-e13a6f782134",
+              "x": 0,
+              "y": 788.4615384615385,
+              "scaleX": 1.0705314009661835,
+              "scaleY": 0.7288461538461536,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            },
+            {
+              "id": "d28cd97a-4285-49e7-8952-e1ccd5b1538e",
+              "name": "Live Live",
+              "sceneNodeType": "folder",
+              "sceneId": "scene_2258ec8f-0578-47cf-9637-aad0cd932f52",
+              "parentId": "",
+              "display": "horizontal",
+              "childrenIds": [
+                "d89c6b8e-58b8-4675-bc54-f0a5071b980a",
+                "5f716735-5db4-4d7d-9afe-83235d8dc365",
+                "a8deaf65-3ab8-4b0b-8f2c-5a1c478aa60d",
+                "175872b0-3dce-4912-9e01-4f724d5c60c0",
+                "f8917dc8-3566-4e8e-8830-84aafc351d8a",
+                "b1def777-293c-49e4-9099-9ce104c1af52",
+                "778adb5f-6e53-4df1-93ce-60e84710a027",
+                "a555b4dd-d09e-4bca-81d0-b9e421558bd0"
+              ]
+            },
+            {
+              "id": "852dce1b-b306-4ff6-9181-b19755fe0a0b",
+              "name": "Sound",
+              "sceneNodeType": "folder",
+              "sceneId": "scene_2258ec8f-0578-47cf-9637-aad0cd932f52",
+              "parentId": "",
+              "display": "vertical",
+              "childrenIds": []
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "9a978188-8fd6-4e06-9bd9-1027248590bf",
+              "sourceId": "image_source_6770d3a8-de4c-4a91-85ba-6d6f2a5e63df",
+              "x": 0,
+              "y": 216.06138107416882,
+              "scaleX": 0.4279063193914077,
+              "scaleY": 0.4279063193914077,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": false,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "701f466c-148f-4839-be09-86a216e2ee89",
+              "sourceId": "wasapi_process_output_capture_1881450c-ebac-4935-8ffd-45b086ca3d95",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "a901d94f-55f3-4e1d-a806-d5232d0b4c34",
+              "sourceId": "wasapi_process_output_capture_1881450c-ebac-4935-8ffd-45b086ca3d95",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "c611ae2e-172d-4693-bb8f-b15f1f10d326",
+              "sourceId": "wasapi_input_capture_caffb919-d588-4c53-a760-b0e977235c12",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "871e9837-b84e-4f01-bf13-5bc7af4eed63",
+              "sourceId": "wasapi_input_capture_caffb919-d588-4c53-a760-b0e977235c12",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "a81b76dd-1d27-4e46-8a40-99633f1796ca",
+              "sourceId": "wasapi_process_output_capture_3c926046-a9f0-45fe-800f-4c9ea54cfaed",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "7c67b7d3-cb0e-4d5c-bb45-be1dc3a8e093",
+              "sourceId": "wasapi_process_output_capture_3c926046-a9f0-45fe-800f-4c9ea54cfaed",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "e8f684d0-3c95-4b14-ac00-34f129310cd1",
+              "sourceId": "vlc_source_419e5153-3b56-4baf-8b68-19052476a4ca",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": false,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "4adcab35-d6ef-4dad-8b6a-32e2ea2f9b37",
+              "sourceId": "vlc_source_419e5153-3b56-4baf-8b68-19052476a4ca",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": false,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            },
+            {
+              "id": "3c526d4b-2faf-462d-9121-9f9b5017040a",
+              "name": "Sound",
+              "sceneNodeType": "folder",
+              "sceneId": "scene_2258ec8f-0578-47cf-9637-aad0cd932f52",
+              "parentId": "",
+              "display": "horizontal",
+              "childrenIds": [
+                "4adcab35-d6ef-4dad-8b6a-32e2ea2f9b37",
+                "e8f684d0-3c95-4b14-ac00-34f129310cd1",
+                "7c67b7d3-cb0e-4d5c-bb45-be1dc3a8e093",
+                "a81b76dd-1d27-4e46-8a40-99633f1796ca",
+                "871e9837-b84e-4f01-bf13-5bc7af4eed63",
+                "c611ae2e-172d-4693-bb8f-b15f1f10d326",
+                "a901d94f-55f3-4e1d-a806-d5232d0b4c34",
+                "701f466c-148f-4839-be09-86a216e2ee89",
+                "9a978188-8fd6-4e06-9bd9-1027248590bf"
+              ]
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "b6f8e4a2-43da-40ca-8941-e763366af061",
+              "sourceId": "vlc_source_419e5153-3b56-4baf-8b68-19052476a4ca",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": false,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "488996f5-56d5-405e-902e-1702886bf47f",
+              "sourceId": "vlc_source_419e5153-3b56-4baf-8b68-19052476a4ca",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "f44b33a7-4abd-4f62-8731-94f674f2a078",
+              "sourceId": "image_source_6770d3a8-de4c-4a91-85ba-6d6f2a5e63df",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1.1483253588516746,
+              "scaleY": 1.1477151965993624,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": false,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            }
+          ]
+        },
+        "id": "scene_2258ec8f-0578-47cf-9637-aad0cd932f52",
+        "name": "กำลังจะเริ่ม",
+        "active": false
+      },
+      {
+        "hotkeys": {
+          "schemaVersion": 2,
+          "nodeType": "HotkeysNode",
+          "items": []
+        },
+        "filters": {
+          "schemaVersion": 1,
+          "nodeType": "SceneFiltersNode",
+          "items": []
+        },
+        "sceneItems": {
+          "schemaVersion": 1,
+          "nodeType": "SceneItemsNode",
+          "items": [
+            {
+              "id": "2b0fb075-f7ac-454b-bb92-e7af062d1425",
+              "name": "Live Live",
+              "sceneNodeType": "folder",
+              "sceneId": "scene_5be30ced-9643-4c39-8624-a75483837caf",
+              "parentId": "",
+              "display": "vertical",
+              "childrenIds": []
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "1d1d7a87-891e-4551-940f-372add76101e",
+              "sourceId": "browser_source_23d5ffea-9d94-49b0-bb48-a40938683289",
+              "x": 14.754098360655917,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "068d1ae1-daf8-4073-a19d-e01929147e26",
+              "sourceId": "browser_source_23d5ffea-9d94-49b0-bb48-a40938683289",
+              "x": 0,
+              "y": 0,
+              "scaleX": null,
+              "scaleY": null,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "aa6afc03-0253-411d-82d0-1501d0d947e8",
+              "sourceId": "browser_source_c02db909-e1a2-49d3-b564-f898a33cc8e5",
+              "x": 14.754098360655917,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "5a1d33d1-d6da-4a41-b4b9-0134c45e28d1",
+              "sourceId": "browser_source_c02db909-e1a2-49d3-b564-f898a33cc8e5",
+              "x": 479.00001525878906,
+              "y": 275.15923566878973,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "2c5c6256-afaa-4134-a388-f27f0a2aa34c",
+              "sourceId": "color_source_13e876d6-ad93-4df0-b5e5-e13a6f782134",
+              "x": 14.754098360655917,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": false,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "dae33560-def7-4414-939e-9982130d6aad",
+              "sourceId": "color_source_13e876d6-ad93-4df0-b5e5-e13a6f782134",
+              "x": 1692,
+              "y": 0,
+              "scaleX": 0.11874999850988388,
+              "scaleY": 0.11851851642131805,
+              "visible": false,
+              "crop": {
+                "top": 0,
+                "bottom": 743,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "4252cf78-e090-4f8d-aeb5-6e121cd177c7",
+              "sourceId": "color_source_13e876d6-ad93-4df0-b5e5-e13a6f782134",
+              "x": 14.754098360655917,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "ca94d618-56c4-494a-86b4-80c0e577af3a",
+              "sourceId": "color_source_13e876d6-ad93-4df0-b5e5-e13a6f782134",
+              "x": 0,
+              "y": 788.4615384615385,
+              "scaleX": 1.0705314009661835,
+              "scaleY": 0.7288461538461536,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            },
+            {
+              "id": "ab13bab1-2a39-4f34-8d56-0d740425b016",
+              "name": "Live Live",
+              "sceneNodeType": "folder",
+              "sceneId": "scene_5be30ced-9643-4c39-8624-a75483837caf",
+              "parentId": "",
+              "display": "horizontal",
+              "childrenIds": [
+                "ca94d618-56c4-494a-86b4-80c0e577af3a",
+                "4252cf78-e090-4f8d-aeb5-6e121cd177c7",
+                "dae33560-def7-4414-939e-9982130d6aad",
+                "2c5c6256-afaa-4134-a388-f27f0a2aa34c",
+                "5a1d33d1-d6da-4a41-b4b9-0134c45e28d1",
+                "aa6afc03-0253-411d-82d0-1501d0d947e8",
+                "068d1ae1-daf8-4073-a19d-e01929147e26",
+                "1d1d7a87-891e-4551-940f-372add76101e"
+              ]
+            },
+            {
+              "id": "6d1b60dd-7dbf-4612-a132-2f4c78058e9d",
+              "name": "Sound",
+              "sceneNodeType": "folder",
+              "sceneId": "scene_5be30ced-9643-4c39-8624-a75483837caf",
+              "parentId": "",
+              "display": "vertical",
+              "childrenIds": []
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "2601ec64-27e8-4a76-98c1-148d6e2de763",
+              "sourceId": "image_source_4199260a-ff1b-42e5-b6f0-05072397e16b",
+              "x": -1.276108835623745,
+              "y": 189.87212276214836,
+              "scaleX": 0.43138523255719124,
+              "scaleY": 0.43138523255719124,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": false,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "8037f1de-d5e3-4461-8dad-e9e6f2d8debb",
+              "sourceId": "wasapi_process_output_capture_1881450c-ebac-4935-8ffd-45b086ca3d95",
+              "x": -267.2353131429536,
+              "y": 189.87212276214836,
+              "scaleX": 0.43138523255719124,
+              "scaleY": 0.43138523255719124,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "48cc02c5-731b-42dc-a33c-a9c0ac6d494c",
+              "sourceId": "wasapi_process_output_capture_1881450c-ebac-4935-8ffd-45b086ca3d95",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "bedd61b9-b689-4357-8fbd-1b825fe64c8b",
+              "sourceId": "wasapi_input_capture_caffb919-d588-4c53-a760-b0e977235c12",
+              "x": -267.2353131429536,
+              "y": 189.87212276214836,
+              "scaleX": 0.43138523255719124,
+              "scaleY": 0.43138523255719124,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "2cdd1e7d-5f3c-4fde-a1a8-d66b2cb292a6",
+              "sourceId": "wasapi_input_capture_caffb919-d588-4c53-a760-b0e977235c12",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "32274a6a-f9b3-4e64-a769-0b001f5c07ee",
+              "sourceId": "wasapi_process_output_capture_3c926046-a9f0-45fe-800f-4c9ea54cfaed",
+              "x": -267.2353131429536,
+              "y": 189.87212276214836,
+              "scaleX": 0.43138523255719124,
+              "scaleY": 0.43138523255719124,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "3b927293-f4d9-4b96-86d2-d3a5a6cbfec9",
+              "sourceId": "wasapi_process_output_capture_3c926046-a9f0-45fe-800f-4c9ea54cfaed",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "4fbff1ae-a1c1-4129-b87e-254424f94996",
+              "sourceId": "vlc_source_419e5153-3b56-4baf-8b68-19052476a4ca",
+              "x": -267.2353131429536,
+              "y": 189.87212276214836,
+              "scaleX": 0.43138523255719124,
+              "scaleY": 0.43138523255719124,
+              "visible": false,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "1c6708ce-c141-41cf-8988-d8f9d6cc6de2",
+              "sourceId": "vlc_source_419e5153-3b56-4baf-8b68-19052476a4ca",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": false,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            },
+            {
+              "id": "988416aa-3b84-4162-ae76-8b081764c91a",
+              "name": "Sound",
+              "sceneNodeType": "folder",
+              "sceneId": "scene_5be30ced-9643-4c39-8624-a75483837caf",
+              "parentId": "",
+              "display": "horizontal",
+              "childrenIds": [
+                "1c6708ce-c141-41cf-8988-d8f9d6cc6de2",
+                "4fbff1ae-a1c1-4129-b87e-254424f94996",
+                "3b927293-f4d9-4b96-86d2-d3a5a6cbfec9",
+                "32274a6a-f9b3-4e64-a769-0b001f5c07ee",
+                "2cdd1e7d-5f3c-4fde-a1a8-d66b2cb292a6",
+                "bedd61b9-b689-4357-8fbd-1b825fe64c8b",
+                "48cc02c5-731b-42dc-a33c-a9c0ac6d494c",
+                "8037f1de-d5e3-4461-8dad-e9e6f2d8debb",
+                "2601ec64-27e8-4a76-98c1-148d6e2de763"
+              ]
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "52ede3f4-7390-4cb8-85cd-d4128707777f",
+              "sourceId": "vlc_source_419e5153-3b56-4baf-8b68-19052476a4ca",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": false,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "fc3fb6e8-7fca-4418-a199-fb7607873be6",
+              "sourceId": "vlc_source_419e5153-3b56-4baf-8b68-19052476a4ca",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "4aa32d8c-f906-4617-a1bd-c9e3a4611b1d",
+              "sourceId": "image_source_4199260a-ff1b-42e5-b6f0-05072397e16b",
+              "x": 0,
+              "y": 1.3012048192771317,
+              "scaleX": 1.144949617812376,
+              "scaleY": 1.144949617812376,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": false,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            }
+          ]
+        },
+        "id": "scene_5be30ced-9643-4c39-8624-a75483837caf",
+        "name": "กำลังย้าย server",
+        "active": false
+      },
+      {
+        "hotkeys": {
+          "schemaVersion": 2,
+          "nodeType": "HotkeysNode",
+          "items": []
+        },
+        "filters": {
+          "schemaVersion": 1,
+          "nodeType": "SceneFiltersNode",
+          "items": []
+        },
+        "sceneItems": {
+          "schemaVersion": 1,
+          "nodeType": "SceneItemsNode",
+          "items": [
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "7310506c-f7ca-45fa-b83d-1bfd1af2849d",
+              "sourceId": "image_source_829b284f-edf3-40fc-94fc-2af9826a8e5b",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1.1483253588516746,
+              "scaleY": 1.1477151965993624,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "d524992b-2eb5-4c81-89a8-a89eaa4a6f0f",
+              "sourceId": "browser_source_23d5ffea-9d94-49b0-bb48-a40938683289",
+              "x": 0,
+              "y": null,
+              "scaleX": null,
+              "scaleY": null,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "a467a21a-5a26-48cb-a0fc-edb94477bb21",
+              "sourceId": "browser_source_c02db909-e1a2-49d3-b564-f898a33cc8e5",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "832e54f1-e519-48bc-b12e-fdb5571830b0",
+              "sourceId": "color_source_13e876d6-ad93-4df0-b5e5-e13a6f782134",
+              "x": 1692,
+              "y": 0,
+              "scaleX": 0.11874999850988388,
+              "scaleY": 0.11851851642131805,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 743,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "90c0d9e9-0f00-40e8-98da-80bf486e25b6",
+              "sourceId": "color_source_13e876d6-ad93-4df0-b5e5-e13a6f782134",
+              "x": 0,
+              "y": 763,
+              "scaleX": 0.2369791716337204,
+              "scaleY": 0.260185182094574,
+              "visible": false,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            },
+            {
+              "id": "7e1d3b58-23d8-4009-b513-72e35dc3be9d",
+              "name": "Live Live",
+              "sceneNodeType": "folder",
+              "sceneId": "scene_4db6d03c-b33d-4aea-a063-04d656963e83",
+              "parentId": "",
+              "display": "horizontal",
+              "childrenIds": [
+                "90c0d9e9-0f00-40e8-98da-80bf486e25b6",
+                "832e54f1-e519-48bc-b12e-fdb5571830b0",
+                "a467a21a-5a26-48cb-a0fc-edb94477bb21",
+                "d524992b-2eb5-4c81-89a8-a89eaa4a6f0f"
+              ]
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "63f814ad-acc1-4ed5-bd16-72672b741cda",
+              "sourceId": "wasapi_process_output_capture_1881450c-ebac-4935-8ffd-45b086ca3d95",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "1c4c442b-1246-4ea2-a558-a0b5360c0b3a",
+              "sourceId": "wasapi_input_capture_caffb919-d588-4c53-a760-b0e977235c12",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "86ee858f-1ed7-4b17-8caa-f7c183420d52",
+              "sourceId": "wasapi_process_output_capture_61362cde-815f-4325-88ac-e31e762bf26c",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": false,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "6cac802e-3f69-4022-8c44-c3f4b44bc62f",
+              "sourceId": "wasapi_process_output_capture_3c926046-a9f0-45fe-800f-4c9ea54cfaed",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "b973eb7a-30ff-47f0-b10a-9d1373586b3f",
+              "sourceId": "vlc_source_419e5153-3b56-4baf-8b68-19052476a4ca",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": false,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            },
+            {
+              "id": "89efcbc0-f7f6-456f-97de-c47c2c922c9b",
+              "name": "Sound",
+              "sceneNodeType": "folder",
+              "sceneId": "scene_4db6d03c-b33d-4aea-a063-04d656963e83",
+              "parentId": "",
+              "display": "horizontal",
+              "childrenIds": [
+                "b973eb7a-30ff-47f0-b10a-9d1373586b3f",
+                "6cac802e-3f69-4022-8c44-c3f4b44bc62f",
+                "86ee858f-1ed7-4b17-8caa-f7c183420d52",
+                "1c4c442b-1246-4ea2-a558-a0b5360c0b3a",
+                "63f814ad-acc1-4ed5-bd16-72672b741cda"
+              ]
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "3d0d76fe-51c2-4a4b-aa3d-a802a6444758",
+              "sourceId": "vlc_source_419e5153-3b56-4baf-8b68-19052476a4ca",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": false,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "a97034e5-32fc-4c9b-935f-478984495934",
+              "sourceId": "image_source_829b284f-edf3-40fc-94fc-2af9826a8e5b",
+              "x": 0,
+              "y": 0,
+              "scaleX": 0.43486414572297527,
+              "scaleY": 0.43486414572297527,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "59dd5fdd-0cf3-411f-ba98-185c2b7bbe7a",
+              "sourceId": "browser_source_23d5ffea-9d94-49b0-bb48-a40938683289",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "edeb34eb-c85c-40cd-b6f9-62d231ead5e3",
+              "sourceId": "browser_source_c02db909-e1a2-49d3-b564-f898a33cc8e5",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "a87cd603-dc14-47a9-811a-207f1d0c70a4",
+              "sourceId": "color_source_13e876d6-ad93-4df0-b5e5-e13a6f782134",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": false,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "8f2c5f40-a3f8-4c47-b041-26e53d0792fa",
+              "sourceId": "color_source_13e876d6-ad93-4df0-b5e5-e13a6f782134",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": false,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            },
+            {
+              "id": "17193dc1-5f52-4a02-b01d-29824dff5e7b",
+              "name": "Live Live",
+              "sceneNodeType": "folder",
+              "sceneId": "scene_4db6d03c-b33d-4aea-a063-04d656963e83",
+              "parentId": "",
+              "display": "vertical",
+              "childrenIds": [
+                "8f2c5f40-a3f8-4c47-b041-26e53d0792fa",
+                "a87cd603-dc14-47a9-811a-207f1d0c70a4",
+                "edeb34eb-c85c-40cd-b6f9-62d231ead5e3",
+                "59dd5fdd-0cf3-411f-ba98-185c2b7bbe7a"
+              ]
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "f2b20059-a004-43ec-9996-629e9accd49c",
+              "sourceId": "wasapi_process_output_capture_1881450c-ebac-4935-8ffd-45b086ca3d95",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "684c1a28-0fdf-4154-b850-cc66309189e2",
+              "sourceId": "wasapi_input_capture_caffb919-d588-4c53-a760-b0e977235c12",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "89abf85e-604e-4bd2-8f8d-f7d7f4f29cf3",
+              "sourceId": "wasapi_process_output_capture_61362cde-815f-4325-88ac-e31e762bf26c",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "376bf255-c0b5-4a83-bf29-f12435ca2fe7",
+              "sourceId": "wasapi_process_output_capture_3c926046-a9f0-45fe-800f-4c9ea54cfaed",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "b1a89c82-7025-4880-a94f-45c7b7ed16f0",
+              "sourceId": "vlc_source_419e5153-3b56-4baf-8b68-19052476a4ca",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            },
+            {
+              "id": "b03bba4e-b388-406a-b7b8-d5305bc15824",
+              "name": "Sound",
+              "sceneNodeType": "folder",
+              "sceneId": "scene_4db6d03c-b33d-4aea-a063-04d656963e83",
+              "parentId": "",
+              "display": "vertical",
+              "childrenIds": [
+                "b1a89c82-7025-4880-a94f-45c7b7ed16f0",
+                "376bf255-c0b5-4a83-bf29-f12435ca2fe7",
+                "89abf85e-604e-4bd2-8f8d-f7d7f4f29cf3",
+                "684c1a28-0fdf-4154-b850-cc66309189e2",
+                "f2b20059-a004-43ec-9996-629e9accd49c"
+              ]
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "9f6e41fc-d97d-4248-86bd-2676ee744b90",
+              "sourceId": "vlc_source_419e5153-3b56-4baf-8b68-19052476a4ca",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            }
+          ]
+        },
+        "id": "scene_4db6d03c-b33d-4aea-a063-04d656963e83",
+        "name": "รอแปป กำลังเข้าห้องน้ำ",
+        "active": false
+      },
+      {
+        "hotkeys": {
+          "schemaVersion": 2,
+          "nodeType": "HotkeysNode",
+          "items": []
+        },
+        "filters": {
+          "schemaVersion": 1,
+          "nodeType": "SceneFiltersNode",
+          "items": []
+        },
+        "sceneItems": {
+          "schemaVersion": 1,
+          "nodeType": "SceneItemsNode",
+          "items": [
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "28614f9a-74e6-4f9d-9b6f-719b8cc9d7e9",
+              "sourceId": "image_source_760d9ece-fb97-4f21-aec6-dd8d852acc8f",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1.1483253588516746,
+              "scaleY": 1.1477151965993624,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": false,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "7bff021b-5433-477d-859b-00eed2f006be",
+              "sourceId": "browser_source_23d5ffea-9d94-49b0-bb48-a40938683289",
+              "x": 0,
+              "y": null,
+              "scaleX": null,
+              "scaleY": null,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "9ad2eb68-4f80-47f9-b5ab-3fb39a43264a",
+              "sourceId": "browser_source_c02db909-e1a2-49d3-b564-f898a33cc8e5",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "b0c1eda0-0d0c-490f-a658-64d26ae6ec35",
+              "sourceId": "color_source_13e876d6-ad93-4df0-b5e5-e13a6f782134",
+              "x": 1692,
+              "y": 0,
+              "scaleX": 0.11874999850988388,
+              "scaleY": 0.11851851642131805,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 743,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "464affc1-8779-4060-a698-2ca1636ef829",
+              "sourceId": "color_source_13e876d6-ad93-4df0-b5e5-e13a6f782134",
+              "x": 0,
+              "y": 763,
+              "scaleX": 0.2369791716337204,
+              "scaleY": 0.260185182094574,
+              "visible": false,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            },
+            {
+              "id": "537429ef-9f64-440a-b778-af2af5f8e8d1",
+              "name": "Live Live",
+              "sceneNodeType": "folder",
+              "sceneId": "scene_a74960a8-fec5-400d-8274-30722f2969ed",
+              "parentId": "",
+              "display": "horizontal",
+              "childrenIds": [
+                "464affc1-8779-4060-a698-2ca1636ef829",
+                "b0c1eda0-0d0c-490f-a658-64d26ae6ec35",
+                "9ad2eb68-4f80-47f9-b5ab-3fb39a43264a",
+                "7bff021b-5433-477d-859b-00eed2f006be"
+              ]
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "5d3a516a-814f-48d9-add8-383f3e0ee66a",
+              "sourceId": "wasapi_process_output_capture_1881450c-ebac-4935-8ffd-45b086ca3d95",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "90b63978-0e5b-41e7-8de4-11e932321ba9",
+              "sourceId": "wasapi_input_capture_caffb919-d588-4c53-a760-b0e977235c12",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "a352573c-265e-4fcc-9d73-8a3f0afa9456",
+              "sourceId": "wasapi_process_output_capture_61362cde-815f-4325-88ac-e31e762bf26c",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": false,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "2cb7dfc3-bd43-4f02-9683-780cf530939e",
+              "sourceId": "wasapi_process_output_capture_3c926046-a9f0-45fe-800f-4c9ea54cfaed",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "b593effa-1af1-417e-90e4-fdffdaa3ecd2",
+              "sourceId": "vlc_source_419e5153-3b56-4baf-8b68-19052476a4ca",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": false,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            },
+            {
+              "id": "449b9b78-103e-4dfe-b6a2-c6f05b8e426d",
+              "name": "Sound",
+              "sceneNodeType": "folder",
+              "sceneId": "scene_a74960a8-fec5-400d-8274-30722f2969ed",
+              "parentId": "",
+              "display": "horizontal",
+              "childrenIds": [
+                "b593effa-1af1-417e-90e4-fdffdaa3ecd2",
+                "2cb7dfc3-bd43-4f02-9683-780cf530939e",
+                "a352573c-265e-4fcc-9d73-8a3f0afa9456",
+                "90b63978-0e5b-41e7-8de4-11e932321ba9",
+                "5d3a516a-814f-48d9-add8-383f3e0ee66a"
+              ]
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "15c120f7-2fca-479e-9e6c-fc990febd86f",
+              "sourceId": "vlc_source_419e5153-3b56-4baf-8b68-19052476a4ca",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "4f03e662-d0bd-4580-8637-e05c9b2ad2c5",
+              "sourceId": "image_source_760d9ece-fb97-4f21-aec6-dd8d852acc8f",
+              "x": 0,
+              "y": 297.9028132992328,
+              "scaleX": 0.44182197205454266,
+              "scaleY": 0.44182197205454266,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": false,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "b211de20-359a-420a-ae7d-caf79cb8916e",
+              "sourceId": "browser_source_23d5ffea-9d94-49b0-bb48-a40938683289",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "c98556e9-4b5d-48c5-b117-109fe665b734",
+              "sourceId": "browser_source_c02db909-e1a2-49d3-b564-f898a33cc8e5",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "4c6ccd27-cc7d-4d47-b0d0-e88ba14a957a",
+              "sourceId": "color_source_13e876d6-ad93-4df0-b5e5-e13a6f782134",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": false,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "ea4def34-9b34-470c-968c-efde43743c82",
+              "sourceId": "color_source_13e876d6-ad93-4df0-b5e5-e13a6f782134",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": false,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            },
+            {
+              "id": "b37cdff8-5dd0-4160-af24-cbca13a3b434",
+              "name": "Live Live",
+              "sceneNodeType": "folder",
+              "sceneId": "scene_a74960a8-fec5-400d-8274-30722f2969ed",
+              "parentId": "",
+              "display": "vertical",
+              "childrenIds": [
+                "ea4def34-9b34-470c-968c-efde43743c82",
+                "4c6ccd27-cc7d-4d47-b0d0-e88ba14a957a",
+                "c98556e9-4b5d-48c5-b117-109fe665b734",
+                "b211de20-359a-420a-ae7d-caf79cb8916e"
+              ]
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "79d125c8-0b55-4108-a2bc-336c16a96889",
+              "sourceId": "wasapi_process_output_capture_1881450c-ebac-4935-8ffd-45b086ca3d95",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "7ca903c4-bceb-4436-8d19-cb89454f708a",
+              "sourceId": "wasapi_input_capture_caffb919-d588-4c53-a760-b0e977235c12",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "4dcf5d46-c142-4e79-8ca6-c83fbc120181",
+              "sourceId": "wasapi_process_output_capture_61362cde-815f-4325-88ac-e31e762bf26c",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "45125ef4-901e-4bb2-b518-8e877c43aa25",
+              "sourceId": "wasapi_process_output_capture_3c926046-a9f0-45fe-800f-4c9ea54cfaed",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "729267a4-b1de-49aa-b49d-6ebf4e6cecb0",
+              "sourceId": "vlc_source_419e5153-3b56-4baf-8b68-19052476a4ca",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            },
+            {
+              "id": "22e04650-edf4-4a91-bdbb-31cd93864a9f",
+              "name": "Sound",
+              "sceneNodeType": "folder",
+              "sceneId": "scene_a74960a8-fec5-400d-8274-30722f2969ed",
+              "parentId": "",
+              "display": "vertical",
+              "childrenIds": [
+                "729267a4-b1de-49aa-b49d-6ebf4e6cecb0",
+                "45125ef4-901e-4bb2-b518-8e877c43aa25",
+                "4dcf5d46-c142-4e79-8ca6-c83fbc120181",
+                "7ca903c4-bceb-4436-8d19-cb89454f708a",
+                "79d125c8-0b55-4108-a2bc-336c16a96889"
+              ]
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "b9fd6bfe-2805-47ef-976f-755f7ba370e6",
+              "sourceId": "vlc_source_419e5153-3b56-4baf-8b68-19052476a4ca",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            }
+          ]
+        },
+        "id": "scene_a74960a8-fec5-400d-8274-30722f2969ed",
+        "name": "กำลังใส่รหัสอยู๋",
+        "active": false
+      },
+      {
+        "hotkeys": {
+          "schemaVersion": 2,
+          "nodeType": "HotkeysNode",
+          "items": []
+        },
+        "filters": {
+          "schemaVersion": 1,
+          "nodeType": "SceneFiltersNode",
+          "items": []
+        },
+        "sceneItems": {
+          "schemaVersion": 1,
+          "nodeType": "SceneItemsNode",
+          "items": [
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "1b3fe580-6db6-41da-ab1e-d0746cd5ed68",
+              "sourceId": "image_source_2f174681-9903-4f89-8524-f1c7fd2e08fb",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1.1421840390253895,
+              "scaleY": 1.1421840390253895,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": false,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "1bf17c6b-778a-4fb8-9ed4-8f9dd5e4fd90",
+              "sourceId": "vlc_source_419e5153-3b56-4baf-8b68-19052476a4ca",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "d1af9b2d-bbcf-4b71-bf52-dc612d579d80",
+              "sourceId": "browser_source_23d5ffea-9d94-49b0-bb48-a40938683289",
+              "x": 0,
+              "y": null,
+              "scaleX": null,
+              "scaleY": null,
+              "visible": false,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "89331062-79c8-445b-ac2f-6fb1d8403dfb",
+              "sourceId": "browser_source_c02db909-e1a2-49d3-b564-f898a33cc8e5",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": false,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "f26e7526-b290-493c-a95c-5652e68ebbee",
+              "sourceId": "color_source_13e876d6-ad93-4df0-b5e5-e13a6f782134",
+              "x": 1692,
+              "y": 0,
+              "scaleX": 0.11874999850988388,
+              "scaleY": 0.11851851642131805,
+              "visible": false,
+              "crop": {
+                "top": 0,
+                "bottom": 743,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "ef4c2bd5-20d1-40c4-a315-2992a82aeeaf",
+              "sourceId": "color_source_13e876d6-ad93-4df0-b5e5-e13a6f782134",
+              "x": 0,
+              "y": 763,
+              "scaleX": 0.2369791716337204,
+              "scaleY": 0.260185182094574,
+              "visible": false,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            },
+            {
+              "id": "31b3f494-7e26-4eeb-9792-2c8474d623b6",
+              "name": "Live Live",
+              "sceneNodeType": "folder",
+              "sceneId": "scene_624ed3cc-63ed-4b01-acd7-46c7f3d4eaa2",
+              "parentId": "",
+              "display": "horizontal",
+              "childrenIds": [
+                "ef4c2bd5-20d1-40c4-a315-2992a82aeeaf",
+                "f26e7526-b290-493c-a95c-5652e68ebbee",
+                "89331062-79c8-445b-ac2f-6fb1d8403dfb",
+                "d1af9b2d-bbcf-4b71-bf52-dc612d579d80"
+              ]
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "363404b7-3915-4a37-a963-9e5187dda3e7",
+              "sourceId": "wasapi_input_capture_caffb919-d588-4c53-a760-b0e977235c12",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "horizontal"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "1647af80-1b3e-4c28-b354-9a6f668dfba0",
+              "sourceId": "image_source_2f174681-9903-4f89-8524-f1c7fd2e08fb",
+              "x": 0,
+              "y": 301.17647058823536,
+              "scaleX": 0.42790631939140766,
+              "scaleY": 0.42790631939140766,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": false,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "f3ede26a-8baa-48c9-aa04-543435ac2692",
+              "sourceId": "vlc_source_419e5153-3b56-4baf-8b68-19052476a4ca",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "dc2ef37c-d5d1-475d-8812-4e015469dc00",
+              "sourceId": "browser_source_23d5ffea-9d94-49b0-bb48-a40938683289",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "aae5d9db-1901-4915-a2c4-4d49d8208659",
+              "sourceId": "browser_source_c02db909-e1a2-49d3-b564-f898a33cc8e5",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "35160b5b-cfe2-4e68-9407-c89e971732e8",
+              "sourceId": "color_source_13e876d6-ad93-4df0-b5e5-e13a6f782134",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": false,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "9efc4f46-38aa-4096-9eb7-7c48cfb7b6c6",
+              "sourceId": "color_source_13e876d6-ad93-4df0-b5e5-e13a6f782134",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": false,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            },
+            {
+              "id": "d54e370d-2949-4e1a-a534-fdcad2435522",
+              "name": "Live Live",
+              "sceneNodeType": "folder",
+              "sceneId": "scene_624ed3cc-63ed-4b01-acd7-46c7f3d4eaa2",
+              "parentId": "",
+              "display": "vertical",
+              "childrenIds": [
+                "9efc4f46-38aa-4096-9eb7-7c48cfb7b6c6",
+                "35160b5b-cfe2-4e68-9407-c89e971732e8",
+                "aae5d9db-1901-4915-a2c4-4d49d8208659",
+                "dc2ef37c-d5d1-475d-8812-4e015469dc00"
+              ]
+            },
+            {
+              "hotkeys": {
+                "schemaVersion": 2,
+                "nodeType": "HotkeysNode",
+                "items": []
+              },
+              "id": "d532cd03-6798-4c25-a309-7ae578286b7f",
+              "sourceId": "wasapi_input_capture_caffb919-d588-4c53-a760-b0e977235c12",
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "visible": true,
+              "crop": {
+                "top": 0,
+                "bottom": 0,
+                "left": 0,
+                "right": 0
+              },
+              "locked": true,
+              "rotation": 0,
+              "streamVisible": true,
+              "recordingVisible": true,
+              "scaleFilter": 0,
+              "blendingMode": 0,
+              "blendingMethod": 0,
+              "sceneNodeType": "item",
+              "display": "vertical"
+            }
+          ]
+        },
+        "id": "scene_624ed3cc-63ed-4b01-acd7-46c7f3d4eaa2",
+        "name": "Ending",
+        "active": false
+      }
+    ]
+  },
+  "transitions": {
+    "schemaVersion": 2,
+    "nodeType": "TransitionsNode",
+    "transitions": [
+      {
+        "id": "310b6578-712e-4d90-9730-867404a706b4",
+        "name": "Global Transition",
+        "type": "fade_transition",
+        "duration": 300,
+        "settings": {},
+        "propertiesManagerSettings": {
+          "mediaBackup": {}
+        }
+      }
+    ],
+    "connections": [
+      {
+        "fromSceneId": "scene_315dcdb1-bdf0-4ecc-a6c6-16794df8164f",
+        "toSceneId": "scene_2258ec8f-0578-47cf-9637-aad0cd932f52",
+        "transitionId": "310b6578-712e-4d90-9730-867404a706b4"
+      },
+      {
+        "fromSceneId": "scene_315dcdb1-bdf0-4ecc-a6c6-16794df8164f",
+        "toSceneId": "scene_79c705ad-a86c-486d-8d91-090cbcbdeafd",
+        "transitionId": "310b6578-712e-4d90-9730-867404a706b4"
+      }
+    ],
+    "defaultTransitionId": "310b6578-712e-4d90-9730-867404a706b4"
+  },
+  "hotkeys": {
+    "schemaVersion": 2,
+    "nodeType": "HotkeysNode",
+    "items": [
+      {
+        "actionName": "TOGGLE_START_STREAMING",
+        "bindings": [
+          {
+            "key": "",
+            "modifiers": {
+              "alt": false,
+              "ctrl": false,
+              "shift": false,
+              "meta": false
+            }
+          }
+        ]
+      },
+      {
+        "actionName": "TOGGLE_STOP_STREAMING",
+        "bindings": [
+          {
+            "key": "",
+            "modifiers": {
+              "alt": false,
+              "ctrl": false,
+              "shift": false,
+              "meta": false
+            }
+          }
+        ]
+      },
+      {
+        "actionName": "TOGGLE_START_RECORDING",
+        "bindings": [
+          {
+            "key": "",
+            "modifiers": {
+              "alt": false,
+              "ctrl": false,
+              "shift": false,
+              "meta": false
+            }
+          }
+        ]
+      },
+      {
+        "actionName": "TOGGLE_STOP_RECORDING",
+        "bindings": [
+          {
+            "key": "",
+            "modifiers": {
+              "alt": false,
+              "ctrl": false,
+              "shift": false,
+              "meta": false
+            }
+          }
+        ]
+      },
+      {
+        "actionName": "ENABLE_STUDIO_MODE",
+        "bindings": [
+          {
+            "key": "",
+            "modifiers": {
+              "alt": false,
+              "ctrl": false,
+              "shift": false,
+              "meta": false
+            }
+          }
+        ]
+      },
+      {
+        "actionName": "DISABLE_STUDIO_MODE",
+        "bindings": [
+          {
+            "key": "",
+            "modifiers": {
+              "alt": false,
+              "ctrl": false,
+              "shift": false,
+              "meta": false
+            }
+          }
+        ]
+      },
+      {
+        "actionName": "TRANSITION_STUDIO_MODE",
+        "bindings": [
+          {
+            "key": "",
+            "modifiers": {
+              "alt": false,
+              "ctrl": false,
+              "shift": false,
+              "meta": false
+            }
+          }
+        ]
+      },
+      {
+        "actionName": "SAVE_REPLAY",
+        "bindings": [
+          {
+            "key": "",
+            "modifiers": {
+              "alt": false,
+              "ctrl": false,
+              "shift": false,
+              "meta": false
+            }
+          }
+        ]
+      },
+      {
+        "actionName": "SPLIT_FILE",
+        "bindings": [
+          {
+            "key": "",
+            "modifiers": {
+              "alt": false,
+              "ctrl": false,
+              "shift": false,
+              "meta": false
+            }
+          }
+        ]
+      },
+      {
+        "actionName": "TOGGLE_OVERLAY",
+        "bindings": [
+          {
+            "key": "",
+            "modifiers": {
+              "alt": false,
+              "ctrl": false,
+              "shift": false,
+              "meta": false
+            }
+          }
+        ]
+      },
+      {
+        "actionName": "TOGGLE_OVERLAY_POSITIONING",
+        "bindings": [
+          {
+            "key": "",
+            "modifiers": {
+              "alt": false,
+              "ctrl": false,
+              "shift": false,
+              "meta": false
+            }
+          }
+        ]
+      },
+      {
+        "actionName": "TOGGLE_PERFORMANCE_MODE",
+        "bindings": [
+          {
+            "key": "",
+            "modifiers": {
+              "alt": false,
+              "ctrl": false,
+              "shift": false,
+              "meta": false
+            }
+          }
+        ]
+      },
+      {
+        "actionName": "SKIP_ALERT",
+        "bindings": [
+          {
+            "key": "",
+            "modifiers": {
+              "alt": false,
+              "ctrl": false,
+              "shift": false,
+              "meta": false
+            }
+          }
+        ]
+      },
+      {
+        "actionName": "TOGGLE_VIRTUAL_CAMERA_ON",
+        "bindings": [
+          {
+            "key": "",
+            "modifiers": {
+              "alt": false,
+              "ctrl": false,
+              "shift": false,
+              "meta": false
+            }
+          }
+        ]
+      },
+      {
+        "actionName": "TOGGLE_VIRTUAL_CAMERA_OFF",
+        "bindings": [
+          {
+            "key": "",
+            "modifiers": {
+              "alt": false,
+              "ctrl": false,
+              "shift": false,
+              "meta": false
+            }
+          }
+        ]
+      },
+      {
+        "actionName": "MARKER_1",
+        "bindings": [
+          {
+            "key": "",
+            "modifiers": {
+              "alt": false,
+              "ctrl": false,
+              "shift": false,
+              "meta": false
+            }
+          }
+        ],
+        "isMarker": true
+      },
+      {
+        "actionName": "MARKER_2",
+        "bindings": [
+          {
+            "key": "",
+            "modifiers": {
+              "alt": false,
+              "ctrl": false,
+              "shift": false,
+              "meta": false
+            }
+          }
+        ],
+        "isMarker": true
+      },
+      {
+        "actionName": "MARKER_3",
+        "bindings": [
+          {
+            "key": "",
+            "modifiers": {
+              "alt": false,
+              "ctrl": false,
+              "shift": false,
+              "meta": false
+            }
+          }
+        ],
+        "isMarker": true
+      },
+      {
+        "actionName": "MARKER_4",
+        "bindings": [
+          {
+            "key": "",
+            "modifiers": {
+              "alt": false,
+              "ctrl": false,
+              "shift": false,
+              "meta": false
+            }
+          }
+        ],
+        "isMarker": true
+      }
+    ]
+  },
+  "guestCam": {
+    "schemaVersion": 1,
+    "nodeType": "GuestCamNode",
+    "audioSourceId": "wasapi_input_capture_caffb919-d588-4c53-a760-b0e977235c12",
+    "videoSourceId": "dshow_input_5b190305-6338-4170-b816-3f1185c42d7d"
+  },
+  "nodeMap": {
+    "schemaVersion": 1,
+    "nodeType": "NodeMapNode",
+    "sceneNodeMaps": {
+      "scene_315dcdb1-bdf0-4ecc-a6c6-16794df8164f": {
+        "38adc940-13f7-4fcf-a243-94d6a616e6fc": "18af9d90-35c9-42bb-8ed2-6833f58bda55",
+        "1f6ddacc-67c2-4d90-b206-026343f8cd54": "7971ef4c-e67c-4be0-9507-2afb94a5432c",
+        "2e79d658-989e-40ba-a74b-cca22beac8fb": "604363ed-a850-4fd3-81b0-0bc7d5fe0917",
+        "86a84190-0ce1-45ae-ac75-5b64a6019417": "63409368-743a-427d-82c6-2702cd00c1e5",
+        "30d164cd-ef53-46ea-9bc5-b646bdaab068": "db068356-2fd4-4835-a2a3-adaab69218e8",
+        "5c0f7ecc-350b-4340-bf29-ff0f409ff1d6": "d576ad3f-c82a-4fdf-a195-a63aef28425d",
+        "5ba017ac-7304-4db4-99d0-c3dbf94fcf04": "d54b54e5-55ae-4df2-b2f7-6be43e02c8ce",
+        "94473b98-c595-436b-bb7d-08fc9e83da11": "298b481c-48e6-41b4-8c2d-120d05cfc0b8",
+        "6dc71434-0f8a-4ea5-a375-2c9e1c83fd12": "36d56ef6-2479-493c-8562-697141d3f272",
+        "3f5c3370-c1ed-43d8-9923-13c0290c6187": "808d2e30-916b-42e0-8330-2f800ef6590b",
+        "b5f72226-73d3-430b-93cf-e903600cabc0": "d463b727-0127-4ef5-8820-278a1304ce80",
+        "abf76ff5-1e90-4f43-912f-c0472f585365": "2e4018e7-b449-470b-8da5-ef18784c919b",
+        "d253ab0f-8ea4-43df-9c83-3c559d37f09a": "d46644b8-09ea-4dcf-ab30-89b005494e9a",
+        "d0ce6a25-9b60-4032-abaf-2f612f66c54d": "7e93bb96-64bf-4e3b-b5d4-1365c7a0470b",
+        "820ba3e8-ccae-4f2e-b095-0a873984bfb2": "4ccb8423-e7d5-424d-b83e-ac8ab57ce57a",
+        "9b1f428b-511d-4340-9262-4fa174f0eea8": "4f01abfd-504f-44fb-a4ce-7157d1a26509",
+        "a501e8f5-2d9b-4857-9197-57d6bd8e09fb": "72f6ad73-5982-42cd-afc9-569b888e240e",
+        "867ec383-a003-47e4-94ee-747d49ea4263": "8127b5e9-482e-428c-ab75-1dca633e32f6"
+      },
+      "scene_4db6d03c-b33d-4aea-a063-04d656963e83": {
+        "3d0d76fe-51c2-4a4b-aa3d-a802a6444758": "9f6e41fc-d97d-4248-86bd-2676ee744b90",
+        "89efcbc0-f7f6-456f-97de-c47c2c922c9b": "b03bba4e-b388-406a-b7b8-d5305bc15824",
+        "b973eb7a-30ff-47f0-b10a-9d1373586b3f": "b1a89c82-7025-4880-a94f-45c7b7ed16f0",
+        "6cac802e-3f69-4022-8c44-c3f4b44bc62f": "376bf255-c0b5-4a83-bf29-f12435ca2fe7",
+        "86ee858f-1ed7-4b17-8caa-f7c183420d52": "89abf85e-604e-4bd2-8f8d-f7d7f4f29cf3",
+        "1c4c442b-1246-4ea2-a558-a0b5360c0b3a": "684c1a28-0fdf-4154-b850-cc66309189e2",
+        "63f814ad-acc1-4ed5-bd16-72672b741cda": "f2b20059-a004-43ec-9996-629e9accd49c",
+        "7e1d3b58-23d8-4009-b513-72e35dc3be9d": "17193dc1-5f52-4a02-b01d-29824dff5e7b",
+        "90c0d9e9-0f00-40e8-98da-80bf486e25b6": "8f2c5f40-a3f8-4c47-b041-26e53d0792fa",
+        "832e54f1-e519-48bc-b12e-fdb5571830b0": "a87cd603-dc14-47a9-811a-207f1d0c70a4",
+        "a467a21a-5a26-48cb-a0fc-edb94477bb21": "edeb34eb-c85c-40cd-b6f9-62d231ead5e3",
+        "d524992b-2eb5-4c81-89a8-a89eaa4a6f0f": "59dd5fdd-0cf3-411f-ba98-185c2b7bbe7a",
+        "7310506c-f7ca-45fa-b83d-1bfd1af2849d": "a97034e5-32fc-4c9b-935f-478984495934"
+      },
+      "scene_a74960a8-fec5-400d-8274-30722f2969ed": {
+        "15c120f7-2fca-479e-9e6c-fc990febd86f": "b9fd6bfe-2805-47ef-976f-755f7ba370e6",
+        "449b9b78-103e-4dfe-b6a2-c6f05b8e426d": "22e04650-edf4-4a91-bdbb-31cd93864a9f",
+        "b593effa-1af1-417e-90e4-fdffdaa3ecd2": "729267a4-b1de-49aa-b49d-6ebf4e6cecb0",
+        "2cb7dfc3-bd43-4f02-9683-780cf530939e": "45125ef4-901e-4bb2-b518-8e877c43aa25",
+        "a352573c-265e-4fcc-9d73-8a3f0afa9456": "4dcf5d46-c142-4e79-8ca6-c83fbc120181",
+        "90b63978-0e5b-41e7-8de4-11e932321ba9": "7ca903c4-bceb-4436-8d19-cb89454f708a",
+        "5d3a516a-814f-48d9-add8-383f3e0ee66a": "79d125c8-0b55-4108-a2bc-336c16a96889",
+        "537429ef-9f64-440a-b778-af2af5f8e8d1": "b37cdff8-5dd0-4160-af24-cbca13a3b434",
+        "464affc1-8779-4060-a698-2ca1636ef829": "ea4def34-9b34-470c-968c-efde43743c82",
+        "b0c1eda0-0d0c-490f-a658-64d26ae6ec35": "4c6ccd27-cc7d-4d47-b0d0-e88ba14a957a",
+        "9ad2eb68-4f80-47f9-b5ab-3fb39a43264a": "c98556e9-4b5d-48c5-b117-109fe665b734",
+        "7bff021b-5433-477d-859b-00eed2f006be": "b211de20-359a-420a-ae7d-caf79cb8916e",
+        "28614f9a-74e6-4f9d-9b6f-719b8cc9d7e9": "4f03e662-d0bd-4580-8637-e05c9b2ad2c5"
+      },
+      "scene_624ed3cc-63ed-4b01-acd7-46c7f3d4eaa2": {
+        "363404b7-3915-4a37-a963-9e5187dda3e7": "d532cd03-6798-4c25-a309-7ae578286b7f",
+        "31b3f494-7e26-4eeb-9792-2c8474d623b6": "d54e370d-2949-4e1a-a534-fdcad2435522",
+        "ef4c2bd5-20d1-40c4-a315-2992a82aeeaf": "9efc4f46-38aa-4096-9eb7-7c48cfb7b6c6",
+        "f26e7526-b290-493c-a95c-5652e68ebbee": "35160b5b-cfe2-4e68-9407-c89e971732e8",
+        "89331062-79c8-445b-ac2f-6fb1d8403dfb": "aae5d9db-1901-4915-a2c4-4d49d8208659",
+        "d1af9b2d-bbcf-4b71-bf52-dc612d579d80": "dc2ef37c-d5d1-475d-8812-4e015469dc00",
+        "1bf17c6b-778a-4fb8-9ed4-8f9dd5e4fd90": "f3ede26a-8baa-48c9-aa04-543435ac2692",
+        "1b3fe580-6db6-41da-ab1e-d0746cd5ed68": "1647af80-1b3e-4c28-b354-9a6f668dfba0"
+      },
+      "scene_2258ec8f-0578-47cf-9637-aad0cd932f52": {
+        "488996f5-56d5-405e-902e-1702886bf47f": "b6f8e4a2-43da-40ca-8941-e763366af061",
+        "3c526d4b-2faf-462d-9121-9f9b5017040a": "852dce1b-b306-4ff6-9181-b19755fe0a0b",
+        "4adcab35-d6ef-4dad-8b6a-32e2ea2f9b37": "e8f684d0-3c95-4b14-ac00-34f129310cd1",
+        "7c67b7d3-cb0e-4d5c-bb45-be1dc3a8e093": "a81b76dd-1d27-4e46-8a40-99633f1796ca",
+        "871e9837-b84e-4f01-bf13-5bc7af4eed63": "c611ae2e-172d-4693-bb8f-b15f1f10d326",
+        "a901d94f-55f3-4e1d-a806-d5232d0b4c34": "701f466c-148f-4839-be09-86a216e2ee89",
+        "d28cd97a-4285-49e7-8952-e1ccd5b1538e": "b7ca8aef-3bfe-4005-a62a-a59b2f347cb9",
+        "d89c6b8e-58b8-4675-bc54-f0a5071b980a": "5f716735-5db4-4d7d-9afe-83235d8dc365",
+        "a8deaf65-3ab8-4b0b-8f2c-5a1c478aa60d": "175872b0-3dce-4912-9e01-4f724d5c60c0",
+        "f8917dc8-3566-4e8e-8830-84aafc351d8a": "b1def777-293c-49e4-9099-9ce104c1af52",
+        "778adb5f-6e53-4df1-93ce-60e84710a027": "a555b4dd-d09e-4bca-81d0-b9e421558bd0",
+        "f44b33a7-4abd-4f62-8731-94f674f2a078": "9a978188-8fd6-4e06-9bd9-1027248590bf"
+      },
+      "scene_5be30ced-9643-4c39-8624-a75483837caf": {
+        "fc3fb6e8-7fca-4418-a199-fb7607873be6": "52ede3f4-7390-4cb8-85cd-d4128707777f",
+        "988416aa-3b84-4162-ae76-8b081764c91a": "6d1b60dd-7dbf-4612-a132-2f4c78058e9d",
+        "1c6708ce-c141-41cf-8988-d8f9d6cc6de2": "4fbff1ae-a1c1-4129-b87e-254424f94996",
+        "3b927293-f4d9-4b96-86d2-d3a5a6cbfec9": "32274a6a-f9b3-4e64-a769-0b001f5c07ee",
+        "2cdd1e7d-5f3c-4fde-a1a8-d66b2cb292a6": "bedd61b9-b689-4357-8fbd-1b825fe64c8b",
+        "48cc02c5-731b-42dc-a33c-a9c0ac6d494c": "8037f1de-d5e3-4461-8dad-e9e6f2d8debb",
+        "ab13bab1-2a39-4f34-8d56-0d740425b016": "2b0fb075-f7ac-454b-bb92-e7af062d1425",
+        "ca94d618-56c4-494a-86b4-80c0e577af3a": "4252cf78-e090-4f8d-aeb5-6e121cd177c7",
+        "dae33560-def7-4414-939e-9982130d6aad": "2c5c6256-afaa-4134-a388-f27f0a2aa34c",
+        "5a1d33d1-d6da-4a41-b4b9-0134c45e28d1": "aa6afc03-0253-411d-82d0-1501d0d947e8",
+        "068d1ae1-daf8-4073-a19d-e01929147e26": "1d1d7a87-891e-4551-940f-372add76101e",
+        "4aa32d8c-f906-4617-a1bd-c9e3a4611b1d": "2601ec64-27e8-4a76-98c1-148d6e2de763"
+      }
+    }
+  },
+  "baseResolution": {
+    "baseWidth": 1920,
+    "baseHeight": 1080
+  },
+  "baseResolutions": {
+    "horizontal": {
+      "baseWidth": 1920,
+      "baseHeight": 1080
+    },
+    "vertical": {
+      "baseWidth": 720,
+      "baseHeight": 1280
+    }
+  },
+  "selectiveRecording": false,
+  "dualOutputMode": true,
+  "operatingSystem": "win32"
+}

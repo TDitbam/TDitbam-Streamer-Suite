@@ -4,7 +4,60 @@ param(
 
 $ErrorActionPreference = "Stop"
 $projectRoot = $PSScriptRoot
+$AppVersion = "3.6.4"
+$InstallerBaseName = "TDitbam-Streamer-Suite-Setup-v$AppVersion"
+
+function Test-IsAdministrator {
+    $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
+    $principal = [Security.Principal.WindowsPrincipal]::new($identity)
+    return $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+}
+
+if (-not (Test-IsAdministrator)) {
+    $scriptPath = $MyInvocation.MyCommand.Path
+    $elevatedArguments = "-NoProfile -ExecutionPolicy Bypass -File `"$scriptPath`""
+    if ($SkipInstaller) {
+        $elevatedArguments += " -SkipInstaller"
+    }
+
+    Write-Host "Administrator permission is required. Opening the UAC prompt..."
+    try {
+        $elevatedProcess = Start-Process `
+            -FilePath "powershell.exe" `
+            -ArgumentList $elevatedArguments `
+            -WorkingDirectory $projectRoot `
+            -Verb RunAs `
+            -Wait `
+            -PassThru
+    } catch {
+        throw "Unable to start the release build as Administrator: $($_.Exception.Message)"
+    }
+
+    exit $elevatedProcess.ExitCode
+}
+
 Set-Location -LiteralPath $projectRoot
+
+$versionMarkers = @(
+    @{
+        Path = "installer_script.iss"
+        Text = "#define MyAppVersion `"$AppVersion`""
+    },
+    @{
+        Path = "core\version.py"
+        Text = "APP_VERSION = `"$AppVersion`""
+    },
+    @{
+        Path = "version_info.txt"
+        Text = "StringStruct('ProductVersion', '$AppVersion')"
+    }
+)
+foreach ($marker in $versionMarkers) {
+    $markerPath = Join-Path $projectRoot $marker.Path
+    if (-not (Select-String -LiteralPath $markerPath -SimpleMatch $marker.Text -Quiet)) {
+        throw "$($marker.Path) is not synchronized with release version $AppVersion."
+    }
+}
 
 function Remove-ProjectOutput {
     param([Parameter(Mandatory = $true)][string]$RelativePath)
@@ -20,11 +73,40 @@ function Remove-ProjectOutput {
 }
 
 $venvPython = Join-Path $projectRoot ".venv\Scripts\python.exe"
-$python = if (Test-Path -LiteralPath $venvPython) { $venvPython } else { "python" }
+$python = $null
+if (Test-Path -LiteralPath $venvPython) {
+    & $venvPython --version *> $null
+    if ($LASTEXITCODE -eq 0) {
+        $python = $venvPython
+    }
+}
+
+if (-not $python) {
+    $python = Get-Command "python" -ErrorAction Stop |
+        Select-Object -ExpandProperty Source
+    $venvSitePackages = Join-Path $projectRoot ".venv\Lib\site-packages"
+    if (Test-Path -LiteralPath $venvSitePackages) {
+        $env:PYTHONPATH = if ($env:PYTHONPATH) {
+            "$venvSitePackages;$env:PYTHONPATH"
+        } else {
+            $venvSitePackages
+        }
+    }
+}
 
 Remove-ProjectOutput "build"
 Remove-ProjectOutput "dist"
-Remove-ProjectOutput "installer"
+
+$installerDir = Join-Path $projectRoot "installer"
+if (-not $SkipInstaller) {
+    if (-not (Test-Path -LiteralPath $installerDir)) {
+        New-Item -ItemType Directory -Path $installerDir | Out-Null
+    } else {
+        Get-ChildItem -LiteralPath $installerDir -File |
+            Where-Object { $_.Name -like "$InstallerBaseName*" } |
+            ForEach-Object { Remove-Item -LiteralPath $_.FullName -Force }
+    }
+}
 
 Write-Host "[1/2] Building the separated application folder..."
 & $python -m PyInstaller --clean --noconfirm "build_exe.spec"
@@ -42,7 +124,7 @@ Copy-Item -LiteralPath (Join-Path $projectRoot "CREDITS.md") -Destination (Join-
 $supportFiles = @(Get-ChildItem -LiteralPath (Join-Path $projectRoot "dist\StreamerSuite\parts") -Recurse -File)
 $appHash = (Get-FileHash -LiteralPath $appExe -Algorithm SHA256).Hash
 @(
-    "TDitbam Streamer Suite v3.6.0 separated application build",
+    "TDitbam Streamer Suite v$AppVersion separated application build",
     "Main executable: StreamerSuite.exe",
     "Support directory: parts\ ($($supportFiles.Count) files)",
     "Keep StreamerSuite.exe and the parts directory together.",
@@ -66,28 +148,37 @@ if (-not $iscc) {
     throw "Inno Setup 6 compiler (ISCC.exe) was not found. The app EXE was built successfully; install Inno Setup 6 and run this script again."
 }
 
-Write-Host "[2/2] Building the split installer parts..."
-& $iscc "installer_script.iss"
+Write-Host "[2/2] Building the single-file installer..."
+$installerScript = Join-Path $projectRoot "installer_script.iss"
+$versionPattern = '^#define\s+MyAppVersion\s+"' + [Regex]::Escape($AppVersion) + '"$'
+if (-not (Select-String -LiteralPath $installerScript -Pattern $versionPattern -Quiet)) {
+    throw "installer_script.iss does not declare MyAppVersion $AppVersion. Keep both release versions synchronized."
+}
+
+& $iscc $installerScript
 if ($LASTEXITCODE -ne 0) {
     throw "Inno Setup build failed with exit code $LASTEXITCODE"
 }
 
-$installerFiles = Get-ChildItem -LiteralPath (Join-Path $projectRoot "installer") -File |
-    Sort-Object Name
-if (-not $installerFiles) {
-    throw "Inno Setup completed without producing installer files."
+$installerPath = Join-Path $installerDir "$InstallerBaseName.exe"
+if (-not (Test-Path -LiteralPath $installerPath)) {
+    throw "Inno Setup completed without producing the expected installer: $installerPath"
 }
 
-$manifestLines = @(
-    "TDitbam Streamer Suite v3.6.0 installer parts",
-    "Keep the Setup EXE and every BIN part in the same directory.",
-    ""
-)
-foreach ($file in $installerFiles) {
-    $hash = (Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash
-    $manifestLines += "{0}`t{1} bytes`tSHA256 {2}" -f $file.Name, $file.Length, $hash
-}
-$manifestLines | Set-Content -LiteralPath (Join-Path $projectRoot "installer\PARTS.txt") -Encoding utf8
+$installerFile = Get-Item -LiteralPath $installerPath
+$installerHash = (Get-FileHash -LiteralPath $installerPath -Algorithm SHA256).Hash
+$checksumPath = Join-Path $installerDir "$InstallerBaseName-SHA256.txt"
+@(
+    "TDitbam Streamer Suite v$AppVersion single-file installer",
+    "File: $($installerFile.Name)",
+    "Size: $($installerFile.Length) bytes",
+    "SHA256: $installerHash"
+) | Set-Content -LiteralPath $checksumPath -Encoding utf8
 
 Write-Host "Release build complete."
-$installerFiles | ForEach-Object { Write-Host " - $($_.FullName)" }
+@(
+    $installerPath,
+    $checksumPath
+) | ForEach-Object {
+    Write-Host " - $_"
+}

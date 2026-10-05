@@ -1,10 +1,11 @@
-customtkinter
-TikTokLive
-edge-tts
-deep-translator
-pygame-ce
-psutil
-pystray
-Pillow
-gTTS
-pytchat
+# Runtime dependencies validated for TDitbam Streamer Suite v3.6.4.
+customtkinter==6.0.0
+TikTokLive==7.0.0
+edge-tts==7.2.8
+deep-translator==1.11.4
+pygame-ce==2.5.8
+psutil==7.2.2
+pystray==0.19.5
+Pillow==12.3.0
+gTTS==2.5.4
+pytchat==0.5.5
